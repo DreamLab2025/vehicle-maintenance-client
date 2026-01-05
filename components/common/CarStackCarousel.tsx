@@ -15,6 +15,7 @@ import {
   Star,
   Plus,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 type Car = {
   id: string;
@@ -213,8 +214,10 @@ function SlotCard({ slot, muted }: { slot: Slot; muted?: boolean }) {
 }
 
 function AddCarCard({ muted }: { muted?: boolean }) {
+  const router = useRouter();
   return (
     <button
+      onClick={() => router.push("/vehicle/add")}
       type="button"
       aria-label="Add vehicle"
       className={[

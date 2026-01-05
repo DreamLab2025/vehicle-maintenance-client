@@ -1,6 +1,6 @@
-import Header from "@/components/common/Header";
+import Providers from "@/lib/providers";
 import "./globals.css";
-import BottomNav from "@/components/common/BottomNav";
+import { Toaster } from "@/components/ui/toast";
 
 export default function RootLayout({
   children,
@@ -10,8 +10,14 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className="min-h-screen">
-        {children}
-        <BottomNav />
+        <Toaster
+          position="bottom-center"
+          toastOptions={{
+            className:
+              "bg-background text-foreground border border-border shadow-lg backdrop-blur-none",
+          }}
+        />
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
