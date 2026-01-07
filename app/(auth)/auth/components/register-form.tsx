@@ -29,7 +29,7 @@ export default function RegisterForm() {
 
     if (result.success) {
       toast.success("Register successful!");
-      router.push("/login");
+      router.push(`/verifyotp?key=${encodeURIComponent(email.trim())}`);
     } else {
       toast.error(result.error ?? "Register failed");
     }

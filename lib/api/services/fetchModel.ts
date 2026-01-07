@@ -1,15 +1,9 @@
-
 /** ===== Types ===== */
 
-import apiService, { RequestParams } from "../apiService";
+import coreApiService from "../coreApiService";
+import { RequestParams } from "../apiService";
 
-export type TransmissionType =
-  | "Manual"
-  | "Automatic"
-  | "Sport"
-  | "ManualCar"
-  | "AutomaticCar"
-  | "Electric";
+export type TransmissionType = "Manual" | "Automatic" | "Sport" | "ManualCar" | "AutomaticCar" | "Electric";
 
 export interface VehicleModel {
   id: string;
@@ -57,7 +51,6 @@ export interface ModelListResponse {
   metadata: PaginationMetadata;
 }
 
-
 export interface ModelQueryParams extends RequestParams {
   TypeId?: string;
   BrandId?: string;
@@ -70,12 +63,11 @@ export interface ModelQueryParams extends RequestParams {
   IsDescending?: boolean;
 }
 
-
 /** ===== Service ===== */
 
 export const ModelService = {
   getModels: async (params: ModelQueryParams) => {
-    const response = await apiService.get<ModelListResponse>("/api/v1/models", params);
+    const response = await coreApiService.get<ModelListResponse>("/api/v1/models", params);
     return response.data; // full response
   },
 };

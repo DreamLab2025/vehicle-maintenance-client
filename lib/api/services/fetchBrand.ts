@@ -1,7 +1,6 @@
-
 /** ===== Types ===== */
 
-import apiService from "../apiService";
+import coreApiService from "@/lib/api/coreApiService";
 
 export interface Brand {
   id: string;
@@ -41,10 +40,7 @@ export type BrandQueryParams = {
 export const BrandService = {
   // UI truyền params vào đây
   getBrands: async (params: BrandQueryParams) => {
-    const response = await apiService.get<BrandListResponse>(
-      "/api/v1/brands",
-      params
-    );
+    const response = await coreApiService.get<BrandListResponse>("/api/v1/brands", params);
     return response.data; // full: isSuccess + message + data + metadata
   },
 };

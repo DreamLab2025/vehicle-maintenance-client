@@ -1,23 +1,22 @@
+// hooks/useAuth.ts
+
 "use client";
 
 import { useState } from "react";
-import { fetchAuth, ApiResponse } from "@/lib/api/services/fetchAuth";
+import { fetchAuth } from "@/lib/api/services/fetchAuth";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
+import authApiService from "@/lib/api/authApiService";
+import coreApiService from "@/lib/api/coreApiService";
+
 /* ===================== TYPES ===================== */
 
 export interface User {
+  avatarUrl: string;
   userId: string;
   userName: string;
   email: string;
   role: string;
-}
-
-export interface LoginResponseData {
-  accessToken: string;
-  refreshToken: string;
-  expiresAt: string;
-  tokenType: string;
 }
 
 interface AuthState {
@@ -29,19 +28,18 @@ interface AuthState {
 
 interface AuthResult {
   success: boolean;
-  user: User | null;
+  user?: User | null;
   error?: string;
 }
 
 interface JwtPayload {
-  sub?: string;
   userId?: string;
-  userName?: string;
+  sub?: string;
   unique_name?: string;
+  userName?: string;
   email?: string;
-  role?: string;
+  role?: string | string[];
   exp?: number;
-  iat?: number;
 }
 
 /* ===================== HOOK ===================== */
@@ -54,7 +52,9 @@ export function useAuth() {
     error: null,
   });
 
-  /* ---------- Helpers ---------- */
+  const router = useRouter();
+
+  /* ---------- JWT HELPERS ---------- */
 
   const decodeJwt = (token: string): JwtPayload => {
     try {
@@ -67,38 +67,36 @@ export function useAuth() {
 
   const buildUserFromToken = (token: string): User => {
     const payload = decodeJwt(token);
+
     return {
       userId: payload.userId || payload.sub || "",
-      userName: payload.userName || payload.unique_name || "",
+      userName: payload.userName || payload.unique_name || payload.email?.split("@")[0] || "",
       email: payload.email || "",
-      role: payload.role || "",
+      role: Array.isArray(payload.role) ? payload.role[0] : payload.role || "User",
+      avatarUrl: `https://ui-avatars.com/api/?name=${payload.userName}&background=0D8ABC&color=fff`,
     };
   };
 
   /* ===================== LOGIN ===================== */
 
   const login = async (email: string, password: string): Promise<AuthResult> => {
-    setState((prev) => ({ ...prev, loading: true, error: null }));
+    setState((s) => ({ ...s, loading: true, error: null }));
 
     try {
-      const response: ApiResponse<LoginResponseData> = await fetchAuth<LoginResponseData>("/api/v1/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetchAuth.login(email, password);
 
-      if (!response.data?.accessToken) {
-        throw new Error("Access token not returned from server");
-      }
-
-      const token = response.data.accessToken;
+      const token = response.data.data.accessToken;
       const user = buildUserFromToken(token);
 
-      // ✅ Lưu cookie giống bản trên
+      // ✅ LƯU COOKIE
       setCookie("auth-token", token, {
         path: "/",
         sameSite: "lax",
       });
 
+      // ✅ SET TOKEN CHO APISERVICE
+      authApiService.setAuthToken(token);
+      coreApiService.setAuthToken(token);
       setState({
         user,
         accessToken: token,
@@ -109,106 +107,134 @@ export function useAuth() {
       return { success: true, user };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Đăng nhập thất bại";
-
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: message,
-      }));
-
-      return { success: false, user: null, error: message };
+      setState((s) => ({ ...s, loading: false, error: message }));
+      return { success: false, error: message };
     }
   };
 
   /* ===================== REGISTER ===================== */
 
   const register = async (email: string, password: string): Promise<AuthResult> => {
-    setState((prev) => ({ ...prev, loading: true, error: null }));
+    setState((s) => ({ ...s, loading: true, error: null }));
 
     try {
-      const response: ApiResponse<User> = await fetchAuth<User>("/api/v1/auth/register", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await fetchAuth.register(email, password);
+      const userData = response.data.data;
 
-      const user = response.data ?? null;
+      const user: User = {
+        userId: userData.id,
+        userName: userData.userName,
+        email: userData.email,
+        role: userData.roles[0] || "User",
+        avatarUrl: `https://ui-avatars.com/api/?name=${userData.userName}&background=0D8ABC&color=fff`,
+      };
 
-      setState((prev) => ({
-        ...prev,
-        user,
-        loading: false,
-        error: null,
-      }));
-
-      return { success: true, user };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Đăng ký thất bại";
-
-      setState((prev) => ({
-        ...prev,
-        loading: false,
-        error: message,
-      }));
-
-      return { success: false, user: null, error: message };
-    }
-  };
-
-  /* ===================== LOGOUT ===================== */
-  const router = useRouter();
-  const logout = (callback?: () => void) => {
-    try {
-      // Xoá cookie
-      deleteCookie("auth-token", { path: "/" });
-
-      // Xoá localStorage nếu lưu token
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("accessToken");
-      }
-
-      // Reset state
       setState({
-        user: null,
+        user,
         accessToken: null,
         loading: false,
         error: null,
       });
 
-      // Gọi callback nếu có (ví dụ đóng dropdown)
-      if (callback) callback();
-
-      // Redirect sang trang login
-      router.push("/login"); // <-- thêm dòng này
+      return { success: true, user };
     } catch (err) {
-      console.error("Logout failed:", err);
+      const message = err instanceof Error ? err.message : "Đăng ký thất bại";
+      setState((s) => ({ ...s, loading: false, error: message }));
+      return { success: false, error: message };
     }
   };
 
-  /* ===================== INIT FROM COOKIE ===================== */
+  /* ===================== VERIFY OTP ===================== */
 
-  const initAuthFromStorage = () => {
-    const token = getCookie("auth-token") as string | undefined;
-    if (!token) return;
+  const verifyOtp = async (email: string, otpCode: string): Promise<AuthResult> => {
+    setState((s) => ({ ...s, loading: true, error: null }));
 
-    const payload = decodeJwt(token);
-    const exp = Number(payload.exp);
+    try {
+      await fetchAuth.verifyOtp(email, otpCode);
 
-    if (exp && exp * 1000 < Date.now()) {
-      deleteCookie("auth-token", { path: "/" });
-      return;
+      setState((s) => ({ ...s, loading: false }));
+      return { success: true };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Mã OTP không đúng hoặc đã hết hạn";
+
+      setState((s) => ({ ...s, loading: false, error: message }));
+      return { success: false, error: message };
     }
+  };
 
-    const user = buildUserFromToken(token);
+  /* ===================== LOGOUT ===================== */
+
+  const logout = () => {
+    deleteCookie("auth-token", { path: "/" });
+
+    authApiService.setAuthToken(null);
 
     setState({
-      user,
-      accessToken: token,
+      user: null,
+      accessToken: null,
       loading: false,
       error: null,
     });
+
+    router.push("/login");
   };
 
-  /* ===================== RETURN ===================== */
+  /* ===================== INIT AUTH ===================== */
+
+  const initAuthFromStorage = async () => {
+    setState((s) => ({ ...s, loading: true }));
+
+    const token = getCookie("auth-token") as string | undefined;
+    if (!token) {
+      setState((s) => ({ ...s, loading: false }));
+      return;
+    }
+
+    const payload = decodeJwt(token);
+    const exp = payload.exp ? payload.exp * 1000 : 0;
+
+    const now = new Date().getTime(); // ✅ Tách ra biến
+    if (exp && exp < now) {
+      logout();
+      return;
+    }
+
+    authApiService.setAuthToken(token);
+    coreApiService.setAuthToken(token);
+
+    setState((s) => ({ ...s, accessToken: token }));
+
+    await fetchCurrentUser();
+
+    setState((s) => ({ ...s, loading: false }));
+  };
+
+  /* ===================== FETCH CURRENT USER ===================== */
+  const fetchCurrentUser = async (): Promise<User | null> => {
+    try {
+      const response = await fetchAuth.me();
+      const userData = response.data.data;
+      const user: User = {
+        userId: userData.id,
+        userName: userData.userName,
+        email: userData.email,
+        role: userData.roles[0] || "User",
+        avatarUrl: `https://ui-avatars.com/api/?name=${userData.userName}&background=0D8ABC&color=fff`,
+      };
+
+      setState((s) => ({
+        ...s,
+        user,
+        accessToken: s.accessToken, // token đã có từ Provider
+      }));
+
+      return user;
+    } catch (err) {
+      console.error("Lấy thông tin user thất bại:", err);
+      logout(); // 401 / token hết hạn
+      return null;
+    }
+  };
 
   return {
     user: state.user,
@@ -218,9 +244,10 @@ export function useAuth() {
 
     login,
     register,
+    verifyOtp,
     logout,
     initAuthFromStorage,
-
-    clearError: () => setState((prev) => ({ ...prev, error: null })),
+    fetchCurrentUser,
+    clearError: () => setState((s) => ({ ...s, error: null })),
   };
 }
