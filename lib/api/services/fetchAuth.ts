@@ -1,40 +1,61 @@
 // lib/api/services/fetchAuth.ts
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:8001";
+import authApiService from "@/lib/api/authApiService";
 
-export interface ApiResponse<T = unknown> {
-  isSuccess: boolean;
+/* ===================== RESPONSE TYPES ===================== */
+
+export interface ApiSuccessResponse<T> {
+  isSuccess: true;
   message: string;
-  data?: T;
+  data: T;
   metadata?: unknown | null;
 }
 
-export interface LoginResponse {
+/* ===================== DATA TYPES ===================== */
+
+export interface LoginResponseData {
   accessToken: string;
   refreshToken: string;
   expiresAt: string;
   tokenType: string;
 }
 
-export async function fetchAuth<T = unknown>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
-  const url = `${API_BASE_URL}${endpoint}`;
-
-  const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
-    },
-  });
-
-  const data = (await response.json()) as ApiResponse<T>;
-
-  if (!response.ok || !data.isSuccess) {
-    throw new Error(data.message || "Something went wrong");
-  }
-
-  return data;
+export interface RegisterResponseData {
+  id: string;
+  userName: string;
+  email: string;
+  phoneNumber: string;
+  isEmailConfirmed: boolean;
+  isPhoneNumberConfirmed: boolean;
+  status: string;
+  roles: string[];
+  createdAt: string;
 }
+
+export interface UserMeData {
+  id: string;
+  userName: string;
+  email: string;
+  phoneNumber: string;
+  isEmailConfirmed: boolean;
+  isPhoneNumberConfirmed: boolean;
+  status: string;
+  roles: string[];
+  createdAt: string;
+}
+
+/* ===================== AUTH APIs ===================== */
+
+export const fetchAuth = {
+  login: (email: string, password: string) =>
+    authApiService.post<ApiSuccessResponse<LoginResponseData>>("/api/v1/auth/login", { email, password }),
+
+  register: (email: string, password: string) =>
+    authApiService.post<ApiSuccessResponse<RegisterResponseData>>("/api/v1/auth/register", { email, password }),
+
+  verifyOtp: (email: string, otpCode: string) =>
+    authApiService.post<ApiSuccessResponse<boolean>>("/api/v1/auth/verify-otp", { email, otpCode }),
+
+  me: () => authApiService.get<ApiSuccessResponse<UserMeData>>("/api/v1/users/me"),
+};
+
+export default fetchAuth;
