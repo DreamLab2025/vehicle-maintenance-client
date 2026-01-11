@@ -9,10 +9,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, Mail, RefreshCw } from "lucide-react";
 
-import InputOTPCustom from "@/components/customized/input-otp/input-otp";
 import { maskEmail } from "@/utils/email/maskEmail";
 import { REGEX_EMAIL } from "@/utils/const/RegexStorage";
 import { useAuthClient } from "@/hooks/useAuthClient";
+import InputOTPCustom from "@/components/customized/input-otp/input-otp";
 
 /* ===================== HELPERS ===================== */
 
