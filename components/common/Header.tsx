@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, MapPin, LogOut, UserPlus } from "lucide-react";
+import { Bell, MapPin, LogOut, UserPlus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
@@ -20,12 +20,10 @@ export default function Header({
   const { user, loading, logout, initAuthFromStorage } = useAuth();
   const router = useRouter();
 
-  // Init auth khi component mount
   useEffect(() => {
     initAuthFromStorage();
   }, []);
 
-  // Đóng dropdown khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -36,34 +34,12 @@ export default function Header({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Nếu đang load user từ cookie/token, không render gì để tránh flash UI
   if (loading) return null;
 
   return (
     <header className="w-full">
       <div className="flex items-center justify-between gap-3 bg-white px-4 py-3 border-b border-black/5">
-        {/* Left button */}
-        <motion.button
-          type="button"
-          onClick={onMenuClick}
-          whileTap={{ scale: 0.94 }}
-          whileHover={{ scale: 1.03 }}
-          className="grid place-items-center h-11 w-11 rounded-full bg-black/5 border border-white/10 text-black/85"
-          aria-label="Menu"
-        >
-          <LayoutGrid className="h-5 w-5" />
-        </motion.button>
-
-        {/* Center info */}
-        <div className="min-w-0 flex-1 text-center">
-          <p className="text-[12px] leading-none text-black/55">{title}</p>
-          <div className="mt-1 flex items-center justify-center gap-1.5 min-w-0">
-            <MapPin className="h-4 w-4 text-red-600" />
-            <p className="truncate text-[15px] font-semibold text-black/90">{location}</p>
-          </div>
-        </div>
-
-        {/* Right side: Avatar hoặc Sign In */}
+        {/* 🔔 Left: Notification Bell */}
         <div className="relative" ref={dropdownRef}>
           {user ? (
             <>
@@ -112,6 +88,30 @@ export default function Header({
             </motion.button>
           )}
         </div>
+
+        {/* Center info */}
+        <div className="min-w-0 flex-1 text-center">
+          <p className="text-[12px] leading-none text-black/55">{title}</p>
+          <div className="mt-1 flex items-center justify-center gap-1.5 min-w-0">
+            <MapPin className="h-4 w-4 text-red-600" />
+            <p className="truncate text-[15px] font-semibold text-black/90">{location}</p>
+          </div>
+        </div>
+
+        {/* Right: Avatar / Sign In */}
+
+        <motion.button
+          type="button"
+          onClick={onMenuClick}
+          whileTap={{ scale: 0.94 }}
+          whileHover={{ scale: 1.03 }}
+          className="relative grid place-items-center h-11 w-11 rounded-full bg-black/5 border border-white/10 text-black/85"
+          aria-label="Notifications"
+        >
+          <Bell className="h-5 w-5" />
+          {/* badge (optional) */}
+          {/* <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500" /> */}
+        </motion.button>
       </div>
     </header>
   );

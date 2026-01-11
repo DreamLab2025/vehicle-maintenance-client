@@ -88,6 +88,26 @@ export class ApiService {
         return Promise.reject(apiError);
       }
     );
+
+    this.client.interceptors.response.use(
+  res => res,
+  (error: AxiosError<ApiErrorData>) => {
+    if (error.response?.status === 401) {
+      // Xử lý lỗi 401 (Unauthorized)
+      alert('Token xác thực không hợp lệ hoặc đã hết hạn');
+    }
+    const apiError: ApiError = {
+      status: error.response?.status,
+      message:
+        error.response?.data?.message ||
+        error.message ||
+        'Unknown error',
+      error: error.response?.data,
+    };
+
+    return Promise.reject(apiError);
+  }
+);
   }
 
   /* ---------- Helpers ---------- */
