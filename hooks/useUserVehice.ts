@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import UserVehicleService, {
   CreateUserVehicleRequest,
   CreateUserVehicleResponse,
   UserVehicleListResponse,
   UserVehicleQueryParams,
+  DeleteUserVehicleResponse,
 } from "@/lib/api/services/fetchUserVehicle";
 
 export function useCreateUserVehicle() {
@@ -29,6 +31,30 @@ export function useCreateUserVehicle() {
     vehicle: data?.data,
     metadata: data?.metadata,
     data,
+  };
+}
+
+export function useDeleteUserVehicle() {
+  const queryClient = useQueryClient();
+
+  const { mutate, mutateAsync, isPending, isError, error } = useMutation({
+    mutationKey: ["delete-user-vehicle"],
+    mutationFn: (id: string) => UserVehicleService.deleteUserVehicle(id),
+    onSuccess: (data: DeleteUserVehicleResponse) => {
+      queryClient.invalidateQueries({ queryKey: ["user-vehicles"] });
+      toast.success(data.message || "Xóa xe thành công!");
+    },
+    onError: (err: Error) => {
+      toast.error(err?.message || "Xóa xe thất bại!");
+    },
+  });
+
+  return {
+    deleteVehicle: mutate,
+    deleteVehicleAsync: mutateAsync,
+    isDeleting: isPending,
+    isError,
+    error,
   };
 }
 

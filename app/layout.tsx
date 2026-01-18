@@ -10,13 +10,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className="min-h-screen">
-        <Toaster
-          position="bottom-center"
-          toastOptions={{
-            className:
-              "bg-background text-foreground border border-border shadow-lg backdrop-blur-none",
-          }}
-        />
+        <Toaster position="bottom-center" />
         <Providers>{children}</Providers>
       </body>
     </html>
