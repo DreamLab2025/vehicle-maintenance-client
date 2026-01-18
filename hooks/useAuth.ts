@@ -168,6 +168,7 @@ export function useAuth() {
     deleteCookie("auth-token", { path: "/" });
 
     authApiService.setAuthToken(null);
+    coreApiService.setAuthToken(null);
 
     setState({
       user: null,

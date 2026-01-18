@@ -12,13 +12,41 @@ export interface CreateUserVehicleRequest {
   currentOdometer: number;
 }
 
+export interface VehicleModel {
+  id: string;
+  name: string;
+  brandId: string;
+  brandName: string;
+  typeId: string;
+  typeName: string;
+  releaseYear: number;
+  fuelType: number;
+  fuelTypeName: string;
+  transmissionType: number;
+  transmissionTypeName: string;
+  engineDisplacementDisplay: string | null;
+  engineCapacity: number | null;
+  oilCapacity: number | null;
+  tireSizeFront: string | null;
+  tireSizeRear: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface UserVehicleVariant {
+  id: string;
+  vehicleModelId: string;
+  color: string;
+  hexCode: string;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string | null;
+  model: VehicleModel;
+}
+
 export interface UserVehicle {
   id: string;
   userId: string;
-  vehicleModelId: string;
-  vehicleModelName: string;
-  brandName: string;
-  typeName: string;
   licensePlate: string;
   nickname: string;
   vinNumber: string;
@@ -29,6 +57,7 @@ export interface UserVehicle {
   lastCalculatedDate: string | null;
   createdAt: string;
   updatedAt: string | null;
+  userVehicleVariant: UserVehicleVariant;
 }
 
 export interface PaginationMetadata {
@@ -60,6 +89,13 @@ export interface UserVehicleQueryParams extends RequestParams {
   IsDescending?: boolean;
 }
 
+export interface DeleteUserVehicleResponse {
+  isSuccess: boolean;
+  message: string;
+  data: string;
+  metadata: string;
+}
+
 /** ===== Service ===== */
 export const UserVehicleService = {
   createUserVehicle: async (payload: CreateUserVehicleRequest) => {
@@ -69,6 +105,11 @@ export const UserVehicleService = {
 
   getUserVehicles: async (params: UserVehicleQueryParams) => {
     const response = await coreApiService.get<UserVehicleListResponse>("/api/v1/user-vehicles", params);
+    return response.data;
+  },
+
+  deleteUserVehicle: async (id: string) => {
+    const response = await coreApiService.delete<DeleteUserVehicleResponse>(`/api/v1/user-vehicles/${id}`);
     return response.data;
   },
 };
