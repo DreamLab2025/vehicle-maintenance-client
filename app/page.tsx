@@ -1,4 +1,5 @@
 "use client";
+import { IoCalendarSharp } from "react-icons/io5";
 
 import Header from "@/components/common/Header";
 import React, { useState } from "react";
@@ -13,16 +14,21 @@ import {
   Droplets,
   Settings,
   Plus,
-  Car,
   Gauge,
-  Fuel,
   CheckCircle2,
   Sparkles,
+  AlertCircle,
+  MotorbikeIcon,
+  ShieldCheckIcon,
 } from "lucide-react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { useUserVehicles } from "@/hooks/useUserVehice";
+import { useDefaultSchedules } from "@/hooks/useDefaultSchedule";
 import BottomNav from "@/components/common/BottomNav";
 import { useRouter } from "next/navigation";
+import { BsWrenchAdjustable } from "react-icons/bs";
+import { PiGarageFill } from "react-icons/pi";
+import { FaBell } from "react-icons/fa";
 
 // Mock data for vehicle maintenance
 const MOCK_VEHICLE_ID = "019badfe-bbe9-7f52-88f7-90ecc92be494";
@@ -91,9 +97,39 @@ export default function Page() {
   const isAddVehicleCard = currentVehicleIndex === vehicles.length;
   const currentVehicle = isAddVehicleCard ? null : vehicles[currentVehicleIndex] || vehicles[0];
 
+  // Get vehicleModelId from current vehicle
+  const vehicleModelId = currentVehicle?.userVehicleVariant?.vehicleModelId || 
+                         currentVehicle?.userVehicleVariant?.model?.id;
+
+  // Fetch default schedules for the current vehicle model
+  const { schedules: defaultSchedules, isLoading: isLoadingSchedules } = useDefaultSchedules(
+    vehicleModelId,
+    !!vehicleModelId && !isAddVehicleCard
+  );
+
   const currentVehicleData = currentVehicle ? vehicleDataMap[currentVehicle.id as keyof typeof vehicleDataMap] : null;
 
-  const maintenanceReminders = currentVehicleData?.reminders || [];
+  // Mock: Track which parts have been configured for reminder
+  // TODO: Replace with actual API call to check configured parts
+  const [configuredParts] = useState<Set<string>>(new Set());
+
+  // Use API data for maintenance reminders, fallback to mock data
+  const maintenanceReminders = defaultSchedules.length > 0 
+    ? defaultSchedules.map((schedule) => {
+        const isConfigured = configuredParts.has(schedule.id);
+        return {
+          id: schedule.id,
+          type: "scheduled" as const,
+          title: schedule.partCategoryName,
+          description: schedule.partCategoryDescription,
+          dueKm: schedule.kmInterval > 0 ? `${schedule.kmInterval.toLocaleString()} km` : "",
+          icon: Droplets, // Default icon, can be customized based on partCategoryCode
+          partCategoryCode: schedule.partCategoryCode,
+          isConfigured, // Track if this part has been configured for reminder
+        };
+      })
+    : currentVehicleData?.reminders || [];
+  
   const upcomingSchedule = currentVehicleData?.schedule || [];
 
   const handleDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -153,9 +189,9 @@ export default function Page() {
                 {isAddVehicleCard ? (
                   // Add Vehicle Card
                   <div
-                    onClick={() => router.push("/vehicle/add")}
-                    className="bg-white rounded-[20px] p-6 flex flex-col items-center justify-center min-h-[180px] border-2 border-dashed border-neutral-200 cursor-pointer hover:border-red-300 hover:bg-red-50/30 transition-all"
-                  >
+                  onClick={() => router.push("/vehicle/add")}
+                  className="bg-white rounded-[20px] p-6 flex flex-col items-center justify-center h-[200px] border-2 border-dashed border-neutral-200 cursor-pointer hover:border-red-300 hover:bg-red-50/30 transition-all"
+                >
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center mb-3 shadow-lg shadow-red-500/20">
                       <Plus className="h-7 w-7 text-white" />
                     </div>
@@ -164,54 +200,72 @@ export default function Page() {
                   </div>
                 ) : (
                   // Vehicle Info Card
-                  <div className="bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 rounded-[20px] p-5 text-white overflow-hidden relative">
+                  <div 
+                    className="rounded-[20px] p-5 text-white overflow-hidden relative h-[200px] flex flex-col"
+                    style={{
+                      backgroundImage: `url('/images/Card_bg.png')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                    }}
+                  >
                     {/* Subtle glow effect */}
                     <div className="absolute -top-20 -right-20 w-40 h-40 bg-red-500/20 rounded-full blur-3xl" />
 
                     {/* Header */}
                     <div className="flex items-start justify-between mb-4 relative">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
-                          <Car className="h-6 w-6 text-white/90" />
-                        </div>
+                        <div 
+                          className="w-12 h-12 rounded-xl bg-white flex items-center justify-center overflow-hidden"
+                          style={{
+                            backgroundImage: `url('/images/logo_only.png')`,
+                            backgroundSize: '70%',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                          }}
+                        />
                         <div>
                           <h1 className="text-lg font-semibold leading-tight">
-                            {currentVehicle?.userVehicleVariant.model.brandName || "Honda"}
+                            {currentVehicle?.userVehicleVariant.model.brandName }
                           </h1>
-                          <p className="text-white/50 text-[13px]">
+                          <p className="text-white/50 text-[13px] font-normal">
                             {currentVehicle?.userVehicleVariant.model.name || "City"}
                           </p>
                         </div>
                       </div>
-                      <div className="px-3 py-1.5 rounded-lg bg-white/10 text-[13px] font-medium">
-                        {currentVehicle?.licensePlate || "59A-12345"}
+                      <div className="
+                      flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/10 text-[13px] font-medium">
+                        <ShieldCheckIcon className="h-5 w-5 text-green-500" />
+                        <span className="text-[13px] font-medium">
+                          {currentVehicle?.licensePlate || "59A-12345"}
+                        </span>
                       </div>
                     </div>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-2 relative">
+                    <div className="flex items-center gap-2 pt-5 relative ">
                       <div className="flex-1 bg-white/5 rounded-xl p-3">
                         <div className="flex items-center gap-1.5 text-white/40 text-[11px] mb-1">
                           <Gauge className="h-3 w-3" />
                           Odometer
                         </div>
-                        <p className="text-[17px] font-semibold">
+                        <p className="text-[17px] font-bold">
                           {currentVehicle ? `${(currentVehicle.currentOdometer / 1000).toFixed(1)}k` : "15.2k"} km
                         </p>
                       </div>
                       <div className="flex-1 bg-white/5 rounded-xl p-3">
                         <div className="flex items-center gap-1.5 text-white/40 text-[11px] mb-1">
-                          <Fuel className="h-3 w-3" />
-                          TB/ngày
+                          <MotorbikeIcon className="h-3 w-3" />
+                          / ngày
                         </div>
-                        <p className="text-[17px] font-semibold">{currentVehicle?.averageKmPerDay || 45} km</p>
+                        <p className="text-[17px] font-bold">{currentVehicle?.averageKmPerDay || 45} km</p>
                       </div>
                       <button
                         onClick={() => router.push(`/vehicle/${currentVehicle?.id}`)}
-                        className="h-full px-4 py-3 bg-red-500 hover:bg-red-600 rounded-xl flex items-center gap-1 transition-colors"
+                        className="h-full px-4 py-3 bg-gradient-to-r from-[#a73f3f] to-[#fa230b] hover:opacity-90 rounded-xl flex items-center gap-1 transition-all"
                       >
-                        <span className="text-[13px] font-medium">Chi tiết</span>
-                        <ChevronRight className="h-4 w-4" />
+                        <span className="text-[13px] font-medium text-white">Chi tiết</span>
+                        <ChevronRight className="h-4 w-4 text-white" />
                       </button>
                     </div>
                   </div>
@@ -244,25 +298,11 @@ export default function Page() {
           className="grid grid-cols-4 gap-3"
         >
           {[
-            { icon: Calendar, label: "Đặt lịch", color: "from-red-500 to-red-600", shadow: "shadow-red-500/20" },
-            {
-              icon: Wrench,
-              label: "Lịch sử",
-              color: "from-neutral-700 to-neutral-800",
-              shadow: "shadow-neutral-500/20",
-            },
-            {
-              icon: MapPin,
-              label: "Garage",
-              color: "from-neutral-700 to-neutral-800",
-              shadow: "shadow-neutral-500/20",
-            },
-            {
-              icon: Bell,
-              label: "Thông báo",
-              color: "from-neutral-700 to-neutral-800",
-              shadow: "shadow-neutral-500/20",
-            },
+            { icon: IoCalendarSharp, label: "Đặt lịch" },
+            { icon: BsWrenchAdjustable ,
+              label: "Lịch sử" },
+            { icon: PiGarageFill , label: "Garage" },
+            { icon: FaBell , label: "Thông báo" },
           ].map((item, index) => (
             <motion.button
               key={item.label}
@@ -271,10 +311,10 @@ export default function Page() {
               transition={{ delay: 0.08 + index * 0.03 }}
               className="bg-white rounded-2xl p-3 flex flex-col items-center gap-2 shadow-sm hover:shadow-md transition-shadow"
             >
-              <div
-                className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg ${item.shadow}`}
-              >
-                <item.icon className="h-5 w-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-[#6b6161] to-[#dd1818] p-[2px]">
+                <div className="w-full h-full rounded-lg bg-red flex items-center justify-center">
+                  {React.createElement(item.icon, { className: "h-5 w-5 text-white" })}
+                </div>
               </div>
               <span className="text-[11px] font-medium text-neutral-600">{item.label}</span>
             </motion.button>
@@ -284,11 +324,17 @@ export default function Page() {
         {/* Maintenance Reminders */}
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[15px] font-semibold text-neutral-900">Nhắc nhở bảo dưỡng</h2>
+            <h2 className="text-[15px] font-semibold text-neutral-900">Phụ tùng</h2>
             <button className="text-red-500 text-[13px] font-medium">Xem tất cả</button>
           </div>
 
-          {maintenanceReminders.length === 0 ? (
+          {isLoadingSchedules ? (
+            <div className="space-y-2.5">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-2xl p-4 h-20 animate-pulse" />
+              ))}
+            </div>
+          ) : maintenanceReminders.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-3">
                 <Sparkles className="h-6 w-6 text-neutral-400" />
@@ -302,6 +348,14 @@ export default function Page() {
                 const Icon = reminder.icon;
                 const isUrgent = reminder.type === "urgent";
                 const isWarning = reminder.type === "warning";
+                const isNotConfigured = "isConfigured" in reminder && typeof reminder.isConfigured === "boolean" && !reminder.isConfigured;
+
+                const partCategoryCode = "partCategoryCode" in reminder ? reminder.partCategoryCode : "";
+                const handlePartClick = () => {
+                  if (partCategoryCode && currentVehicle?.id) {
+                    router.push(`/vehicle/${currentVehicle.id}/parts/${partCategoryCode}`);
+                  }
+                };
 
                 return (
                   <motion.div
@@ -309,10 +363,25 @@ export default function Page() {
                     initial={{ opacity: 0, x: -16 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.12 + index * 0.05 }}
-                    className={`bg-white rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98] ${
+                    onClick={handlePartClick}
+                    className={`bg-white rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98] relative ${
                       isUrgent ? "ring-1 ring-red-100" : ""
                     }`}
                   >
+                    {/* Badge "Chưa cấu hình" ở góc phải trên */}
+                    {isNotConfigured && (
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="absolute top-2 right-2 z-10"
+                      >
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-semibold shadow-sm">
+                          <AlertCircle className="w-3 h-3" strokeWidth={2.5} />
+                          Chưa cấu hình
+                        </span>
+                      </motion.div>
+                    )}
+
                     <div
                       className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         isUrgent

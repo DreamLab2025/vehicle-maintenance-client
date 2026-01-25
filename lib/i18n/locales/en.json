@@ -9,7 +9,8 @@
     "notifications": "Notifications",
     "viewAll": "View all",
     "details": "Details",
-    "addNew": "Add new"
+    "addNew": "Add new",
+    "language": "Language"
   },
   "home": {
     "currentVehicle": "Current Vehicle",
