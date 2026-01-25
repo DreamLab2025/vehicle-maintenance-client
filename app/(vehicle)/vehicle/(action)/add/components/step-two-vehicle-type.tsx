@@ -13,9 +13,10 @@ interface StepTwoProps {
 
 const normalizeTypeKey = (name: string): VehicleTypeKey | null => {
   const n = name.trim().toLowerCase();
-  if (n === "motorcycle") return "motorcycle";
-  if (n === "car") return "car";
-  if (n === "electric vehicle" || n === "electric") return "electric";
+  // Support both English and Vietnamese names
+  if (n === "motorcycle" || n === "xe máy") return "motorcycle";
+  if (n === "car" || n === "xe ô tô" || n === "ô tô") return "car";
+  if (n === "electric vehicle" || n === "electric" || n === "xe điện") return "electric";
   return null;
 };
 
