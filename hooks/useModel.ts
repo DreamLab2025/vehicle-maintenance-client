@@ -1,5 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import ModelService, { ModelListResponse, ModelQueryParams } from "@/lib/api/services/fetchModel";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import ModelService, {
+  CreateModelRequest,
+  ModelDetailResponse,
+  ModelListResponse,
+  ModelQueryParams,
+  UpdateModelRequest,
+} from "@/lib/api/services/fetchModel";
 
 type UseModelsSelected = {
   models: ModelListResponse["data"];
@@ -35,4 +41,60 @@ export function useModels(params: ModelQueryParams, enabled: boolean = true) {
     message: query.data?.message,
     isSuccess: query.data?.isSuccess,
   };
+}
+export function useModelById(id: string, enabled: boolean = true) {
+  const query = useQuery<ModelDetailResponse, Error>({
+    queryKey: ["models", "detail", id],
+    queryFn: () => ModelService.getModelById(id),
+    enabled: enabled && !!id,
+    staleTime: 30_000,
+  });
+
+  return {
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+    model: query.data?.data,
+    message: query.data?.message,
+    isSuccess: query.data?.isSuccess,
+  };
+}
+
+/** ===== Hook tạo model mới ===== */
+export function useCreateModel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateModelRequest) => ModelService.createModel(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["models", "list"] });
+    },
+  });
+}
+
+/** ===== Hook cập nhật model ===== */
+export function useUpdateModel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateModelRequest }) => ModelService.updateModel(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["models", "list"] });
+      queryClient.invalidateQueries({ queryKey: ["models", "detail", variables.id] });
+    },
+  });
+}
+
+/** ===== Hook xóa model ===== */
+export function useDeleteModel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => ModelService.deleteModel(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["models", "list"] });
+    },
+  });
 }

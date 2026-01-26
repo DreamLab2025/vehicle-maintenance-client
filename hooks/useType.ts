@@ -1,5 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
-import TypeService, { TypeListResponse, TypeQueryParams } from "@/lib/api/services/fetchType";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import TypeService, {
+  TypeCreatePayload,
+  TypeDeleteResponse,
+  TypeListResponse,
+  TypeQueryParams,
+  TypeSingleResponse,
+  TypeUpdatePayload,
+} from "@/lib/api/services/fetchType";
+import { ApiError } from "@/lib/api/apiService";
+import { toast } from "sonner";
 
 export function useTypes(params: TypeQueryParams, enabled: boolean = true) {
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
@@ -25,4 +34,82 @@ export function useTypes(params: TypeQueryParams, enabled: boolean = true) {
     message: data?.message,
     isSuccess: data?.isSuccess,
   };
+}
+/**
+ * Hook to fetch a single vehicle type by ID
+ */
+// export function useType(typeId?: string) {
+//   return useQuery({
+//     queryKey: ["types", "detail", typeId],
+//     queryFn: () => TypeService.getTypeById(typeId!),
+//     enabled: !!typeId,
+//     select: (response: TypeSingleResponse) => ({
+//       type: response.data,
+//       message: response.message,
+//       isSuccess: response.isSuccess,
+//     }),
+//   });
+// }
+
+/**
+ * Hook to create a new vehicle type (Admin only)
+ */
+export function useCreateType() {
+  const queryClient = useQueryClient();
+
+  return useMutation<TypeSingleResponse, ApiError, TypeCreatePayload>({
+    mutationFn: (payload) => TypeService.createType(payload),
+    onSuccess: (data) => {
+      if (data.isSuccess) {
+        queryClient.invalidateQueries({ queryKey: ["types", "list"] });
+        toast.success(data.message || "Tạo loại xe thành công");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Tạo loại xe thất bại");
+    },
+  });
+}
+
+/**
+ * Hook to update an existing vehicle type (Admin only)
+ */
+export function useUpdateType() {
+  const queryClient = useQueryClient();
+
+  return useMutation<TypeSingleResponse, ApiError, { id: string; payload: TypeUpdatePayload }>({
+    mutationFn: ({ id, payload }) => TypeService.updateType(id, payload),
+    onSuccess: (data) => {
+      if (data.isSuccess) {
+        queryClient.invalidateQueries({ queryKey: ["types", "list"] });
+        queryClient.invalidateQueries({ queryKey: ["types", "detail"] });
+        toast.success(data.message || "Cập nhật loại xe thành công");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Cập nhật loại xe thất bại");
+    },
+  });
+}
+
+/**
+ * Hook to delete a vehicle type (Admin only)
+ */
+export function useDeleteType() {
+  const queryClient = useQueryClient();
+
+  return useMutation<TypeDeleteResponse, ApiError, string>({
+    mutationFn: (typeId) => TypeService.deleteType(typeId),
+    onSuccess: (data) => {
+      if (data.isSuccess) {
+        queryClient.invalidateQueries({ queryKey: ["types", "list"] });
+        toast.success(data.message || "Xóa loại xe thành công");
+      } else {
+        toast.error(data.message || "Xóa loại xe thất bại");
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || "Xóa loại xe thất bại");
+    },
+  });
 }
