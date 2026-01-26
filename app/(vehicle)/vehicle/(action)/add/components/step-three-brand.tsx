@@ -15,6 +15,15 @@ interface StepThreeProps {
 
 export function StepThreeBrand({ vehicleType, selectedBrandId, onSelect, onBrandSelected, onClear }: StepThreeProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  function isValidImageUrl(url?: string) {
+    if (!url) return false;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   // UI truyền params (phân trang + sort)
   const { brands, isLoading, isError } = useBrands(
@@ -107,18 +116,18 @@ export function StepThreeBrand({ vehicleType, selectedBrandId, onSelect, onBrand
                 )}
 
                 <div className="relative h-14 w-14 mx-auto bg-white/70 rounded-lg flex items-center justify-center overflow-hidden">
-                  {brand.logoUrl ? (
+                  {isValidImageUrl(brand.logoUrl) ? (
                     <Image
                       src={brand.logoUrl}
                       alt={brand.name}
                       fill
+                      sizes="56px"
                       className={`object-contain transition-transform duration-300 ${
                         isSelected ? "scale-110" : "group-hover:scale-105"
                       }`}
-                      sizes="56px"
                     />
                   ) : (
-                    <span className="text-xs text-gray-400">{brand.name}</span>
+                    <span className="text-xs text-gray-400 text-center px-1">{brand.name}</span>
                   )}
                 </div>
               </Card>
