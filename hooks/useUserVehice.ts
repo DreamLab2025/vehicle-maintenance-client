@@ -6,6 +6,9 @@ import UserVehicleService, {
   UserVehicleListResponse,
   UserVehicleQueryParams,
   DeleteUserVehicleResponse,
+  UserVehiclePartsResponse,
+  AnalyzeQuestionnaireRequest,
+  ApplyTrackingRequest,
 } from "@/lib/api/services/fetchUserVehicle";
 
 export function useCreateUserVehicle() {
@@ -82,5 +85,82 @@ export function useUserVehicles(params: UserVehicleQueryParams, enabled: boolean
     metadata: data?.metadata,
     message: data?.message,
     isSuccess: data?.isSuccess,
+  };
+}
+
+export function useUserVehicleParts(userVehicleId: string, enabled: boolean = true) {
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
+    queryKey: ["user-vehicle-parts", userVehicleId],
+    queryFn: () => UserVehicleService.getUserVehicleParts(userVehicleId),
+    enabled: enabled && !!userVehicleId,
+    select: (data: UserVehiclePartsResponse) => ({
+      parts: data.data ?? [],
+      message: data.message,
+      isSuccess: data.isSuccess,
+    }),
+  });
+
+  return {
+    refetch,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    parts: data?.parts ?? [],
+    message: data?.message,
+    isSuccess: data?.isSuccess,
+  };
+}
+
+export function useAnalyzeQuestionnaire() {
+  const { mutate, mutateAsync, data, isPending, isError, error, reset } = useMutation({
+    mutationKey: ["analyze-questionnaire"],
+    mutationFn: (payload: AnalyzeQuestionnaireRequest) => UserVehicleService.analyzeQuestionnaire(payload),
+    onError: (err: Error) => {
+      toast.error(err?.message || "Phân tích thất bại!");
+    },
+  });
+
+  return {
+    analyze: mutate,
+    analyzeAsync: mutateAsync,
+    reset,
+    isAnalyzing: isPending,
+    isError,
+    error,
+    data: data?.data,
+    recommendations: data?.data?.recommendations ?? [],
+    warnings: data?.data?.warnings ?? [],
+    isSuccess: data?.isSuccess,
+    message: data?.message,
+  };
+}
+
+export function useApplyTracking() {
+  const queryClient = useQueryClient();
+
+  const { mutate, mutateAsync, data, isPending, isError, error, reset } = useMutation({
+    mutationKey: ["apply-tracking"],
+    mutationFn: ({ userVehicleId, payload }: { userVehicleId: string; payload: ApplyTrackingRequest }) =>
+      UserVehicleService.applyTracking(userVehicleId, payload),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["user-vehicle-parts"] });
+      toast.success(data.message || "Áp dụng cấu hình thành công!");
+    },
+    onError: (err: Error) => {
+      toast.error(err?.message || "Áp dụng cấu hình thất bại!");
+    },
+  });
+
+  return {
+    apply: mutate,
+    applyAsync: mutateAsync,
+    reset,
+    isApplying: isPending,
+    isError,
+    error,
+    data: data?.data,
+    isSuccess: data?.isSuccess,
+    message: data?.message,
   };
 }
