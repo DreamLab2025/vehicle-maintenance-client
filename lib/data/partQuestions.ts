@@ -23,7 +23,7 @@ export interface PartQuestionConfig {
   questions: Question[];
 }
 
-// Questions configuration for ENGINE-OIL
+// Questions configuration for ENGINE-OIL 
 export const ENGINE_OIL_QUESTIONS: PartQuestionConfig = {
   partCategoryCode: "ENGINE-OIL",
   partCategoryName: "Dầu nhớt động cơ",

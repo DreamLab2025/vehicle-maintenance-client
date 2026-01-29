@@ -1,6 +1,7 @@
 // src/lib/api/services/fetchUserVehicle.ts
 /** ===== Types ===== */
 import coreApiService from "../coreApiService";
+import aiApiService from "../aiApiService";
 import { RequestParams } from "../apiService";
 
 export interface CreateUserVehicleRequest {
@@ -96,6 +97,117 @@ export interface DeleteUserVehicleResponse {
   metadata: string;
 }
 
+/** ===== User Vehicle Parts Types ===== */
+export interface UserVehiclePart {
+  id: string;
+  partCategoryId: string;
+  partCategoryName: string;
+  partCategoryCode: string;
+  iconUrl: string;
+  isDeclared: boolean;
+  description: string;
+}
+
+export interface UserVehiclePartsResponse {
+  isSuccess: boolean;
+  message: string;
+  data: UserVehiclePart[];
+  metadata: unknown;
+}
+
+/** ===== AI Analyze Questionnaire Types ===== */
+export interface QuestionAnswer {
+  question: string;
+  value: string;
+}
+
+export interface AnalyzeQuestionnaireRequest {
+  userVehicleId: string;
+  vehicleModelId: string;
+  partCategoryCode: string;
+  answers: QuestionAnswer[];
+}
+
+export interface AIRecommendation {
+  partCategoryCode: string;
+  lastReplacementOdometer: number;
+  lastReplacementDate: string;
+  predictedNextOdometer: number;
+  predictedNextDate: string;
+  confidenceScore: number;
+  reasoning: string;
+  needsImmediateAttention: boolean;
+}
+
+export interface AIMetadata {
+  model: string;
+  totalTokens: number;
+  totalCost: number;
+  responseTimeMs: number;
+}
+
+export interface AnalyzeQuestionnaireData {
+  recommendations: AIRecommendation[];
+  warnings: string[];
+  metadata: AIMetadata;
+}
+
+export interface AnalyzeQuestionnaireResponse {
+  isSuccess: boolean;
+  message: string;
+  data: AnalyzeQuestionnaireData;
+  metadata: string;
+}
+
+/** ===== Apply Tracking Types ===== */
+export interface ApplyTrackingRequest {
+  partCategoryCode: string;
+  lastReplacementOdometer: number;
+  lastReplacementDate: string;
+  predictedNextOdometer: number;
+  predictedNextDate: string;
+  aiReasoning: string;
+  confidenceScore: number;
+}
+
+export interface PartTrackingReminder {
+  id: string;
+  level: string;
+  currentOdometer: number;
+  targetOdometer: number;
+  targetDate: string;
+  percentageRemaining: number;
+  isNotified: boolean;
+  notifiedDate: string;
+  isDismissed: boolean;
+  dismissedDate: string;
+}
+
+export interface ApplyTrackingData {
+  id: string;
+  partCategoryId: string;
+  partCategoryName: string;
+  partCategoryCode: string;
+  instanceIdentifier: string;
+  currentPartProductId: string;
+  currentPartProductName: string;
+  lastReplacementOdometer: number;
+  lastReplacementDate: string;
+  customKmInterval: number;
+  customMonthsInterval: number;
+  predictedNextOdometer: number;
+  predictedNextDate: string;
+  isDeclared: boolean;
+  reminders: PartTrackingReminder[];
+}
+
+export interface ApplyTrackingResponse {
+  isSuccess: boolean;
+  message: string;
+  data: ApplyTrackingData;
+  metadata: string;
+}
+
 /** ===== Service ===== */
 export const UserVehicleService = {
   createUserVehicle: async (payload: CreateUserVehicleRequest) => {
@@ -110,6 +222,27 @@ export const UserVehicleService = {
 
   deleteUserVehicle: async (id: string) => {
     const response = await coreApiService.delete<DeleteUserVehicleResponse>(`/api/v1/user-vehicles/${id}`);
+    return response.data;
+  },
+
+  getUserVehicleParts: async (userVehicleId: string) => {
+    const response = await coreApiService.get<UserVehiclePartsResponse>(`/api/v1/user-vehicles/${userVehicleId}/parts`);
+    return response.data;
+  },
+
+  analyzeQuestionnaire: async (payload: AnalyzeQuestionnaireRequest) => {
+    const response = await aiApiService.post<AnalyzeQuestionnaireResponse>(
+      "/api/v1/ai/vehicle-questionnaire/analyze",
+      payload
+    );
+    return response.data;
+  },
+
+  applyTracking: async (userVehicleId: string, payload: ApplyTrackingRequest) => {
+    const response = await coreApiService.post<ApplyTrackingResponse>(
+      `/api/v1/user-vehicles/${userVehicleId}/apply-tracking`,
+      payload
+    );
     return response.data;
   },
 };
