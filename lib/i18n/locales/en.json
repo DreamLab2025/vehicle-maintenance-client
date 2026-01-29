@@ -1,0 +1,54 @@
+{
+  "common": {
+    "appName": "Verendar",
+    "tagline": "Take care your bike - Like your wallet",
+    "login": "Login",
+    "logout": "Logout",
+    "profile": "My Profile",
+    "account": "Account",
+    "notifications": "Notifications",
+    "viewAll": "View all",
+    "details": "Details",
+    "addNew": "Add new",
+    "language": "Language"
+  },
+  "home": {
+    "currentVehicle": "Current Vehicle",
+    "addVehicle": "Add new vehicle",
+    "addVehicleDesc": "Track your vehicle maintenance",
+    "odometer": "Odometer",
+    "avgPerDay": "Avg/day",
+    "schedule": "Schedule",
+    "history": "History",
+    "garage": "Garage",
+    "maintenanceReminders": "Maintenance Reminders",
+    "upcomingSchedule": "Upcoming Schedule",
+    "noReminders": "Excellent!",
+    "noRemindersDesc": "Your vehicle is in great condition",
+    "noSchedule": "No appointments yet",
+    "noScheduleDesc": "Book a maintenance for your vehicle",
+    "bookMaintenance": "Book Maintenance",
+    "urgent": "Urgent"
+  },
+  "nav": {
+    "home": "Home",
+    "map": "Map",
+    "settings": "Settings",
+    "account": "Account"
+  },
+  "map": {
+    "title": "Find garage",
+    "searchPlaceholder": "Find nearby garage...",
+    "nearbyGarages": "Nearby garages",
+    "distance": "Distance",
+    "rating": "Rating",
+    "open": "Open",
+    "closed": "Closed",
+    "getDirections": "Get directions",
+    "call": "Call"
+  },
+  "language": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}

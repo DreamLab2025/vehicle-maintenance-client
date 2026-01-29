@@ -1,0 +1,54 @@
+{
+  "common": {
+    "appName": "Verendar",
+    "tagline": "Chăm sóc xe như chăm sóc ví tiền",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "profile": "Hồ sơ cá nhân",
+    "account": "Tài khoản",
+    "notifications": "Thông báo",
+    "viewAll": "Xem tất cả",
+    "details": "Chi tiết",
+    "addNew": "Thêm mới",
+    "language": "Ngôn ngữ"
+  },
+  "home": {
+    "currentVehicle": "Xe hiện tại",
+    "addVehicle": "Thêm xe mới",
+    "addVehicleDesc": "Theo dõi bảo dưỡng xe của bạn",
+    "odometer": "Số km",
+    "avgPerDay": "TB/ngày",
+    "schedule": "Đặt lịch",
+    "history": "Lịch sử",
+    "garage": "Garage",
+    "maintenanceReminders": "Nhắc nhở bảo dưỡng",
+    "upcomingSchedule": "Lịch sắp tới",
+    "noReminders": "Tuyệt vời!",
+    "noRemindersDesc": "Xe của bạn đang trong tình trạng tốt",
+    "noSchedule": "Chưa có lịch hẹn",
+    "noScheduleDesc": "Đặt lịch bảo dưỡng cho xe của bạn",
+    "bookMaintenance": "Đặt lịch bảo dưỡng",
+    "urgent": "Khẩn"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "map": "Bản đồ",
+    "settings": "Cài đặt",
+    "account": "Tài khoản"
+  },
+  "map": {
+    "title": "Tìm garage",
+    "searchPlaceholder": "Tìm garage gần bạn...",
+    "nearbyGarages": "Garage gần đây",
+    "distance": "Cách",
+    "rating": "Đánh giá",
+    "open": "Đang mở",
+    "closed": "Đã đóng",
+    "getDirections": "Chỉ đường",
+    "call": "Gọi điện"
+  },
+  "language": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}
