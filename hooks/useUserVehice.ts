@@ -9,6 +9,7 @@ import UserVehicleService, {
   UserVehiclePartsResponse,
   AnalyzeQuestionnaireRequest,
   ApplyTrackingRequest,
+  VehicleRemindersResponse,
 } from "@/lib/api/services/fetchUserVehicle";
 
 export function useCreateUserVehicle() {
@@ -162,5 +163,29 @@ export function useApplyTracking() {
     data: data?.data,
     isSuccess: data?.isSuccess,
     message: data?.message,
+  };
+}
+
+export function useUserVehicleReminders(userVehicleId: string, enabled: boolean = true) {
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
+    queryKey: ["user-vehicle-reminders", userVehicleId],
+    queryFn: () => UserVehicleService.getReminders(userVehicleId),
+    enabled: enabled && !!userVehicleId,
+    select: (data: VehicleRemindersResponse) => ({
+      reminders: data.data ?? [],
+      message: data.message,
+      isSuccess: data.isSuccess,
+    }),
+  });
+
+  return {
+    refetch,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    reminders: data?.reminders ?? [],
+    message: data?.message,
+    isSuccess: data?.isSuccess,
   };
 }
