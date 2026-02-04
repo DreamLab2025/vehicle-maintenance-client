@@ -208,6 +208,39 @@ export interface ApplyTrackingResponse {
   metadata: string;
 }
 
+/** ===== Reminder Types ===== */
+export interface ReminderPartCategory {
+  id: string;
+  name: string;
+  code: string;
+  description: string;
+  iconUrl: string;
+  identificationSigns: string;
+  consequencesIfNotHandled: string;
+}
+
+export interface VehicleReminder {
+  id: string;
+  vehiclePartTrackingId: string;
+  level: "Critical" | "High" | "Medium" | "Low" | "Normal";
+  currentOdometer: number;
+  targetOdometer: number;
+  targetDate: string;
+  percentageRemaining: number;
+  isNotified: boolean;
+  notifiedDate: string | null;
+  isDismissed: boolean;
+  dismissedDate: string | null;
+  partCategory: ReminderPartCategory;
+}
+
+export interface VehicleRemindersResponse {
+  isSuccess: boolean;
+  message: string;
+  data: VehicleReminder[];
+  metadata: unknown;
+}
+
 /** ===== Service ===== */
 export const UserVehicleService = {
   createUserVehicle: async (payload: CreateUserVehicleRequest) => {
@@ -242,6 +275,13 @@ export const UserVehicleService = {
     const response = await coreApiService.post<ApplyTrackingResponse>(
       `/api/v1/user-vehicles/${userVehicleId}/apply-tracking`,
       payload
+    );
+    return response.data;
+  },
+
+  getReminders: async (userVehicleId: string) => {
+    const response = await coreApiService.get<VehicleRemindersResponse>(
+      `/api/v1/user-vehicles/${userVehicleId}/reminders`
     );
     return response.data;
   },

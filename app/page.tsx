@@ -13,13 +13,16 @@ import {
   AlertTriangle,
   CheckCircle2,
   Car,
+  ArrowLeft,
+  Clock,
 } from "lucide-react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
-import { useUserVehicles, useUserVehicleParts } from "@/hooks/useUserVehice";
+import { useUserVehicles, useUserVehicleParts, useUserVehicleReminders } from "@/hooks/useUserVehice";
 import BottomNav from "@/components/common/BottomNav";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { UserVehiclePart } from "@/lib/api/services/fetchUserVehicle";
+import { UserVehiclePart, VehicleReminder } from "@/lib/api/services/fetchUserVehicle";
+import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 
 export default function Page() {
   const { vehicles, isLoading } = useUserVehicles({
@@ -30,6 +33,7 @@ export default function Page() {
 
   const [currentVehicleIndex, setCurrentVehicleIndex] = useState(0);
   const [selectedPart, setSelectedPart] = useState<UserVehiclePart | null>(null);
+  const [selectedReminder, setSelectedReminder] = useState<VehicleReminder | null>(null);
 
   const totalSlots = vehicles.length + 1;
   const isAddVehicleCard = currentVehicleIndex === vehicles.length;
@@ -41,9 +45,14 @@ export default function Page() {
     !!currentVehicle?.id && !isAddVehicleCard,
   );
 
+  // Fetch reminders for the current user vehicle
+  const { reminders, isLoading: isLoadingReminders } = useUserVehicleReminders(
+    currentVehicle?.id || "",
+    !!currentVehicle?.id && !isAddVehicleCard,
+  );
+
   // Separate parts into declared and undeclared
   const undeclaredParts = vehicleParts.filter((part) => !part.isDeclared);
-  const declaredParts = vehicleParts.filter((part) => part.isDeclared);
 
   const handleDragEnd = (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const swipeThreshold = 50;
@@ -283,14 +292,14 @@ export default function Page() {
           )}
         </motion.section>
 
-        {/* Declared Parts - Reminder List */}
+        {/* Reminders - From API */}
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <h2 className="text-[15px] font-semibold text-neutral-900">Nhắc nhở bảo dưỡng</h2>
-              {declaredParts.length > 0 && (
+              {reminders.length > 0 && (
                 <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-semibold">
-                  {declaredParts.length}
+                  {reminders.length}
                 </span>
               )}
             </div>
@@ -304,13 +313,13 @@ export default function Page() {
               <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">Chưa có xe</h3>
               <p className="text-[12px] text-neutral-500">Vui lòng thêm xe để nhận nhắc nhở bảo dưỡng</p>
             </div>
-          ) : isLoadingParts ? (
+          ) : isLoadingReminders ? (
             <div className="space-y-2.5">
               {[1, 2].map((i) => (
                 <div key={i} className="bg-white rounded-2xl p-4 h-20 animate-pulse" />
               ))}
             </div>
-          ) : declaredParts.length === 0 ? (
+          ) : reminders.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-3">
                 <Sparkles className="h-6 w-6 text-neutral-400" />
@@ -320,39 +329,52 @@ export default function Page() {
             </div>
           ) : (
             <div className="space-y-2.5">
-              {declaredParts.map((part, index) => (
-                <motion.div
-                  key={part.id}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.12 + index * 0.05 }}
-                  onClick={() => {
-                    if (currentVehicle?.id) {
-                      router.push(`/vehicle/${currentVehicle.id}/parts/${part.partCategoryCode}`);
-                    }
-                  }}
-                  className="bg-white rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
-                >
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-green-500 shadow-lg shadow-emerald-500/25 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {part.iconUrl ? (
-                      <Image
-                        src={part.iconUrl}
-                        alt={part.partCategoryName}
-                        width={28}
-                        height={28}
-                        className="object-contain brightness-0 invert"
-                      />
-                    ) : (
-                      <CheckCircle2 className="h-5 w-5 text-white" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-neutral-900 text-[14px]">{part.partCategoryName}</h3>
-                    <p className="text-[13px] text-neutral-500 mt-0.5 line-clamp-1">{part.description}</p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-neutral-300 flex-shrink-0" />
-                </motion.div>
-              ))}
+              {reminders.map((reminder, index) => {
+                const levelConfig = getReminderLevelConfig(reminder.level);
+                const LevelIcon = levelConfig.Icon;
+
+                return (
+                  <motion.div
+                    key={reminder.id}
+                    initial={{ opacity: 0, x: -16 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.12 + index * 0.05 }}
+                    onClick={() => setSelectedReminder(reminder)}
+                    className="bg-white rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
+                  >
+                    {/* Icon with colored border instead of gradient background */}
+                    <div
+                      className={`w-11 h-11 rounded-xl border-2 ${levelConfig.borderColor} ${levelConfig.bgLight} flex items-center justify-center flex-shrink-0 overflow-hidden`}
+                    >
+                      {reminder.partCategory.iconUrl ? (
+                        <Image
+                          src={reminder.partCategory.iconUrl}
+                          alt={reminder.partCategory.name}
+                          width={28}
+                          height={28}
+                          className="object-contain"
+                        />
+                      ) : (
+                        <LevelIcon className={`h-5 w-5 ${levelConfig.iconColor}`} />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-neutral-900 text-[14px]">{reminder.partCategory.name}</h3>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${levelConfig.badgeBg} ${levelConfig.badgeText}`}
+                        >
+                          {levelConfig.labelVi}
+                        </span>
+                      </div>
+                      <p className="text-[13px] text-neutral-500 mt-0.5 line-clamp-1">
+                        {reminder.partCategory.description}
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-neutral-300 flex-shrink-0" />
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </motion.section>
@@ -430,6 +452,265 @@ export default function Page() {
               </div>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Reminder Detail Popup - Full Screen Redesigned */}
+      <AnimatePresence>
+        {selectedReminder && (
+          <motion.div
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className="fixed inset-0 z-[70] bg-white overflow-y-auto"
+          >
+            {(() => {
+              const levelConfig = getReminderLevelConfig(selectedReminder.level);
+              const LevelIcon = levelConfig.Icon;
+
+              // Calculate days remaining
+              const targetDate = new Date(selectedReminder.targetDate);
+              const today = new Date();
+              const daysRemaining = Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+              // percentageRemaining từ API = % còn lại đến mục tiêu
+              // 100% = mới bảo dưỡng xong, 0% = đã đến lúc cần bảo dưỡng
+              const remainingPercent = Math.max(0, Math.min(100, selectedReminder.percentageRemaining));
+
+              // Parse identification signs into array
+              const identificationSigns = selectedReminder.partCategory.identificationSigns
+                .split(";")
+                .map((s) => s.trim())
+                .filter(Boolean);
+
+              // Parse consequences into array
+              const consequences = selectedReminder.partCategory.consequencesIfNotHandled
+                .split(";")
+                .map((s) => s.trim())
+                .filter(Boolean);
+
+              // Gradient colors based on level
+              const gradientColors = {
+                Normal: { start: "#10b981", end: "#34d399" },
+                Low: { start: "#3b82f6", end: "#60a5fa" },
+                Medium: { start: "#f59e0b", end: "#fbbf24" },
+                High: { start: "#f97316", end: "#fb923c" },
+                Critical: { start: "#ef4444", end: "#f87171" },
+              };
+              const colors = gradientColors[selectedReminder.level] || gradientColors.Normal;
+
+              return (
+                <div className="min-h-full bg-gradient-to-b from-neutral-50 to-white">
+                  {/* Header - Clean & Minimal */}
+                  <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-2xl">
+                    <div className="px-5 py-4 flex items-center gap-4">
+                      <button
+                        onClick={() => setSelectedReminder(null)}
+                        className="w-10 h-10 rounded-full bg-neutral-100/80 flex items-center justify-center hover:bg-neutral-200 transition-all active:scale-95"
+                      >
+                        <ArrowLeft className="h-5 w-5 text-neutral-600" />
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <h1 className="text-[18px] font-bold text-neutral-900 truncate">
+                          {selectedReminder.partCategory.name}
+                        </h1>
+                      </div>
+                      <span
+                        className={`px-3 py-1.5 rounded-full text-[11px] font-bold border ${levelConfig.badgeBg} ${levelConfig.badgeText} ${levelConfig.badgeBorder}`}
+                      >
+                        {levelConfig.labelVi}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Main Content */}
+                  <div className="px-5 py-6">
+                    {/* Hero Section - Progress Circle Left + Info Right */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex gap-5 mb-8"
+                    >
+                      {/* Left - Circular Progress (Outside Card) */}
+                      <div className="flex-shrink-0">
+                        <div className={`relative w-[120px] h-[120px] bg-gradient-to-br ${levelConfig.bgGradient} rounded-[28px] p-3 shadow-xl ${levelConfig.shadowColor}`}>
+                          {/* Decorative */}
+                          <div className="absolute -top-3 -right-3 w-10 h-10 bg-white/20 rounded-full blur-sm" />
+
+                          <div className="relative w-full h-full">
+                            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                              <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="8" />
+                              <motion.circle
+                                cx="50"
+                                cy="50"
+                                r="40"
+                                fill="none"
+                                stroke="white"
+                                strokeWidth="8"
+                                strokeLinecap="round"
+                                strokeDasharray={2 * Math.PI * 40}
+                                initial={{ strokeDashoffset: 2 * Math.PI * 40 }}
+                                animate={{ strokeDashoffset: 2 * Math.PI * 40 * (1 - remainingPercent / 100) }}
+                                transition={{ delay: 0.2, duration: 1.2, ease: "easeOut" }}
+                              />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                              <span className="text-[28px] font-bold text-white leading-none">{remainingPercent}</span>
+                              <span className="text-[11px] text-white/70 font-semibold">%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right - Info Card */}
+                      <div className="flex-1 flex flex-col justify-between py-1">
+                        {/* Status */}
+                        <div>
+                          <p className="text-neutral-400 text-[11px] uppercase tracking-widest font-semibold mb-1">Tình trạng</p>
+                          <p className={`text-[20px] font-bold leading-tight ${levelConfig.textColor}`}>
+                            {remainingPercent >= 70 ? "Tốt" : remainingPercent >= 40 ? "Cần chú ý" : remainingPercent > 0 ? "Sắp đến hạn" : "Cần bảo dưỡng ngay"}
+                          </p>
+                        </div>
+
+                        {/* Time Badge */}
+                        <div className="flex items-center gap-2 mt-3">
+                          <div className={`flex items-center gap-1.5 ${levelConfig.bgLight} rounded-full px-3 py-1.5 border ${levelConfig.borderColor}`}>
+                            <Clock className={`w-3.5 h-3.5 ${levelConfig.iconColor}`} />
+                            <span className={`text-[12px] font-semibold ${levelConfig.textColor}`}>
+                              {daysRemaining > 0 ? `Còn ${daysRemaining} ngày` : "Quá hạn"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Stats Cards Row */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="grid grid-cols-3 gap-3 mb-8"
+                    >
+                      <div className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100/80">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-lg bg-blue-50 flex items-center justify-center">
+                            <Gauge className="w-3.5 h-3.5 text-blue-500" />
+                          </div>
+                          <p className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wide">Hiện tại</p>
+                        </div>
+                        <p className="text-[17px] font-bold text-neutral-900">{selectedReminder.currentOdometer.toLocaleString()}</p>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">km</p>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100/80">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-lg bg-emerald-50 flex items-center justify-center">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                          </div>
+                          <p className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wide">Mục tiêu</p>
+                        </div>
+                        <p className="text-[17px] font-bold text-neutral-900">{selectedReminder.targetOdometer.toLocaleString()}</p>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">km</p>
+                      </div>
+
+                      <div className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100/80">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-6 h-6 rounded-lg ${levelConfig.bgLight} flex items-center justify-center`}>
+                            <ChevronRight className={`w-3.5 h-3.5 ${levelConfig.iconColor}`} />
+                          </div>
+                          <p className="text-[10px] text-neutral-400 font-semibold uppercase tracking-wide">Còn lại</p>
+                        </div>
+                        <p className={`text-[17px] font-bold ${levelConfig.textColor}`}>
+                          {Math.max(0, selectedReminder.targetOdometer - selectedReminder.currentOdometer).toLocaleString()}
+                        </p>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">km</p>
+                      </div>
+                    </motion.div>
+
+                    {/* Info Cards Section */}
+                    <div className="space-y-4">
+                      {/* Description Card */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                        className="bg-white rounded-2xl p-5 shadow-sm border border-neutral-100/80"
+                      >
+                        <h3 className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest mb-3">Mô tả</h3>
+                        <p className="text-[15px] text-neutral-600 leading-relaxed">
+                          {selectedReminder.partCategory.description}
+                        </p>
+                      </motion.div>
+
+                      {/* Identification Signs Card */}
+                      {identificationSigns.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                          className="bg-gradient-to-br from-amber-50 to-orange-50/50 rounded-2xl p-5 border border-amber-100/50"
+                        >
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25">
+                              <AlertTriangle className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="text-[15px] font-bold text-amber-900">Dấu hiệu nhận biết</h3>
+                              <p className="text-[11px] text-amber-600">{identificationSigns.length} dấu hiệu</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2.5 pl-1">
+                            {identificationSigns.map((sign, index) => (
+                              <div key={index} className="flex items-start gap-3">
+                                <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <span className="text-[10px] font-bold text-amber-600">{index + 1}</span>
+                                </div>
+                                <p className="text-[14px] text-amber-900/80 leading-relaxed">{sign}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+
+                      {/* Consequences Card */}
+                      {consequences.length > 0 && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.25 }}
+                          className="bg-gradient-to-br from-red-50 to-rose-50/50 rounded-2xl p-5 border border-red-100/50"
+                        >
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center shadow-lg shadow-red-500/25">
+                              <AlertTriangle className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <h3 className="text-[15px] font-bold text-red-900">Hậu quả nếu không xử lý</h3>
+                              <p className="text-[11px] text-red-600">{consequences.length} hậu quả</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2.5 pl-1">
+                            {consequences.map((consequence, index) => (
+                              <div key={index} className="flex items-start gap-3">
+                                <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  <span className="text-[10px] font-bold text-red-600">{index + 1}</span>
+                                </div>
+                                <p className="text-[14px] text-red-900/80 leading-relaxed">{consequence}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+
+                    {/* Bottom Spacing */}
+                    <div className="h-8" />
+                  </div>
+                </div>
+              );
+            })()}
+          </motion.div>
         )}
       </AnimatePresence>
 
