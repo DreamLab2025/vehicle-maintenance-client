@@ -3,12 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, LayoutGroup } from "framer-motion";
-import { Home, Car, Settings, User, Map } from "lucide-react";
+import { Home, Car, Settings, User, Map, Bell, type LucideIcon } from "lucide-react";
+import { useMemo } from "react";
+import { MOCK_NOTIFICATIONS, getUnreadCount } from "@/lib/mock/notifications.mock";
 
-const items = [
+interface NavItem {
+  href: string;
+  Icon: LucideIcon;
+  label: string;
+  hasBadge?: boolean;
+}
+
+const items: NavItem[] = [
   { href: "/", Icon: Home, label: "Trang chủ" },
   { href: "/maps", Icon: Map, label: "Bản đồ" },
-  { href: "/settings", Icon: Settings, label: "Cài đặt" },
+  { href: "/notifications", Icon: Bell, label: "Thông báo", hasBadge: true },
   { href: "/profile", Icon: User, label: "Tài khoản" },
 ];
 
@@ -22,6 +31,8 @@ export default function BottomNav() {
   const pathnameRaw = usePathname() || "/";
   const pathname = normalizePath(pathnameRaw);
 
+  const unreadCount = useMemo(() => getUnreadCount(MOCK_NOTIFICATIONS), []);
+
   const isActive = (href: string) => {
     const h = normalizePath(href);
     if (h === "/") return pathname === "/";
@@ -33,8 +44,9 @@ export default function BottomNav() {
       <div className="bg-white/80 backdrop-blur-xl border-t border-slate-100">
         <LayoutGroup id="bottom-nav">
           <div className="flex items-center justify-around px-2 py-2 max-w-md mx-auto">
-            {items.map(({ href, Icon, label }) => {
+            {items.map(({ href, Icon, label, hasBadge }) => {
               const active = isActive(href);
+              const showBadge = hasBadge && unreadCount > 0;
 
               return (
                 <Link key={href} href={href} className="relative flex-1">
@@ -52,8 +64,13 @@ export default function BottomNav() {
                       />
                     )}
 
-                    <div className={`p-2 rounded-xl transition-colors ${active ? "bg-red-50" : "bg-transparent"}`}>
+                    <div className={`relative p-2 rounded-xl transition-colors ${active ? "bg-red-50" : "bg-transparent"}`}>
                       <Icon className={`h-5 w-5 transition-colors ${active ? "text-red-500" : "text-slate-400"}`} />
+                      {showBadge && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 flex items-center justify-center bg-red-500 rounded-full text-[9px] font-bold text-white">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
                     </div>
 
                     <span
