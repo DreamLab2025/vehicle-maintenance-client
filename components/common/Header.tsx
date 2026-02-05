@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, LogOut, User, ChevronDown, Globe, Check } from "lucide-react";
+import { LogOut, User, ChevronDown, Globe, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
+import NotificationDropdown from "@/components/notification/NotificationDropdown";
 
 export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -277,15 +278,7 @@ export default function Header() {
         </div>
 
         {/* Right: Notification */}
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.95 }}
-          className="relative w-9 h-9 rounded-full bg-neutral-50 hover:bg-neutral-100 transition-colors flex items-center justify-center"
-          aria-label="Notifications"
-        >
-          <Bell className="h-[18px] w-[18px] text-neutral-600" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </motion.button>
+        <NotificationDropdown />
       </div>
     </header>
   );
