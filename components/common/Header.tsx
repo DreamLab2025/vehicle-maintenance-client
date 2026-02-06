@@ -6,7 +6,6 @@ import { LogOut, User, ChevronDown, Globe, Check } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
-import NotificationDropdown from "@/components/notification/NotificationDropdown";
 
 export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -277,8 +276,8 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* Right: Notification */}
-        <NotificationDropdown />
+        {/* Right: Spacer */}
+        <div className="w-10" />
       </div>
     </header>
   );

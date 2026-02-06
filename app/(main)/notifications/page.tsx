@@ -1,408 +1,511 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import {
   Bell,
-  Check,
   CheckCheck,
   ChevronLeft,
-  ChevronRight,
-  Package,
-  Settings,
-  Zap,
-  CheckCircle2,
-  Trash2,
+  ExternalLink,
+  X,
   Car,
-  Clock,
-  Sparkles,
-  Filter,
+  Package,
+  Wrench,
+  Megaphone,
+  Info,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Notification } from "@/lib/types";
-import { MOCK_NOTIFICATIONS, getUnreadCount } from "@/lib/mock/notifications.mock";
+import {
+  MOCK_NOTIFICATIONS,
+  getUnreadCount,
+} from "@/lib/mock/notifications.mock";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 
-// Time formatting helper
-function formatTimeAgo(dateString: string): string {
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+// ─── Helpers ────────────────────────────────────────────────
 
-  if (diffMins < 1) return "Vừa xong";
-  if (diffMins < 60) return `${diffMins} phút`;
-  if (diffHours < 24) return `${diffHours} giờ`;
-  if (diffDays < 7) return `${diffDays} ngày`;
-  return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+function timeAgo(dateString: string): string {
+  const now = Date.now();
+  const diff = now - new Date(dateString).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Vừa xong";
+  if (mins < 60) return `${mins} phút`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} giờ`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days} ngày`;
+  return new Date(dateString).toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+  });
 }
 
-// Get notification config
-function getNotificationConfig(notification: Notification) {
+function formatFullDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getNotifIcon(notification: Notification) {
   if (notification.type === "reminder" && notification.level) {
     const config = getReminderLevelConfig(notification.level);
-    return {
-      Icon: config.Icon,
-      iconColor: config.iconColor,
-      bgLight: config.bgLight,
-      borderColor: config.borderColor,
-      hexColor: config.hexColor,
-      gradient: config.bgGradient,
-    };
+    return { Icon: config.Icon, bg: config.hexColorLight, color: config.hexColor };
+  }
+  if (notification.type === "maintenance")
+    return { Icon: Wrench, bg: "#eff6ff", color: "#3b82f6" };
+  if (notification.type === "promotion")
+    return { Icon: Megaphone, bg: "#fdf4ff", color: "#a855f7" };
+  return { Icon: Info, bg: "#f1f5f9", color: "#64748b" };
+}
+
+function groupByDay(
+  notifications: Notification[]
+): { label: string; items: Notification[] }[] {
+  const map = new Map<string, Notification[]>();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86400000);
+
+  const sorted = [...notifications].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  for (const n of sorted) {
+    const d = new Date(n.createdAt);
+    const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+    let label: string;
+    if (day.getTime() === today.getTime()) label = "Hôm nay";
+    else if (day.getTime() === yesterday.getTime()) label = "Hôm qua";
+    else
+      label = d.toLocaleDateString("vi-VN", {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+      });
+
+    if (!map.has(label)) map.set(label, []);
+    map.get(label)!.push(n);
   }
 
-  const configs = {
-    maintenance: {
-      Icon: CheckCircle2,
-      iconColor: "text-emerald-500",
-      bgLight: "bg-emerald-50",
-      borderColor: "border-emerald-200",
-      hexColor: "#10b981",
-      gradient: "from-emerald-500 to-green-500",
-    },
-    system: {
-      Icon: Settings,
-      iconColor: "text-slate-500",
-      bgLight: "bg-slate-100",
-      borderColor: "border-slate-200",
-      hexColor: "#64748b",
-      gradient: "from-slate-500 to-slate-600",
-    },
-    promotion: {
-      Icon: Zap,
-      iconColor: "text-purple-500",
-      bgLight: "bg-purple-50",
-      borderColor: "border-purple-200",
-      hexColor: "#a855f7",
-      gradient: "from-purple-500 to-pink-500",
-    },
-  };
-
-  return configs[notification.type as keyof typeof configs] || configs.system;
+  return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
 }
 
-interface NotificationCardProps {
+// ─── Notification Row ───────────────────────────────────────
+
+function NotificationRow({
+  notification,
+  onSelect,
+  index,
+}: {
   notification: Notification;
-  onPress: (notification: Notification) => void;
-  onMarkAsRead: (id: string) => void;
-  onDelete: (id: string) => void;
+  onSelect: (n: Notification) => void;
   index: number;
-}
-
-function NotificationCard({ notification, onPress, onMarkAsRead, onDelete, index }: NotificationCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const config = getNotificationConfig(notification);
-  const Icon = config.Icon;
+}) {
+  const { Icon, bg, color } = getNotifIcon(notification);
+  const hasLevel = notification.type === "reminder" && notification.level;
+  const levelConfig = hasLevel
+    ? getReminderLevelConfig(notification.level!)
+    : null;
 
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
+    <motion.button
+      layoutId={`notif-${notification.id}`}
+      type="button"
+      onClick={() => onSelect(notification)}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.25, delay: index * 0.05 }}
-      className="group relative"
+      transition={{ duration: 0.25, delay: index * 0.03 }}
+      className={`w-full flex items-start gap-3.5 px-4 py-4 text-left active:scale-[0.98] transition-transform ${
+        !notification.isRead ? "bg-white" : "bg-white/60"
+      }`}
     >
-      {/* Main Card */}
-      <div
-        className={`relative overflow-hidden rounded-2xl transition-all duration-300 ${
-          !notification.isRead
-            ? "bg-white shadow-lg shadow-neutral-200/60 ring-1 ring-neutral-100"
-            : "bg-neutral-50/80"
-        }`}
-      >
-        {/* Gradient accent line */}
-        {!notification.isRead && (
-          <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${config.gradient}`} />
-        )}
-
-        {/* Content */}
-        <button
-          type="button"
-          onClick={() => onPress(notification)}
-          className="w-full text-left p-4 pl-5"
-        >
-          <div className="flex items-start gap-3.5">
-            {/* Icon with glow effect */}
-            <div className="relative flex-shrink-0">
-              <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center ${config.bgLight} transition-transform group-hover:scale-105`}
-                style={{
-                  boxShadow: !notification.isRead ? `0 4px 14px ${config.hexColor}20` : "none",
-                }}
-              >
-                <Icon className={`w-5 h-5 ${config.iconColor}`} />
-              </div>
-              {!notification.isRead && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-red-500 border-2 border-white" />
-              )}
-            </div>
-
-            {/* Text Content */}
-            <div className="flex-1 min-w-0 pt-0.5">
-              <div className="flex items-start justify-between gap-3">
-                <h3
-                  className={`text-[14px] font-semibold leading-tight ${
-                    !notification.isRead ? "text-neutral-900" : "text-neutral-500"
-                  }`}
-                >
-                  {notification.title}
-                </h3>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Clock className="w-3 h-3 text-neutral-400" />
-                  <span className="text-[11px] text-neutral-400 font-medium">
-                    {formatTimeAgo(notification.createdAt)}
-                  </span>
-                </div>
-              </div>
-
-              <p
-                className={`text-[13px] mt-1.5 leading-relaxed ${
-                  !notification.isRead ? "text-neutral-600" : "text-neutral-400"
-                } ${isExpanded ? "" : "line-clamp-2"}`}
-              >
-                {notification.message}
-              </p>
-
-              {/* Meta Tags */}
-              <div className="flex items-center flex-wrap gap-2 mt-3">
-                {notification.partName && (
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold ${config.bgLight} ${config.iconColor}`}
-                  >
-                    <Package className="w-3 h-3" />
-                    {notification.partName}
-                  </span>
-                )}
-                {notification.vehicleName && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-neutral-100 text-[11px] font-medium text-neutral-500">
-                    <Car className="w-3 h-3" />
-                    {notification.vehicleName}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Arrow */}
-            <ChevronRight
-              className={`w-5 h-5 flex-shrink-0 mt-0.5 transition-all ${
-                !notification.isRead ? "text-neutral-300" : "text-neutral-200"
-              } group-hover:text-neutral-400 group-hover:translate-x-0.5`}
-            />
-          </div>
-        </button>
-
-        {/* Action Bar */}
-        <div className="flex items-center justify-between px-5 py-2.5 border-t border-neutral-100/80 bg-neutral-50/50">
-          <div className="flex items-center gap-1">
-            {!notification.isRead && (
-              <motion.button
-                type="button"
-                onClick={() => onMarkAsRead(notification.id)}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
-              >
-                <Check className="w-3.5 h-3.5" />
-                Đã đọc
-              </motion.button>
-            )}
-          </div>
-          <motion.button
-            type="button"
-            onClick={() => onDelete(notification.id)}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+      {/* Icon + level column */}
+      <div className="flex flex-col items-center flex-shrink-0 mt-0.5 w-12">
+        <div className="relative">
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: bg }}
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            Xóa
-          </motion.button>
+            <Icon className="w-5 h-5" style={{ color }} />
+          </div>
+          {!notification.isRead && (
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-white" />
+          )}
         </div>
+        {hasLevel && levelConfig && (
+          <span
+            className="mt-1.5 text-[9px] font-bold text-center leading-tight"
+            style={{ color: levelConfig.hexColor }}
+          >
+            {levelConfig.labelVi}
+          </span>
+        )}
       </div>
-    </motion.div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        {/* Title + time */}
+        <div className="flex items-start justify-between gap-3">
+          <p
+            className={`text-[15px] leading-snug ${
+              !notification.isRead
+                ? "font-semibold text-neutral-900"
+                : "font-medium text-neutral-500"
+            }`}
+          >
+            {notification.title}
+          </p>
+          <span className="flex-shrink-0 text-[12px] text-neutral-400 mt-0.5">
+            {timeAgo(notification.createdAt)}
+          </span>
+        </div>
+
+        {/* Message — 2 lines max, truncate */}
+        <p
+          className={`text-[13px] leading-relaxed mt-1 line-clamp-2 ${
+            !notification.isRead ? "text-neutral-600" : "text-neutral-400"
+          }`}
+        >
+          {notification.message}
+        </p>
+
+        {/* Level pill (only for reminders) */}
+        
+      </div>
+    </motion.button>
   );
 }
 
-type FilterType = "all" | "unread" | "reminder" | "system";
+// ─── Detail Popup ───────────────────────────────────────────
 
-const filters: { key: FilterType; label: string; icon: typeof Bell }[] = [
-  { key: "all", label: "Tất cả", icon: Sparkles },
-  { key: "unread", label: "Chưa đọc", icon: Bell },
-  { key: "reminder", label: "Nhắc nhở", icon: Clock },
-  { key: "system", label: "Hệ thống", icon: Settings },
-];
+function DetailPopup({
+  notification,
+  onClose,
+  onNavigate,
+}: {
+  notification: Notification;
+  onClose: () => void;
+  onNavigate: (url: string) => void;
+}) {
+  const { Icon, bg, color } = getNotifIcon(notification);
+  const hasLevel = notification.type === "reminder" && notification.level;
+  const levelConfig = hasLevel
+    ? getReminderLevelConfig(notification.level!)
+    : null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClose}
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+      />
+
+      {/* Popup */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-5 pointer-events-none">
+        <motion.div
+          layoutId={`notif-${notification.id}`}
+          className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden pointer-events-auto"
+          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+        >
+          {/* Top accent */}
+          <div
+            className="h-1 w-full"
+            style={{
+              background: levelConfig
+                ? `linear-gradient(90deg, ${levelConfig.hexColor}, ${levelConfig.hexColorLight})`
+                : `linear-gradient(90deg, ${color}, ${bg})`,
+            }}
+          />
+
+          <div className="p-5">
+            {/* Header row */}
+            <div className="flex items-start gap-3.5">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: bg }}
+              >
+                <Icon className="w-5 h-5" style={{ color }} />
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className="text-[17px] font-bold text-neutral-900 leading-tight">
+                  {notification.title}
+                </p>
+                <p className="text-[12px] text-neutral-400 mt-1">
+                  {formatFullDate(notification.createdAt)}
+                </p>
+              </div>
+
+              <motion.button
+                type="button"
+                onClick={onClose}
+                whileTap={{ scale: 0.85 }}
+                className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0"
+              >
+                <X className="w-4 h-4 text-neutral-500" />
+              </motion.button>
+            </div>
+
+            {/* Level badge */}
+            {hasLevel && levelConfig && (
+              <div className="mt-4">
+                <span
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border"
+                  style={{
+                    backgroundColor: levelConfig.hexColorLight,
+                    color: levelConfig.hexColor,
+                    borderColor: `${levelConfig.hexColor}30`,
+                  }}
+                >
+                  <levelConfig.Icon className="w-3 h-3" />
+                  Mức độ: {levelConfig.labelVi}
+                </span>
+              </div>
+            )}
+
+            {/* Full message */}
+            <p className="text-[14px] text-neutral-600 leading-relaxed mt-4">
+              {notification.message}
+            </p>
+
+            {/* Meta tags */}
+            {(notification.vehicleName || notification.partName) && (
+              <div className="flex flex-wrap gap-2 mt-4">
+                {notification.vehicleName && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-neutral-50 text-[12px] text-neutral-500 font-medium">
+                    <Car className="w-3.5 h-3.5" />
+                    {notification.vehicleName}
+                  </span>
+                )}
+                {notification.partName && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-neutral-50 text-[12px] text-neutral-500 font-medium">
+                    <Package className="w-3.5 h-3.5" />
+                    {notification.partName}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Action button */}
+            {notification.actionUrl && (
+              <motion.button
+                type="button"
+                onClick={() => onNavigate(notification.actionUrl!)}
+                whileTap={{ scale: 0.97 }}
+                className="w-full flex items-center justify-center gap-2 mt-5 py-3.5 rounded-2xl text-[14px] font-semibold text-white"
+                style={{
+                  background: levelConfig
+                    ? `linear-gradient(135deg, ${levelConfig.hexColor}, ${levelConfig.hexColor}cc)`
+                    : `linear-gradient(135deg, ${color}, ${color}cc)`,
+                }}
+              >
+                <ExternalLink className="w-4 h-4" />
+                Xem chi tiết
+              </motion.button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </>
+  );
+}
+
+// ─── Main Page ──────────────────────────────────────────────
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
-  const [filter, setFilter] = useState<FilterType>("all");
+  const [notifications, setNotifications] =
+    useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [selected, setSelected] = useState<Notification | null>(null);
+  const [filter, setFilter] = useState<"all" | "unread">("all");
 
-  const unreadCount = useMemo(() => getUnreadCount(notifications), [notifications]);
+  const unreadCount = useMemo(
+    () => getUnreadCount(notifications),
+    [notifications]
+  );
 
-  const filteredNotifications = useMemo(() => {
-    let result = [...notifications];
+  const filtered = useMemo(
+    () =>
+      filter === "unread"
+        ? notifications.filter((n) => !n.isRead)
+        : notifications,
+    [notifications, filter]
+  );
 
-    switch (filter) {
-      case "unread":
-        result = result.filter((n) => !n.isRead);
-        break;
-      case "reminder":
-        result = result.filter((n) => n.type === "reminder");
-        break;
-      case "system":
-        result = result.filter((n) => n.type === "system" || n.type === "maintenance");
-        break;
-    }
+  const grouped = useMemo(() => groupByDay(filtered), [filtered]);
 
-    return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [notifications, filter]);
+  const handleSelect = useCallback(
+    (n: Notification) => {
+      // Mark as read
+      setNotifications((prev) =>
+        prev.map((item) => (item.id === n.id ? { ...item, isRead: true } : item))
+      );
 
-  const handleNotificationPress = (notification: Notification) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
-    );
+      // Reminder notifications → navigate to detail page
+      if (n.type === "reminder" && n.level) {
+        router.push(`/notifications/${n.id}`);
+        return;
+      }
 
-    if (notification.actionUrl) {
-      router.push(notification.actionUrl);
-    }
-  };
+      // Other types → popup
+      setSelected(n);
+    },
+    [router]
+  );
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
-  };
+  const handleClose = useCallback(() => setSelected(null), []);
 
-  const handleDelete = (id: string) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
+  const handleNavigate = useCallback(
+    (url: string) => {
+      setSelected(null);
+      router.push(url);
+    },
+    [router]
+  );
 
-  const handleMarkAllAsRead = () => {
+  const handleMarkAllAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-  };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 pb-28">
-      {/* Decorative Background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-red-100/30 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-blue-100/20 to-transparent rounded-full blur-3xl" />
-      </div>
-
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/70 backdrop-blur-xl border-b border-neutral-100/80">
-        <div className="flex items-center justify-between px-5 h-16">
-          <motion.button
-            type="button"
-            onClick={() => router.back()}
-            whileTap={{ scale: 0.9 }}
-            className="w-10 h-10 rounded-xl bg-neutral-100 hover:bg-neutral-200 transition-colors flex items-center justify-center"
-          >
-            <ChevronLeft className="w-5 h-5 text-neutral-600" />
-          </motion.button>
-
-          <div className="flex items-center gap-2">
-            <h1 className="text-[17px] font-bold text-neutral-900">Thông báo</h1>
-            {unreadCount > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="px-2 py-0.5 rounded-full bg-gradient-to-r from-red-500 to-rose-500 text-[11px] font-bold text-white shadow-sm"
-              >
-                {unreadCount}
-              </motion.span>
-            )}
-          </div>
-
-          {unreadCount > 0 ? (
+    <LayoutGroup>
+      <div className="min-h-screen bg-[#f5f5f7] pb-28">
+        {/* ── Header ── */}
+        <header className="sticky top-0 z-40 bg-[#f5f5f7]/80 backdrop-blur-xl border-b border-neutral-200/50">
+          <div className="flex items-center justify-between px-5 h-14">
             <motion.button
               type="button"
-              onClick={handleMarkAllAsRead}
+              onClick={() => router.back()}
               whileTap={{ scale: 0.9 }}
-              className="w-10 h-10 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors flex items-center justify-center"
+              className="w-9 h-9 rounded-full bg-white/80 shadow-sm flex items-center justify-center"
             >
-              <CheckCheck className="w-5 h-5 text-blue-600" />
+              <ChevronLeft className="w-5 h-5 text-neutral-700" />
             </motion.button>
-          ) : (
-            <div className="w-10 h-10" />
-          )}
-        </div>
-      </header>
 
-      {/* Filter Pills */}
-      <div className="sticky top-16 z-30 bg-white/70 backdrop-blur-xl border-b border-neutral-100/80 px-5 py-3">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
-          {filters.map((f) => {
-            const isActive = filter === f.key;
-            const FilterIcon = f.icon;
-            return (
+            <div className="flex items-center gap-4">
+              <h1 className="text-[17px] font-bold text-neutral-900">
+                Thông báo
+              </h1>
+            </div>
+
+            {unreadCount > 0 ? (
               <motion.button
-                key={f.key}
                 type="button"
-                onClick={() => setFilter(f.key)}
-                whileTap={{ scale: 0.95 }}
-                className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-all flex-shrink-0 ${
-                  isActive
-                    ? "bg-neutral-900 text-white shadow-lg shadow-neutral-900/20"
-                    : "bg-white text-neutral-600 hover:bg-neutral-100 border border-neutral-200"
-                }`}
+                onClick={handleMarkAllAsRead}
+                whileTap={{ scale: 0.9 }}
+                className="w-9 h-9 rounded-full bg-white/80 shadow-sm flex items-center justify-center"
               >
-                <FilterIcon className={`w-4 h-4 ${isActive ? "text-white" : "text-neutral-400"}`} />
-                {f.label}
-                {f.key === "unread" && unreadCount > 0 && (
-                  <span
-                    className={`ml-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
-                      isActive ? "bg-white/20 text-white" : "bg-red-100 text-red-600"
-                    }`}
-                  >
-                    {unreadCount}
+                <CheckCheck className="w-[18px] h-[18px] text-blue-500" />
+              </motion.button>
+            ) : (
+              <div className="w-9" />
+            )}
+          </div>
+        </header>
+
+        {/* ── Filter Tabs ── */}
+        <div className="flex items-center gap-6 px-6 pt-3 pb-1">
+          {([
+            { key: "all" as const, label: "Tất cả", count: notifications.length },
+            { key: "unread" as const, label: "Chưa đọc", count: unreadCount },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setFilter(tab.key)}
+              className="relative pb-2"
+            >
+              <span className={`flex items-center gap-1.5 text-[14px] transition-colors ${
+                filter === tab.key
+                  ? "font-semibold text-neutral-900"
+                  : "font-medium text-neutral-400"
+              }`}>
+                {tab.label}
+                {tab.count > 0 && (
+                  <span className={`min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[10px] font-bold ${
+                    filter === tab.key
+                      ? "bg-blue-500 text-white"
+                      : "bg-neutral-200 text-neutral-500"
+                  }`}>
+                    {tab.count}
                   </span>
                 )}
-              </motion.button>
-            );
-          })}
+              </span>
+              {filter === tab.key && (
+                <motion.div
+                  layoutId="tab-underline"
+                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-blue-500 rounded-full"
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                />
+              )}
+            </button>
+          ))}
         </div>
-      </div>
 
-      {/* Notifications List */}
-      <div className="px-5 py-5 space-y-3">
-        <AnimatePresence mode="popLayout">
-          {filteredNotifications.length > 0 ? (
-            filteredNotifications.map((notification, index) => (
-              <NotificationCard
-                key={notification.id}
-                notification={notification}
-                onPress={handleNotificationPress}
-                onMarkAsRead={handleMarkAsRead}
-                onDelete={handleDelete}
-                index={index}
-              />
+        {/* ── List ── */}
+        <div className="pt-2">
+          {grouped.length > 0 ? (
+            grouped.map((group) => (
+              <div key={group.label} className="mb-4">
+                {/* Day label */}
+                <p className="text-[13px] font-semibold text-neutral-400 uppercase tracking-wider px-6 pb-2">
+                  {group.label}
+                </p>
+
+                {/* Card group */}
+                <div className="bg-white mx-4 rounded-2xl overflow-hidden shadow-sm shadow-neutral-200/40">
+                  {group.items.map((notification, i) => (
+                    <div key={notification.id}>
+                      {i > 0 && <div className="h-px bg-neutral-100 ml-[76px] mr-4" />}
+                      <NotificationRow
+                        notification={notification}
+                        onSelect={handleSelect}
+                        index={i}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))
           ) : (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="py-20 text-center"
+              className="flex flex-col items-center justify-center py-28"
             >
-              <div className="relative w-20 h-20 mx-auto mb-5">
-                <div className="absolute inset-0 bg-gradient-to-br from-neutral-100 to-neutral-200 rounded-2xl rotate-6" />
-                <div className="absolute inset-0 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                  <Bell className="w-9 h-9 text-neutral-300" />
-                </div>
+              <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
+                <Bell className="w-7 h-7 text-neutral-300" />
               </div>
-              <h3 className="text-[16px] font-semibold text-neutral-700">
-                {filter === "unread" ? "Tuyệt vời!" : "Không có thông báo"}
-              </h3>
-              <p className="text-[13px] text-neutral-400 mt-1.5 max-w-[200px] mx-auto">
-                {filter === "unread"
-                  ? "Bạn đã đọc tất cả thông báo rồi"
-                  : "Thông báo mới sẽ xuất hiện tại đây"}
+              <p className="text-[15px] font-medium text-neutral-400">
+                Không có thông báo
               </p>
             </motion.div>
           )}
+        </div>
+
+        {/* ── Detail Popup ── */}
+        <AnimatePresence>
+          {selected && (
+            <DetailPopup
+              key={selected.id}
+              notification={selected}
+              onClose={handleClose}
+              onNavigate={handleNavigate}
+            />
+          )}
         </AnimatePresence>
       </div>
-    </div>
+    </LayoutGroup>
   );
 }
