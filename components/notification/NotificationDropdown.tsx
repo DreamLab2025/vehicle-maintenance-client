@@ -11,6 +11,7 @@ import {
   Package,
   Car,
   X,
+  Gauge,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Notification } from "@/lib/types";
@@ -45,6 +46,13 @@ function getNotificationConfig(notification: Notification) {
   }
 
   const configs = {
+    odometer_update: {
+      Icon: Gauge,
+      iconColor: "text-green-600",
+      bgLight: "bg-green-500/10",
+      hexColor: "#16a34a",
+      gradient: "from-green-500 to-emerald-500",
+    },
     maintenance: {
       Icon: CheckCircle2,
       iconColor: "text-emerald-600",
@@ -85,9 +93,9 @@ function NotificationItem({ notification, onPress, index }: NotificationItemProp
     <motion.button
       type="button"
       onClick={() => onPress(notification)}
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.3 }}
+      transition={{ delay: index * 0.06, duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
       className="group w-full text-left px-4 py-3 transition-all hover:bg-neutral-50 active:bg-neutral-100"
     >
       <div className="flex gap-3">
@@ -104,15 +112,15 @@ function NotificationItem({ notification, onPress, index }: NotificationItemProp
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2 mb-0.5">
-            <p className={`text-[13px] font-semibold truncate ${!notification.isRead ? "text-neutral-900" : "text-neutral-600"}`}>
+            <p className={`text-xs font-semibold truncate ${!notification.isRead ? "text-neutral-900" : "text-neutral-600"}`}>
               {notification.title}
             </p>
-            <span className="flex-shrink-0 text-[11px] text-neutral-400">
+            <span className="flex-shrink-0 text-xs text-neutral-400">
               {formatTimeAgo(notification.createdAt)}
             </span>
           </div>
 
-          <p className={`text-[12px] leading-relaxed line-clamp-2 ${!notification.isRead ? "text-neutral-600" : "text-neutral-400"}`}>
+          <p className={`text-xs leading-relaxed line-clamp-2 ${!notification.isRead ? "text-neutral-600" : "text-neutral-400"}`}>
             {notification.message}
           </p>
 
@@ -195,9 +203,10 @@ export default function NotificationDropdown() {
         <AnimatePresence>
           {unreadCount > 0 && (
             <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 rounded-full text-[10px] font-bold text-white ring-2 ring-white"
             >
               {unreadCount > 9 ? "9+" : unreadCount}
@@ -215,15 +224,16 @@ export default function NotificationDropdown() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
               className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 sm:hidden"
               onClick={() => setIsOpen(false)}
             />
 
             <motion.div
-              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              initial={{ opacity: 0, y: 6, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 8, scale: 0.96 }}
-              transition={{ type: "spring", damping: 25, stiffness: 400 }}
+              exit={{ opacity: 0, y: 6, scale: 0.97 }}
+              transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
               className="fixed sm:absolute inset-x-4 sm:inset-x-auto bottom-20 sm:bottom-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[380px] bg-white rounded-2xl shadow-2xl shadow-black/10 border border-neutral-200/60 overflow-hidden z-50"
             >
               {/* Header */}
@@ -240,8 +250,8 @@ export default function NotificationDropdown() {
                     )}
                   </div>
                   <div>
-                    <h3 className="text-[15px] font-bold text-neutral-900">Thông báo</h3>
-                    <p className="text-[11px] text-neutral-500">
+                    <h3 className="text-sm font-bold text-neutral-900">Thông báo</h3>
+                    <p className="text-xs text-neutral-500">
                       {unreadCount > 0 ? `${unreadCount} chưa đọc` : "Đã đọc tất cả"}
                     </p>
                   </div>
@@ -252,7 +262,7 @@ export default function NotificationDropdown() {
                     <button
                       type="button"
                       onClick={handleMarkAllAsRead}
-                      className="px-3 py-1.5 rounded-lg text-[12px] font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                     >
                       Đọc tất cả
                     </button>
@@ -268,7 +278,7 @@ export default function NotificationDropdown() {
               </div>
 
               {/* List */}
-              <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto overscroll-contain">
+              <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto overscroll-contain scrollbar-hide">
                 {recentNotifications.length > 0 ? (
                   <div className="divide-y divide-neutral-100">
                     {recentNotifications.map((notification, index) => (
@@ -285,8 +295,8 @@ export default function NotificationDropdown() {
                     <div className="w-16 h-16 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-3">
                       <Bell className="w-7 h-7 text-neutral-300" />
                     </div>
-                    <p className="text-[14px] font-medium text-neutral-600">Không có thông báo</p>
-                    <p className="text-[12px] text-neutral-400 mt-1">Bạn sẽ nhận được thông báo tại đây</p>
+                    <p className="text-sm font-medium text-neutral-600">Không có thông báo</p>
+                    <p className="text-xs text-neutral-400 mt-1">Bạn sẽ nhận được thông báo tại đây</p>
                   </div>
                 )}
               </div>
@@ -298,7 +308,7 @@ export default function NotificationDropdown() {
                   onClick={handleViewAll}
                   className="w-full flex items-center justify-center gap-1.5 px-4 py-3.5 hover:bg-neutral-50 transition-colors group"
                 >
-                  <span className="text-[13px] font-semibold text-neutral-600 group-hover:text-neutral-900">
+                  <span className="text-xs font-semibold text-neutral-600 group-hover:text-neutral-900">
                     Xem tất cả
                   </span>
                   <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:translate-x-0.5 transition-transform" />

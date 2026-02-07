@@ -6,7 +6,7 @@ import type { ReminderLevel } from "./reminder.types";
 
 // ==================== Notification Types ====================
 
-export type NotificationType = "reminder" | "maintenance" | "system" | "promotion";
+export type NotificationType = "reminder" | "maintenance" | "system" | "promotion" | "odometer_update";
 
 export interface Notification {
   id: string;
@@ -17,6 +17,7 @@ export interface Notification {
   partName?: string;
   vehicleName?: string;
   vehicleId?: string;
+  userVehicleId?: string;
   reminderId?: string;
   isRead: boolean;
   createdAt: string;

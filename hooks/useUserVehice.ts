@@ -10,6 +10,7 @@ import UserVehicleService, {
   AnalyzeQuestionnaireRequest,
   ApplyTrackingRequest,
   VehicleRemindersResponse,
+  UpdateOdometerRequest,
 } from "@/lib/api/services/fetchUserVehicle";
 
 export function useCreateUserVehicle() {
@@ -187,5 +188,56 @@ export function useUserVehicleReminders(userVehicleId: string, enabled: boolean 
     reminders: data?.reminders ?? [],
     message: data?.message,
     isSuccess: data?.isSuccess,
+  };
+}
+
+export function useUpdateOdometer() {
+  const queryClient = useQueryClient();
+
+  const { mutate, mutateAsync, data, isPending, isError, error, reset } = useMutation({
+    mutationKey: ["update-odometer"],
+    mutationFn: ({ userVehicleId, payload }: { userVehicleId: string; payload: UpdateOdometerRequest }) =>
+      UserVehicleService.updateOdometer(userVehicleId, payload),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["user-vehicles"] });
+      toast.success(data.message || "Cập nhật số km thành công!");
+    },
+    onError: (err: Error) => {
+      toast.error(err?.message || "Cập nhật số km thất bại!");
+    },
+  });
+
+  return {
+    updateOdometer: mutate,
+    updateOdometerAsync: mutateAsync,
+    reset,
+    isUpdating: isPending,
+    isError,
+    error,
+    vehicle: data?.data,
+    isSuccess: data?.isSuccess,
+    message: data?.message,
+  };
+}
+
+export function useScanOdometer() {
+  const { mutate, mutateAsync, data, isPending, isError, error, reset } = useMutation({
+    mutationKey: ["scan-odometer"],
+    mutationFn: (image: File) => UserVehicleService.scanOdometer(image),
+    onError: (err: Error) => {
+      toast.error(err?.message || "Nhận diện ODO thất bại!");
+    },
+  });
+
+  return {
+    scan: mutate,
+    scanAsync: mutateAsync,
+    reset,
+    isScanning: isPending,
+    isError,
+    error,
+    scanResult: data?.data,
+    isSuccess: data?.isSuccess,
+    message: data?.message,
   };
 }
