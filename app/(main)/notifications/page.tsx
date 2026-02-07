@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
   CheckCheck,
@@ -13,6 +13,7 @@ import {
   Wrench,
   Megaphone,
   Info,
+  Gauge,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Notification } from "@/lib/types";
@@ -56,6 +57,8 @@ function getNotifIcon(notification: Notification) {
     const config = getReminderLevelConfig(notification.level);
     return { Icon: config.Icon, bg: config.hexColorLight, color: config.hexColor };
   }
+  if (notification.type === "odometer_update")
+    return { Icon: Gauge, bg: "#f0fdf4", color: "#16a34a" };
   if (notification.type === "maintenance")
     return { Icon: Wrench, bg: "#eff6ff", color: "#3b82f6" };
   if (notification.type === "promotion")
@@ -115,12 +118,11 @@ function NotificationRow({
 
   return (
     <motion.button
-      layoutId={`notif-${notification.id}`}
       type="button"
       onClick={() => onSelect(notification)}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, delay: index * 0.03 }}
+      transition={{ duration: 0.3, delay: index * 0.05, ease: [0.25, 0.1, 0.25, 1] }}
       className={`w-full flex items-start gap-3.5 px-4 py-4 text-left active:scale-[0.98] transition-transform ${
         !notification.isRead ? "bg-white" : "bg-white/60"
       }`}
@@ -135,12 +137,12 @@ function NotificationRow({
             <Icon className="w-5 h-5" style={{ color }} />
           </div>
           {!notification.isRead && (
-            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-white" />
+            <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-red-500 border-2 border-white" />
           )}
         </div>
         {hasLevel && levelConfig && (
           <span
-            className="mt-1.5 text-[9px] font-bold text-center leading-tight"
+            className="mt-1.5 text-[10px] font-bold text-center leading-tight tracking-tight"
             style={{ color: levelConfig.hexColor }}
           >
             {levelConfig.labelVi}
@@ -153,7 +155,7 @@ function NotificationRow({
         {/* Title + time */}
         <div className="flex items-start justify-between gap-3">
           <p
-            className={`text-[15px] leading-snug ${
+            className={`text-sm leading-snug ${
               !notification.isRead
                 ? "font-semibold text-neutral-900"
                 : "font-medium text-neutral-500"
@@ -161,14 +163,14 @@ function NotificationRow({
           >
             {notification.title}
           </p>
-          <span className="flex-shrink-0 text-[12px] text-neutral-400 mt-0.5">
+          <span className="flex-shrink-0 text-xs text-neutral-400 mt-0.5">
             {timeAgo(notification.createdAt)}
           </span>
         </div>
 
         {/* Message — 2 lines max, truncate */}
         <p
-          className={`text-[13px] leading-relaxed mt-1 line-clamp-2 ${
+          className={`text-xs leading-relaxed mt-1 line-clamp-2 ${
             !notification.isRead ? "text-neutral-600" : "text-neutral-400"
           }`}
         >
@@ -206,7 +208,7 @@ function DetailPopup({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
         onClick={onClose}
         className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
       />
@@ -214,9 +216,11 @@ function DetailPopup({
       {/* Popup */}
       <div className="fixed inset-0 z-50 flex items-center justify-center px-5 pointer-events-none">
         <motion.div
-          layoutId={`notif-${notification.id}`}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
           className="w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden pointer-events-auto"
-          transition={{ type: "spring", stiffness: 420, damping: 34 }}
         >
           {/* Top accent */}
           <div
@@ -239,10 +243,10 @@ function DetailPopup({
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-[17px] font-bold text-neutral-900 leading-tight">
+                <p className="text-base font-bold text-neutral-900 leading-tight">
                   {notification.title}
                 </p>
-                <p className="text-[12px] text-neutral-400 mt-1">
+                <p className="text-xs text-neutral-400 mt-1">
                   {formatFullDate(notification.createdAt)}
                 </p>
               </div>
@@ -261,7 +265,7 @@ function DetailPopup({
             {hasLevel && levelConfig && (
               <div className="mt-4">
                 <span
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border"
                   style={{
                     backgroundColor: levelConfig.hexColorLight,
                     color: levelConfig.hexColor,
@@ -275,7 +279,7 @@ function DetailPopup({
             )}
 
             {/* Full message */}
-            <p className="text-[14px] text-neutral-600 leading-relaxed mt-4">
+            <p className="text-sm text-neutral-600 leading-relaxed mt-4">
               {notification.message}
             </p>
 
@@ -283,13 +287,13 @@ function DetailPopup({
             {(notification.vehicleName || notification.partName) && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {notification.vehicleName && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-neutral-50 text-[12px] text-neutral-500 font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-neutral-50 text-xs text-neutral-500 font-medium">
                     <Car className="w-3.5 h-3.5" />
                     {notification.vehicleName}
                   </span>
                 )}
                 {notification.partName && (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-neutral-50 text-[12px] text-neutral-500 font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-neutral-50 text-xs text-neutral-500 font-medium">
                     <Package className="w-3.5 h-3.5" />
                     {notification.partName}
                   </span>
@@ -303,7 +307,7 @@ function DetailPopup({
                 type="button"
                 onClick={() => onNavigate(notification.actionUrl!)}
                 whileTap={{ scale: 0.97 }}
-                className="w-full flex items-center justify-center gap-2 mt-5 py-3.5 rounded-2xl text-[14px] font-semibold text-white"
+                className="w-full flex items-center justify-center gap-2 mt-5 py-3.5 rounded-2xl text-sm font-semibold text-white"
                 style={{
                   background: levelConfig
                     ? `linear-gradient(135deg, ${levelConfig.hexColor}, ${levelConfig.hexColor}cc)`
@@ -358,6 +362,12 @@ export default function NotificationsPage() {
         return;
       }
 
+      // Odometer update → navigate to odometer page
+      if (n.type === "odometer_update" && n.actionUrl) {
+        router.push(n.actionUrl);
+        return;
+      }
+
       // Other types → popup
       setSelected(n);
     },
@@ -379,8 +389,7 @@ export default function NotificationsPage() {
   }, []);
 
   return (
-    <LayoutGroup>
-      <div className="min-h-screen bg-[#f5f5f7] pb-28">
+      <div className="min-h-screen bg-[#f5f5f7] pb-28 overflow-y-auto scrollbar-hide">
         {/* ── Header ── */}
         <header className="sticky top-0 z-40 bg-[#f5f5f7]/80 backdrop-blur-xl border-b border-neutral-200/50">
           <div className="flex items-center justify-between px-5 h-14">
@@ -394,7 +403,7 @@ export default function NotificationsPage() {
             </motion.button>
 
             <div className="flex items-center gap-4">
-              <h1 className="text-[17px] font-bold text-neutral-900">
+              <h1 className="text-base font-bold text-neutral-900">
                 Thông báo
               </h1>
             </div>
@@ -406,7 +415,7 @@ export default function NotificationsPage() {
                 whileTap={{ scale: 0.9 }}
                 className="w-9 h-9 rounded-full bg-white/80 shadow-sm flex items-center justify-center"
               >
-                <CheckCheck className="w-[18px] h-[18px] text-blue-500" />
+                <CheckCheck className="w-[18px] h-[18px] text-red-500" />
               </motion.button>
             ) : (
               <div className="w-9" />
@@ -426,7 +435,7 @@ export default function NotificationsPage() {
               onClick={() => setFilter(tab.key)}
               className="relative pb-2"
             >
-              <span className={`flex items-center gap-1.5 text-[14px] transition-colors ${
+              <span className={`flex items-center gap-1.5 text-sm transition-colors ${
                 filter === tab.key
                   ? "font-semibold text-neutral-900"
                   : "font-medium text-neutral-400"
@@ -435,7 +444,7 @@ export default function NotificationsPage() {
                 {tab.count > 0 && (
                   <span className={`min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full text-[10px] font-bold ${
                     filter === tab.key
-                      ? "bg-blue-500 text-white"
+                      ? "bg-red-500 text-white"
                       : "bg-neutral-200 text-neutral-500"
                   }`}>
                     {tab.count}
@@ -445,8 +454,8 @@ export default function NotificationsPage() {
               {filter === tab.key && (
                 <motion.div
                   layoutId="tab-underline"
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-blue-500 rounded-full"
-                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  className="absolute bottom-0 left-0 right-0 h-[1px] bg-red-500 rounded-full"
+                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 />
               )}
             </button>
@@ -459,7 +468,7 @@ export default function NotificationsPage() {
             grouped.map((group) => (
               <div key={group.label} className="mb-4">
                 {/* Day label */}
-                <p className="text-[13px] font-semibold text-neutral-400 uppercase tracking-wider px-6 pb-2">
+                <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider px-6 pb-2">
                   {group.label}
                 </p>
 
@@ -480,14 +489,15 @@ export default function NotificationsPage() {
             ))
           ) : (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
               className="flex flex-col items-center justify-center py-28"
             >
               <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
                 <Bell className="w-7 h-7 text-neutral-300" />
               </div>
-              <p className="text-[15px] font-medium text-neutral-400">
+              <p className="text-sm font-medium text-neutral-400">
                 Không có thông báo
               </p>
             </motion.div>
@@ -506,6 +516,5 @@ export default function NotificationsPage() {
           )}
         </AnimatePresence>
       </div>
-    </LayoutGroup>
   );
 }

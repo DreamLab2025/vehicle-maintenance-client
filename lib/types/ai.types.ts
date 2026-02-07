@@ -42,6 +42,22 @@ export interface AnalyzeQuestionnaireData {
   metadata: AIMetadata;
 }
 
+// ==================== Odometer OCR / Scan ====================
+
+export interface ScanOdometerData {
+  odometerValue: number;
+  confidence: number;
+  rawText: string;
+  imageUrl?: string;
+}
+
+export interface ScanOdometerResponse {
+  isSuccess: boolean;
+  message: string;
+  data: ScanOdometerData;
+  metadata: string;
+}
+
 // ==================== Response Types ====================
 
 export interface AnalyzeQuestionnaireResponse {

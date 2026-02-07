@@ -11,9 +11,11 @@ import {
   UserVehicleQueryParams,
   DeleteUserVehicleResponse,
   UserVehiclePartsResponse,
+  UpdateOdometerRequest,
+  UpdateOdometerResponse,
 } from "@/lib/types/vehicle.types";
 import { ApplyTrackingRequest, ApplyTrackingResponse, VehicleRemindersResponse } from "@/lib/types/reminder.types";
-import { AnalyzeQuestionnaireRequest, AnalyzeQuestionnaireResponse } from "@/lib/types/ai.types";
+import { AnalyzeQuestionnaireRequest, AnalyzeQuestionnaireResponse, ScanOdometerResponse } from "@/lib/types/ai.types";
 
 export const UserVehicleService = {
   // ==================== Vehicle CRUD ====================
@@ -63,6 +65,27 @@ export const UserVehicleService = {
   getReminders: async (userVehicleId: string) => {
     const response = await coreApiService.get<VehicleRemindersResponse>(
       `/api/v1/user-vehicles/${userVehicleId}/reminders`,
+    );
+    return response.data;
+  },
+
+  // ==================== Odometer ====================
+
+  updateOdometer: async (userVehicleId: string, payload: UpdateOdometerRequest) => {
+    const response = await coreApiService.patch<UpdateOdometerResponse>(
+      `/api/v1/user-vehicles/${userVehicleId}/odometer`,
+      payload,
+    );
+    return response.data;
+  },
+
+  scanOdometer: async (image: File, onProgress?: (percent: number) => void) => {
+    const response = await aiApiService.upload<ScanOdometerResponse>(
+      "/api/v1/ai/odometer/scan",
+      image,
+      "image",
+      undefined,
+      onProgress,
     );
     return response.data;
   },

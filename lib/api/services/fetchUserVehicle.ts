@@ -16,6 +16,8 @@ export type {
   UserVehicleQueryParams,
   DeleteUserVehicleResponse,
   UserVehiclePartsResponse,
+  UpdateOdometerRequest,
+  UpdateOdometerResponse,
 } from "@/lib/types/vehicle.types";
 
 export type {
@@ -37,6 +39,8 @@ export type {
   AIMetadata,
   AnalyzeQuestionnaireData,
   AnalyzeQuestionnaireResponse,
+  ScanOdometerData,
+  ScanOdometerResponse,
 } from "@/lib/types/ai.types";
 
 export type {

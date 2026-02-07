@@ -65,6 +65,32 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     isRead: true,
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
   },
+  {
+    id: "notif-6",
+    type: "odometer_update",
+    title: "Cập nhật số km hiện tại",
+    message:
+      "Đã 7 ngày kể từ lần cập nhật gần nhất. Hãy cập nhật số odometer cho Honda SH 150i để hệ thống theo dõi bảo dưỡng chính xác hơn.",
+    vehicleName: "Honda SH 150i",
+    vehicleId: "vehicle-1",
+    userVehicleId: "a1b2c3d4-5678-9abc-def0-111111111111",
+    isRead: false,
+    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 mins ago
+    actionUrl: "/odometer/a1b2c3d4-5678-9abc-def0-111111111111",
+  },
+  {
+    id: "notif-7",
+    type: "odometer_update",
+    title: "Nhắc nhở cập nhật odometer",
+    message:
+      "Yamaha Exciter 155 chưa được cập nhật số km trong 14 ngày. Cập nhật ngay để nhận nhắc bảo dưỡng đúng hạn.",
+    vehicleName: "Yamaha Exciter 155",
+    vehicleId: "vehicle-2",
+    userVehicleId: "b2c3d4e5-6789-abcd-ef01-222222222222",
+    isRead: true,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    actionUrl: "/odometer/b2c3d4e5-6789-abcd-ef01-222222222222",
+  },
 ];
 
 export const getUnreadCount = (notifications: Notification[]): number => {

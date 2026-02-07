@@ -112,3 +112,16 @@ export interface UserVehiclePartsResponse {
   data: UserVehiclePart[];
   metadata: unknown;
 }
+
+// ==================== Odometer Update ====================
+
+export interface UpdateOdometerRequest {
+  currentOdometer: number;
+}
+
+export interface UpdateOdometerResponse {
+  isSuccess: boolean;
+  message: string;
+  data: UserVehicle;
+  metadata: string;
+}
