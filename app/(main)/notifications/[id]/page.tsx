@@ -102,11 +102,11 @@ function KmProgressLine({
     <div className="w-full">
       {/* Labels */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[12px] text-neutral-400 font-medium">0 km</span>
-        <span className="text-[12px] font-semibold" style={{ color }}>
+        <span className="text-xs text-neutral-400 font-medium">0 km</span>
+        <span className="text-xs font-semibold" style={{ color }}>
           {formatNumber(current)} km
         </span>
-        <span className="text-[12px] text-neutral-400 font-medium">
+        <span className="text-xs text-neutral-400 font-medium">
           {formatNumber(target)} km
         </span>
       </div>
@@ -119,7 +119,7 @@ function KmProgressLine({
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${used}%` }}
-          transition={{ delay: 0.4, duration: 1, ease: "easeOut" }}
+          transition={{ delay: 0.2, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
           className="absolute inset-y-0 left-0 rounded-full"
           style={{ background: `linear-gradient(90deg, ${color}40, ${color})` }}
         />
@@ -127,7 +127,7 @@ function KmProgressLine({
         <motion.div
           initial={{ left: "0%" }}
           animate={{ left: `${used}%` }}
-          transition={{ delay: 0.4, duration: 1, ease: "easeOut" }}
+          transition={{ delay: 0.2, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full border-[2.5px] border-white shadow-md z-10"
           style={{ backgroundColor: color }}
         />
@@ -135,8 +135,8 @@ function KmProgressLine({
 
       {/* Sub label */}
       <div className="flex items-center justify-between mt-1.5">
-        <span className="text-[11px] text-neutral-400">Đã đi</span>
-        <span className="text-[11px] font-semibold" style={{ color }}>
+        <span className="text-xs text-neutral-400">Đã đi</span>
+        <span className="text-xs font-semibold" style={{ color }}>
           Còn {formatNumber(target - current)} km
         </span>
       </div>
@@ -173,13 +173,13 @@ export default function NotificationDetailPage() {
   if (!notification || !vehicleDetail || !levelConfig) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] flex flex-col items-center justify-center px-6">
-        <p className="text-[16px] font-medium text-neutral-500 mb-4">
+        <p className="text-base font-medium text-neutral-500 mb-4">
           Không tìm thấy thông báo
         </p>
         <button
           type="button"
           onClick={() => router.back()}
-          className="px-5 py-2.5 rounded-xl bg-neutral-900 text-white text-[14px] font-medium"
+          className="px-5 py-2.5 rounded-xl bg-neutral-900 text-white text-sm font-medium"
         >
           Quay lại
         </button>
@@ -202,7 +202,7 @@ export default function NotificationDetailPage() {
           >
             <ChevronLeft className="w-5 h-5 text-neutral-700" />
           </motion.button>
-          <h1 className="text-[16px] font-bold text-neutral-900">
+          <h1 className="text-base font-bold text-neutral-900">
             Chi tiết thông báo
           </h1>
           <div className="w-9" />
@@ -210,8 +210,9 @@ export default function NotificationDetailPage() {
       </header>
 
       <motion.div
-        initial={{ opacity: 0, y: 10 }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
         className="px-6 pt-4"
       >
         {/* Vehicle row */}
@@ -220,15 +221,15 @@ export default function NotificationDetailPage() {
             {vehicleDetail.brandLogo}
           </div>
           <div className="flex-1">
-            <p className="text-[18px] font-bold text-neutral-900">
+            <p className="text-lg font-bold text-neutral-900">
               {vehicleDetail.brandName} {vehicleDetail.modelName}
             </p>
-            <p className="text-[12px] text-neutral-400 font-medium">
+            <p className="text-xs text-neutral-400 font-medium">
               {vehicleDetail.licensePlate}
             </p>
           </div>
           <span
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold"
             style={{
               backgroundColor: levelConfig.hexColorLight,
               color: levelConfig.hexColor,
@@ -240,10 +241,10 @@ export default function NotificationDetailPage() {
         </div>
 
         {/* Part name + description */}
-        <p className="text-[15px] font-semibold text-neutral-800 mt-5">
+        <p className="text-sm font-semibold text-neutral-800 mt-5">
           {notification.partName}
         </p>
-        <p className="text-[13px] text-neutral-400 leading-relaxed mt-1">
+        <p className="text-xs text-neutral-400 leading-relaxed mt-1">
           {vehicleDetail.partDescription}
         </p>
 
@@ -261,19 +262,19 @@ export default function NotificationDetailPage() {
         <div className="flex items-center justify-between mt-6 gap-2">
           <div className="flex items-center gap-1.5">
             <Gauge className="w-3.5 h-3.5 text-neutral-400" />
-            <span className="text-[12px] text-neutral-500">
+            <span className="text-xs text-neutral-500">
               <span className="font-semibold text-neutral-800">{formatNumber(vehicleDetail.currentOdometer)}</span> km
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <MapPin className="w-3.5 h-3.5 text-neutral-400" />
-            <span className="text-[12px] text-neutral-500">
+            <span className="text-xs text-neutral-500">
               <span className="font-semibold text-neutral-800">{formatNumber(vehicleDetail.targetOdometer)}</span> km
             </span>
           </div>
           <div className="flex items-center gap-1.5">
             <Calendar className="w-3.5 h-3.5 text-neutral-400" />
-            <span className="text-[12px] font-semibold text-neutral-800">
+            <span className="text-xs font-semibold text-neutral-800">
               {formatDate(vehicleDetail.targetDate)}
             </span>
           </div>
@@ -285,7 +286,7 @@ export default function NotificationDetailPage() {
           onClick={() => {
             if (notification.actionUrl) router.push(notification.actionUrl);
           }}
-          className="w-full flex items-center justify-center gap-2 mt-8 py-3.5 rounded-2xl text-[14px] font-semibold text-white"
+          className="w-full flex items-center justify-center gap-2 mt-8 py-3.5 rounded-2xl text-sm font-semibold text-white"
           style={{
             background: `linear-gradient(135deg, ${levelConfig.hexColor}, ${levelConfig.hexColor}cc)`,
           }}
