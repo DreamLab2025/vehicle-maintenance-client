@@ -12,11 +12,12 @@ import {
   Car,
   X,
   Gauge,
+  ArrowDown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Notification } from "@/lib/types";
-import { MOCK_NOTIFICATIONS, getUnreadCount, getRecentNotifications } from "@/lib/mock/notifications.mock";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
+import { useNotifications, useNotificationStatus } from "@/hooks/useNotification";
 
 function formatTimeAgo(dateString: string): string {
   const now = new Date();
@@ -148,12 +149,30 @@ function NotificationItem({ notification, onPress, index }: NotificationItemProp
 
 export default function NotificationDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  const unreadCount = useMemo(() => getUnreadCount(notifications), [notifications]);
-  const recentNotifications = useMemo(() => getRecentNotifications(notifications, 5), [notifications]);
+  // Fetch notifications (up to 15)
+  const { notifications, isLoading, isFetching, refetch } = useNotifications(
+    {
+      PageNumber: 1,
+      PageSize: 15,
+      IsDescending: true,
+    },
+    isOpen // Only fetch when dropdown is open
+  );
+
+  // Get unread count from status API
+  const { unReadCount } = useNotificationStatus();
+
+  const displayNotifications = useMemo(() => {
+    return notifications.slice(0, 15);
+  }, [notifications]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -168,15 +187,62 @@ export default function NotificationDropdown() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  const handleNotificationPress = (notification: Notification) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n))
-    );
+  // Pull-to-refresh handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!listRef.current) return;
+    const scrollTop = listRef.current.scrollTop;
+    if (scrollTop === 0) {
+      setStartY(e.touches[0].clientY);
+      setIsDragging(true);
+    }
+  };
 
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging || !listRef.current) return;
+    const currentY = e.touches[0].clientY;
+    const distance = currentY - startY;
+    if (distance > 0) {
+      setPullDistance(Math.min(distance, 80));
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    if (pullDistance > 50) {
+      setIsRefreshing(true);
+      await refetch();
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setPullDistance(0);
+      }, 500);
+    } else {
+      setPullDistance(0);
+    }
+  };
+
+  const handleNotificationPress = (notification: Notification) => {
+    // TODO: Call API to mark as read
+    
+    // MaintenanceReminder (reminder type) → navigate to detail page
+    if (notification.type === "reminder" && notification.level) {
+      router.push(`/notifications/${notification.id}`);
+      setIsOpen(false);
+      return;
+    }
+
+    // OdometerReminder (odometer_update type) → navigate to odometer update page
+    if (notification.type === "odometer_update" && notification.userVehicleId) {
+      router.push(`/odometer/${notification.userVehicleId}`);
+      setIsOpen(false);
+      return;
+    }
+
+    // Fallback to actionUrl if available
     if (notification.actionUrl) {
       router.push(notification.actionUrl);
     }
-
     setIsOpen(false);
   };
 
@@ -186,7 +252,8 @@ export default function NotificationDropdown() {
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    // TODO: Call API to mark all as read
+    refetch();
   };
 
   return (
@@ -201,7 +268,7 @@ export default function NotificationDropdown() {
       >
         <Bell className={`h-[18px] w-[18px] transition-colors ${isOpen ? "text-neutral-900" : "text-neutral-600"}`} />
         <AnimatePresence>
-          {unreadCount > 0 && (
+          {unReadCount > 0 && (
             <motion.span
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -209,7 +276,7 @@ export default function NotificationDropdown() {
               transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 rounded-full text-[10px] font-bold text-white ring-2 ring-white"
             >
-              {unreadCount > 9 ? "9+" : unreadCount}
+              {unReadCount > 9 ? "9+" : unReadCount}
             </motion.span>
           )}
         </AnimatePresence>
@@ -243,22 +310,22 @@ export default function NotificationDropdown() {
                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center">
                       <Bell className="w-4 h-4 text-white" />
                     </div>
-                    {unreadCount > 0 && (
+                    {unReadCount > 0 && (
                       <span className="absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center bg-neutral-900 rounded-full text-[9px] font-bold text-white">
-                        {unreadCount}
+                        {unReadCount}
                       </span>
                     )}
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-neutral-900">Thông báo</h3>
                     <p className="text-xs text-neutral-500">
-                      {unreadCount > 0 ? `${unreadCount} chưa đọc` : "Đã đọc tất cả"}
+                      {unReadCount > 0 ? `${unReadCount} chưa đọc` : "Đã đọc tất cả"}
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-1">
-                  {unreadCount > 0 && (
+                  {unReadCount > 0 && (
                     <button
                       type="button"
                       onClick={handleMarkAllAsRead}
@@ -277,11 +344,49 @@ export default function NotificationDropdown() {
                 </div>
               </div>
 
+              {/* Pull-to-refresh indicator */}
+              <AnimatePresence>
+                {(pullDistance > 0 || isRefreshing) && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: pullDistance > 0 ? pullDistance : 60 }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex items-center justify-center overflow-hidden"
+                  >
+                    <motion.div
+                      animate={{ rotate: isRefreshing ? 360 : 0 }}
+                      transition={{ duration: 0.6, repeat: isRefreshing ? Infinity : 0, ease: "linear" }}
+                      className="flex items-center gap-2 text-neutral-400"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                      <span className="text-xs font-medium">
+                        {isRefreshing ? "Đang tải..." : "Kéo để làm mới"}
+                      </span>
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* List */}
-              <div className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto overscroll-contain scrollbar-hide">
-                {recentNotifications.length > 0 ? (
+              <div
+                ref={listRef}
+                className="max-h-[60vh] sm:max-h-[400px] overflow-y-auto overscroll-contain scrollbar-hide relative"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                style={{
+                  transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : undefined,
+                  transition: isRefreshing ? "transform 0.3s ease" : undefined,
+                }}
+              >
+                {isLoading ? (
+                  <div className="py-12 text-center">
+                    <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                    <p className="text-xs text-neutral-400">Đang tải thông báo...</p>
+                  </div>
+                ) : displayNotifications.length > 0 ? (
                   <div className="divide-y divide-neutral-100">
-                    {recentNotifications.map((notification, index) => (
+                    {displayNotifications.map((notification, index) => (
                       <NotificationItem
                         key={notification.id}
                         notification={notification}

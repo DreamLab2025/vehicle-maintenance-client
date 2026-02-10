@@ -12,6 +12,10 @@ import UserVehicleService, {
   VehicleRemindersResponse,
   UpdateOdometerRequest,
 } from "@/lib/api/services/fetchUserVehicle";
+import type {
+  OdometerHistoryQueryParams,
+  OdometerHistoryResponse,
+} from "@/lib/types/vehicle.types";
 
 export function useCreateUserVehicle() {
   const queryClient = useQueryClient();
@@ -217,6 +221,36 @@ export function useUpdateOdometer() {
     vehicle: data?.data,
     isSuccess: data?.isSuccess,
     message: data?.message,
+  };
+}
+
+export function useOdometerHistory(
+  userVehicleId: string | undefined,
+  params: OdometerHistoryQueryParams,
+  enabled: boolean = true
+) {
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
+    queryKey: ["user-vehicle", "odometer-history", userVehicleId, params],
+    queryFn: () => UserVehicleService.getOdometerHistory(userVehicleId!, params),
+    enabled: enabled && !!userVehicleId,
+    select: (data: OdometerHistoryResponse) => ({
+      history: data.data ?? [],
+      metadata: data.metadata,
+      message: data.message,
+      isSuccess: data.isSuccess,
+    }),
+  });
+
+  return {
+    refetch,
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    history: data?.history ?? [],
+    metadata: data?.metadata,
+    message: data?.message,
+    isSuccess: data?.isSuccess,
   };
 }
 

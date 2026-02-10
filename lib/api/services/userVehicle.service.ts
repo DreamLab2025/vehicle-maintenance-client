@@ -13,6 +13,8 @@ import {
   UserVehiclePartsResponse,
   UpdateOdometerRequest,
   UpdateOdometerResponse,
+  OdometerHistoryQueryParams,
+  OdometerHistoryResponse,
 } from "@/lib/types/vehicle.types";
 import { ApplyTrackingRequest, ApplyTrackingResponse, VehicleRemindersResponse } from "@/lib/types/reminder.types";
 import { AnalyzeQuestionnaireRequest, AnalyzeQuestionnaireResponse, ScanOdometerResponse } from "@/lib/types/ai.types";
@@ -86,6 +88,16 @@ export const UserVehicleService = {
       "image",
       undefined,
       onProgress,
+    );
+    return response.data;
+  },
+
+  // ==================== Odometer History ====================
+
+  getOdometerHistory: async (userVehicleId: string, params: OdometerHistoryQueryParams) => {
+    const response = await coreApiService.get<OdometerHistoryResponse>(
+      `/api/v1/user-vehicles/${userVehicleId}/odometer-history`,
+      params,
     );
     return response.data;
   },
