@@ -125,3 +125,27 @@ export interface UpdateOdometerResponse {
   data: UserVehicle;
   metadata: string;
 }
+
+// ==================== Odometer History ====================
+
+export interface OdometerHistoryItem {
+  id: string;
+  userVehicleId: string;
+  odometerValue: number;
+  recordedDate: string; // ISO date string (YYYY-MM-DD)
+  kmOnRecordedDate: number;
+  source: "ManualInput" | "Scan" | "Auto";
+}
+
+export interface OdometerHistoryQueryParams extends BaseQueryParams {
+  FromDate?: string; // ISO date string (YYYY-MM-DD)
+  ToDate?: string; // ISO date string (YYYY-MM-DD)
+  [key: string]: string | number | boolean | null | undefined | string[];
+}
+
+export interface OdometerHistoryResponse {
+  isSuccess: boolean;
+  message: string;
+  data: OdometerHistoryItem[];
+  metadata: PaginationMetadata;
+}

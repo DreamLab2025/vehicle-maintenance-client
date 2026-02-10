@@ -6,6 +6,7 @@ import apiService from "@/lib/api/apiService";
 import coreApiService from "@/lib/api/coreApiService";
 import aiApiService from "@/lib/api/aiApiService";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotificationListener } from "@/hooks/useNotification";
 
 const AuthContext = createContext<ReturnType<typeof useAuth> | null>(null);
 
@@ -22,6 +23,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       auth.initAuthFromStorage();
     }
   }, []);
+
+  // Set up SignalR notification listener
+  useNotificationListener();
 
   return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 }

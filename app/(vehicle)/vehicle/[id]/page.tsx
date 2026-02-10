@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -9,24 +9,26 @@ import {
   Gauge,
   Fuel,
   Settings as SettingsIcon,
-  Wrench,
-  MapPin,
-  Clock,
   TrendingUp,
-  AlertCircle,
-  FileText,
   Edit,
-  Trash2,
   Share2,
   Download,
+  FileText,
+  AlertCircle,
+  History,
 } from "lucide-react";
-import { useUserVehicles } from "@/hooks/useUserVehice";
+import Image from "next/image";
+import { useUserVehicles, useOdometerHistory } from "@/hooks/useUserVehice";
 import BottomNav from "@/components/common/BottomNav";
+import { OdometerHistoryChart } from "@/components/odometer/OdometerHistoryChart";
+import type { OdometerHistoryItem } from "@/lib/types/vehicle.types";
 
 export default function VehicleDetailPage() {
   const params = useParams();
   const router = useRouter();
   const vehicleId = params.id as string;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allHistory, setAllHistory] = useState<OdometerHistoryItem[]>([]);
 
   const { vehicles, isLoading } = useUserVehicles({
     PageNumber: 1,
@@ -35,60 +37,47 @@ export default function VehicleDetailPage() {
 
   const vehicle = vehicles.find((v) => v.id === vehicleId);
 
-  // Mock data for additional details
-  const maintenanceHistory = [
+  // Fetch odometer history
+  const { 
+    history: odometerHistory, 
+    isLoading: isLoadingHistory,
+    isFetching: isFetchingHistory,
+    metadata: historyMetadata,
+  } = useOdometerHistory(
+    vehicleId,
     {
-      id: 1,
-      date: "15/12/2025",
-      type: "Thay dầu động cơ",
-      cost: "850,000đ",
-      odometer: 14200,
-      location: "Garage ABC - Q1",
-      status: "completed",
+      PageNumber: currentPage,
+      PageSize: 5,
+      IsDescending: true,
     },
-    {
-      id: 2,
-      date: "01/11/2025",
-      type: "Bảo dưỡng định kỳ",
-      cost: "1,500,000đ",
-      odometer: 13500,
-      location: "Honda Service - Q3",
-      status: "completed",
-    },
-    {
-      id: 3,
-      date: "20/09/2025",
-      type: "Thay lốp sau",
-      cost: "2,200,000đ",
-      odometer: 12800,
-      location: "Tire Shop XYZ - Q2",
-      status: "completed",
-    },
-  ];
+    !!vehicleId
+  );
 
-  const upcomingMaintenance = [
-    {
-      id: 1,
-      type: "Thay dầu động cơ",
-      dueDate: "20/01/2026",
-      dueKm: 15000,
-      priority: "high",
-    },
-    {
-      id: 2,
-      type: "Kiểm tra phanh",
-      dueDate: "05/02/2026",
-      dueKm: 15500,
-      priority: "medium",
-    },
-    {
-      id: 3,
-      type: "Bảo dưỡng định kỳ",
-      dueDate: "15/03/2026",
-      dueKm: 20000,
-      priority: "low",
-    },
-  ];
+  // Accumulate history data
+  React.useEffect(() => {
+    if (odometerHistory && odometerHistory.length > 0) {
+      if (currentPage === 1) {
+        // Reset on first page
+        setAllHistory(odometerHistory);
+      } else {
+        // Append new data
+        setAllHistory((prev) => [...prev, ...odometerHistory]);
+      }
+    }
+  }, [odometerHistory, currentPage]);
+
+  // Reset when vehicleId changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+    setAllHistory([]);
+  }, [vehicleId]);
+
+  const handleLoadMore = () => {
+    if (historyMetadata?.hasNextPage && !isFetchingHistory) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
 
   if (isLoading) {
     return (
@@ -128,18 +117,18 @@ export default function VehicleDetailPage() {
     );
   }
 
-  const getCarImage = () => {
-    if (vehicle.userVehicleVariant.imageUrl)
-      return vehicle.userVehicleVariant.imageUrl;
-    const brandLower = vehicle.userVehicleVariant.model.brandName.toLowerCase();
-    if (brandLower.includes("honda"))
-      return "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1400&auto=format&fit=crop&q=80";
-    if (brandLower.includes("toyota"))
-      return "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1400&auto=format&fit=crop&q=80";
-    if (brandLower.includes("mazda"))
-      return "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=1400&auto=format&fit=crop&q=80";
-    return "https://images.unsplash.com/photo-1542362567-b07e54358753?w=1400&auto=format&fit=crop&q=80";
-  };
+  // const getCarImage = () => {
+  //   if (vehicle.userVehicleVariant.imageUrl)
+  //     return vehicle.userVehicleVariant.imageUrl;
+  //   const brandLower = vehicle.userVehicleVariant.model.brandName.toLowerCase();
+  //   if (brandLower.includes("honda"))
+  //     return "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1400&auto=format&fit=crop&q=80";
+  //   if (brandLower.includes("toyota"))
+  //     return "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=1400&auto=format&fit=crop&q=80";
+  //   if (brandLower.includes("mazda"))
+  //     return "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=1400&auto=format&fit=crop&q=80";
+  //   return "https://images.unsplash.com/photo-1542362567-b07e54358753?w=1400&auto=format&fit=crop&q=80";
+  // };
 
   return (
     <main className="min-h-dvh bg-gray-50 pb-24">
@@ -177,10 +166,12 @@ export default function VehicleDetailPage() {
             transition={{ delay: 0.2 }}
             className="absolute inset-0 flex items-center justify-center"
           >
-            <img
-              src={getCarImage()}
+            <Image
+              src={vehicle.userVehicleVariant.imageUrl || ""}
               alt={`${vehicle.userVehicleVariant.model.brandName} ${vehicle.userVehicleVariant.model.name}`}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              unoptimized
             />
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 via-transparent to-transparent" />
           </motion.div>
@@ -315,13 +306,13 @@ export default function VehicleDetailPage() {
                   <span className="text-sm text-gray-600">Số VIN</span>
                 </div>
                 <span className="text-xs font-mono text-gray-900 bg-gray-50 px-2 py-1 rounded">
-                  {vehicle.vinNumber}
+                  {vehicle.vinNumber || "Chưa Cập Nhật"}
                 </span>
               </div>
             </div>
           </motion.div>
 
-          {/* Upcoming Maintenance */}
+          {/* Odometer History */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -329,139 +320,44 @@ export default function VehicleDetailPage() {
           >
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-lg font-semibold text-gray-900">
-                Bảo dưỡng sắp tới
+                Lịch sử cập nhật số km
               </h2>
-              <AlertCircle className="h-5 w-5 text-orange-500" />
+              <History className="h-5 w-5 text-blue-500" />
             </div>
-            <div className="space-y-3">
-              {upcomingMaintenance.map((item, index) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
-                  className={`bg-white rounded-2xl p-4 border-2 ${
-                    item.priority === "high"
-                      ? "border-red-200 bg-red-50/50"
-                      : item.priority === "medium"
-                      ? "border-orange-200 bg-orange-50/50"
-                      : "border-blue-200 bg-blue-50/50"
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Wrench
-                        className={`h-5 w-5 ${
-                          item.priority === "high"
-                            ? "text-red-600"
-                            : item.priority === "medium"
-                            ? "text-orange-600"
-                            : "text-blue-600"
-                        }`}
-                      />
-                      <h3 className="font-semibold text-gray-900">
-                        {item.type}
-                      </h3>
-                    </div>
-                    <span
-                      className={`text-xs font-medium px-2 py-1 rounded-full ${
-                        item.priority === "high"
-                          ? "bg-red-100 text-red-700"
-                          : item.priority === "medium"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
-                    >
-                      {item.priority === "high"
-                        ? "Khẩn cấp"
-                        : item.priority === "medium"
-                        ? "Quan trọng"
-                        : "Bình thường"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {item.dueDate}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Gauge className="h-4 w-4" />
-                      {item.dueKm.toLocaleString()} km
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Maintenance History */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Lịch sử bảo dưỡng
-              </h2>
-              <FileText className="h-5 w-5 text-blue-500" />
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-              {maintenanceHistory.map((item, index) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.9 + index * 0.1 }}
-                  className={`p-4 ${
-                    index !== maintenanceHistory.length - 1
-                      ? "border-b border-gray-100"
-                      : ""
-                  } hover:bg-gray-50 transition cursor-pointer`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {item.type}
-                      </h3>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {item.date}
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Gauge className="h-3 w-3" />
-                          {item.odometer.toLocaleString()} km
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900">{item.cost}</p>
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-xs font-medium mt-1">
-                        Hoàn thành
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
-                    <MapPin className="h-3 w-3" />
-                    {item.location}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+            {isLoadingHistory && currentPage === 1 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col items-center justify-center">
+                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
+                <p className="text-sm text-gray-500">Đang tải lịch sử...</p>
+              </div>
+            ) : allHistory.length > 0 ? (
+              <OdometerHistoryChart 
+                data={allHistory} 
+                isLoading={false}
+                metadata={historyMetadata}
+                onLoadMore={handleLoadMore}
+                isLoadingMore={isFetchingHistory && currentPage > 1}
+              />
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col items-center justify-center">
+                <History className="h-12 w-12 text-gray-300 mb-3" />
+                <p className="text-sm text-gray-500">Chưa có lịch sử cập nhật</p>
+              </div>
+            )}
           </motion.div>
 
           {/* Action Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1 }}
+            transition={{ delay: 0.8 }}
             className="grid grid-cols-2 gap-3 pb-6"
           >
-            <button className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl p-4 font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 active:scale-95">
-              <Calendar className="h-5 w-5" />
-              Đặt lịch bảo dưỡng
+            <button
+              onClick={() => router.push(`/odometer/${vehicleId}`)}
+              className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl p-4 font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 active:scale-95"
+            >
+              <Gauge className="h-5 w-5" />
+              Cập nhật số km
             </button>
             <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 rounded-2xl p-4 font-semibold transition flex items-center justify-center gap-2 active:scale-95">
               <Download className="h-5 w-5" />
