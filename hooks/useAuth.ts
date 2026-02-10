@@ -8,6 +8,7 @@ import { setCookie, getCookie, deleteCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
 import authApiService from "@/lib/api/authApiService";
 import coreApiService from "@/lib/api/coreApiService";
+import notificationHubService from "@/hubs/notificationHub";
 
 /* ===================== TYPES ===================== */
 
@@ -104,6 +105,16 @@ export function useAuth() {
         error: null,
       });
 
+      // ✅ CONNECT TO NOTIFICATION HUB
+      console.log("🔌 Attempting to connect to notification hub after login...");
+      notificationHubService.startConnection(token).then((connected) => {
+        if (connected) {
+          console.log("✅ Notification hub connected successfully after login!");
+        } else {
+          console.warn("⚠️ Failed to connect to notification hub after login");
+        }
+      });
+
       return { success: true, user };
     } catch (err) {
       const message = err instanceof Error ? err.message : "Đăng nhập thất bại";
@@ -170,6 +181,12 @@ export function useAuth() {
     authApiService.setAuthToken(null);
     coreApiService.setAuthToken(null);
 
+    // ✅ DISCONNECT FROM NOTIFICATION HUB
+    console.log("🔌 Disconnecting from notification hub on logout...");
+    notificationHubService.stopConnection().then(() => {
+      console.log("✅ Notification hub disconnected");
+    });
+
     setState({
       user: null,
       accessToken: null,
@@ -206,6 +223,19 @@ export function useAuth() {
     setState((s) => ({ ...s, accessToken: token }));
 
     await fetchCurrentUser();
+
+    // ✅ CONNECT TO NOTIFICATION HUB (if user is authenticated)
+    const currentState = getCookie("auth-token") as string | undefined;
+    if (currentState) {
+      console.log("🔌 Attempting to connect to notification hub on init...");
+      notificationHubService.startConnection(currentState).then((connected) => {
+        if (connected) {
+          console.log("✅ Notification hub connected successfully on init!");
+        } else {
+          console.warn("⚠️ Failed to connect to notification hub on init");
+        }
+      });
+    }
 
     setState((s) => ({ ...s, loading: false }));
   };

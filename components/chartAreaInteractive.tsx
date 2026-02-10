@@ -209,6 +209,11 @@ export function ChartAreaInteractive() {
               cursor={false}
               content={
                 <ChartTooltipContent
+                  active={true}
+                  payload={[{ value: 0 }]}
+                  coordinate={{ x: 0, y: 0 }}
+                  accessibilityLayer={true}
+                  activeIndex="0"
                   labelFormatter={(value) => {
                     return new Date(value).toLocaleDateString("en-US", {
                       month: "short",

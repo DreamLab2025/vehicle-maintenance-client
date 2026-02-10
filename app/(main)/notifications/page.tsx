@@ -17,11 +17,8 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Notification } from "@/lib/types";
-import {
-  MOCK_NOTIFICATIONS,
-  getUnreadCount,
-} from "@/lib/mock/notifications.mock";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
+import { useNotifications, useNotificationStatus, useMarkAllAsRead } from "@/hooks/useNotification";
 
 // ─── Helpers ────────────────────────────────────────────────
 
@@ -329,15 +326,21 @@ function DetailPopup({
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const [notifications, setNotifications] =
-    useState<Notification[]>(MOCK_NOTIFICATIONS);
   const [selected, setSelected] = useState<Notification | null>(null);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
-  const unreadCount = useMemo(
-    () => getUnreadCount(notifications),
-    [notifications]
-  );
+  // Fetch notifications from API
+  const { notifications, isLoading } = useNotifications({
+    PageNumber: 1,
+    PageSize: 100, // Get more notifications for the full page
+    IsDescending: true,
+  });
+
+  // Get unread count from status API
+  const { unReadCount } = useNotificationStatus();
+
+  // Mark all as read mutation
+  const { mutate: markAllAsRead, isPending: isMarkingAllAsRead } = useMarkAllAsRead();
 
   const filtered = useMemo(
     () =>
@@ -351,21 +354,27 @@ export default function NotificationsPage() {
 
   const handleSelect = useCallback(
     (n: Notification) => {
-      // Mark as read
-      setNotifications((prev) =>
-        prev.map((item) => (item.id === n.id ? { ...item, isRead: true } : item))
-      );
-
-      // Reminder notifications → navigate to detail page
+      // TODO: Call API to mark as read
+      // For now, just navigate/select
+      
+      // MaintenanceReminder (reminder type) → navigate to detail page
       if (n.type === "reminder" && n.level) {
         router.push(`/notifications/${n.id}`);
         return;
       }
 
-      // Odometer update → navigate to odometer page
-      if (n.type === "odometer_update" && n.actionUrl) {
-        router.push(n.actionUrl);
-        return;
+      // OdometerReminder (odometer_update type) → navigate to odometer update page
+      if (n.type === "odometer_update") {
+        // Get userVehicleId from notification (should be set from metadata)
+        if (n.userVehicleId) {
+          router.push(`/odometer/${n.userVehicleId}`);
+          return;
+        }
+        // Fallback to actionUrl if available
+        if (n.actionUrl) {
+          router.push(n.actionUrl);
+          return;
+        }
       }
 
       // Other types → popup
@@ -385,8 +394,9 @@ export default function NotificationsPage() {
   );
 
   const handleMarkAllAsRead = useCallback(() => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-  }, []);
+    if (isMarkingAllAsRead) return;
+    markAllAsRead();
+  }, [markAllAsRead, isMarkingAllAsRead]);
 
   return (
       <div className="min-h-screen bg-[#f5f5f7] pb-28 overflow-y-auto scrollbar-hide">
@@ -408,14 +418,19 @@ export default function NotificationsPage() {
               </h1>
             </div>
 
-            {unreadCount > 0 ? (
+            {unReadCount > 0 ? (
               <motion.button
                 type="button"
                 onClick={handleMarkAllAsRead}
+                disabled={isMarkingAllAsRead}
                 whileTap={{ scale: 0.9 }}
-                className="w-9 h-9 rounded-full bg-white/80 shadow-sm flex items-center justify-center"
+                className="w-9 h-9 rounded-full bg-white/80 shadow-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <CheckCheck className="w-[18px] h-[18px] text-red-500" />
+                {isMarkingAllAsRead ? (
+                  <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <CheckCheck className="w-[18px] h-[18px] text-red-500" />
+                )}
               </motion.button>
             ) : (
               <div className="w-9" />
@@ -427,7 +442,7 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-6 px-6 pt-3 pb-1">
           {([
             { key: "all" as const, label: "Tất cả", count: notifications.length },
-            { key: "unread" as const, label: "Chưa đọc", count: unreadCount },
+            { key: "unread" as const, label: "Chưa đọc", count: unReadCount },
           ]).map((tab) => (
             <button
               key={tab.key}
@@ -464,7 +479,12 @@ export default function NotificationsPage() {
 
         {/* ── List ── */}
         <div className="pt-2">
-          {grouped.length > 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-28">
+              <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-sm font-medium text-neutral-400">Đang tải thông báo...</p>
+            </div>
+          ) : grouped.length > 0 ? (
             grouped.map((group) => (
               <div key={group.label} className="mb-4">
                 {/* Day label */}
