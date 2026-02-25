@@ -153,14 +153,6 @@ export interface MarkAllAsReadResponse {
   metadata: string | null;
 }
 
-// ==================== Query Params ====================
-
-export interface BaseQueryParams {
-  PageNumber?: number;
-  PageSize?: number;
-  IsDescending?: boolean;
-}
-
 // ==================== SignalR Notification Payload ====================
 
 export interface InAppNotificationPayload {

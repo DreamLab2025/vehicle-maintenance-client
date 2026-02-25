@@ -5,12 +5,13 @@ import Image from "next/image";
 import { useState } from "react";
 import { Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation"; // Thêm router để điều hướng
-import { useAuth } from "@/hooks/useAuth"; // Giả sử path này, hãy điều chỉnh cho đúng
 import { toast } from "sonner";
+import { useAuthContext } from "../../providers/AuthProvider";
+import fetchAuth from "@/lib/api/services/fetchAuth";
 
 export default function LoginForm() {
   const router = useRouter();
-  const { login, loading: authLoading, error: authError } = useAuth();
+  const { login, loading: authLoading, error: authError } = useAuthContext();
 
   // State cho form
   const [email, setEmail] = useState("");
@@ -22,19 +23,36 @@ export default function LoginForm() {
 
     const result = await login(email, password);
 
-    if (result.success) {
-      toast.success("Login successful! Welcome back.");
-      setTimeout(() => router.replace("/"), 500);
-    } else {
+    if (!result.success) {
       toast.error(result.error || "Đăng nhập thất bại");
+      return;
     }
+
+    const meRes = await fetchAuth.me();
+    const roleRaw = meRes.data.data.roles?.[0]; // có thể là "2" hoặc 2 hoặc "Admin"
+
+    const role = String(roleRaw); // ép về string cho chắc
+    const to =
+      role === "2" || role === "Admin"
+        ? "/admin/dashboard"
+        : role === "Saler"
+          ? "/hosting"
+          : "/";
+
+    router.replace(to);
   };
 
   return (
     <main className="h-[100dvh] bg-white text-black flex flex-col overflow-hidden">
       {/* Top hero image */}
       <div className="relative flex-1 w-full min-h-[52vh]">
-        <Image src="/images/redbg.webp" alt="Login hero" fill priority className="object-cover" />
+        <Image
+          src="/images/login9.jpg"
+          alt="Login hero"
+          fill
+          priority
+          className="object-cover"
+        />
       </div>
 
       {/* Bottom card */}
@@ -111,7 +129,11 @@ export default function LoginForm() {
                 className="text-gray-400 hover:text-red-500 transition"
                 aria-label="Toggle password"
               >
-                {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPw ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
@@ -122,7 +144,10 @@ export default function LoginForm() {
               Remember me
             </label>
 
-            <Link href="/forgot-password" className="text-sm text-red-500 hover:underline">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-red-500 hover:underline"
+            >
               Forgot Password?
             </Link>
           </div>
