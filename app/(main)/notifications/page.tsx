@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Bell,
   CheckCheck,
@@ -22,16 +23,16 @@ import { useNotifications, useNotificationStatus, useMarkAllAsRead } from "@/hoo
 
 // ─── Helpers ────────────────────────────────────────────────
 
-function timeAgo(dateString: string): string {
+function timeAgo(dateString: string, t: (key: string) => string): string {
   const now = Date.now();
   const diff = now - new Date(dateString).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Vừa xong";
-  if (mins < 60) return `${mins} phút`;
+  if (mins < 1) return t("notification.justNow");
+  if (mins < 60) return `${mins} ${t("notification.minutes")}`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs} giờ`;
+  if (hrs < 24) return `${hrs} ${t("notification.hours")}`;
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days} ngày`;
+  if (days < 7) return `${days} ${t("notification.daysAgo")}`;
   return new Date(dateString).toLocaleDateString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -64,7 +65,8 @@ function getNotifIcon(notification: Notification) {
 }
 
 function groupByDay(
-  notifications: Notification[]
+  notifications: Notification[],
+  t: (key: string) => string
 ): { label: string; items: Notification[] }[] {
   const map = new Map<string, Notification[]>();
   const now = new Date();
@@ -80,8 +82,8 @@ function groupByDay(
     const day = new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
     let label: string;
-    if (day.getTime() === today.getTime()) label = "Hôm nay";
-    else if (day.getTime() === yesterday.getTime()) label = "Hôm qua";
+    if (day.getTime() === today.getTime()) label = t("notification.today");
+    else if (day.getTime() === yesterday.getTime()) label = t("notification.yesterday");
     else
       label = d.toLocaleDateString("vi-VN", {
         weekday: "long",
@@ -107,6 +109,7 @@ function NotificationRow({
   onSelect: (n: Notification) => void;
   index: number;
 }) {
+  const { t } = useTranslation();
   const { Icon, bg, color } = getNotifIcon(notification);
   const hasLevel = notification.type === "reminder" && notification.level;
   const levelConfig = hasLevel
@@ -161,7 +164,7 @@ function NotificationRow({
             {notification.title}
           </p>
           <span className="flex-shrink-0 text-xs text-neutral-400 mt-0.5">
-            {timeAgo(notification.createdAt)}
+            {timeAgo(notification.createdAt, t)}
           </span>
         </div>
 
@@ -192,6 +195,7 @@ function DetailPopup({
   onClose: () => void;
   onNavigate: (url: string) => void;
 }) {
+  const { t } = useTranslation();
   const { Icon, bg, color } = getNotifIcon(notification);
   const hasLevel = notification.type === "reminder" && notification.level;
   const levelConfig = hasLevel
@@ -270,7 +274,7 @@ function DetailPopup({
                   }}
                 >
                   <levelConfig.Icon className="w-3 h-3" />
-                  Mức độ: {levelConfig.labelVi}
+                  {t("notification.level")}: {levelConfig.labelVi}
                 </span>
               </div>
             )}
@@ -312,7 +316,7 @@ function DetailPopup({
                 }}
               >
                 <ExternalLink className="w-4 h-4" />
-                Xem chi tiết
+                {t("notification.viewDetails")}
               </motion.button>
             )}
           </div>
@@ -350,7 +354,8 @@ export default function NotificationsPage() {
     [notifications, filter]
   );
 
-  const grouped = useMemo(() => groupByDay(filtered), [filtered]);
+  const { t } = useTranslation();
+  const grouped = useMemo(() => groupByDay(filtered, t), [filtered, t]);
 
   const handleSelect = useCallback(
     (n: Notification) => {
@@ -399,9 +404,9 @@ export default function NotificationsPage() {
   }, [markAllAsRead, isMarkingAllAsRead]);
 
   return (
-      <div className="min-h-screen bg-[#f5f5f7] pb-28 overflow-y-auto scrollbar-hide">
+      <div className="min-h-screen bg-white pb-28 overflow-y-auto scrollbar-hide">
         {/* ── Header ── */}
-        <header className="sticky top-0 z-40 bg-[#f5f5f7]/80 backdrop-blur-xl border-b border-neutral-200/50">
+        <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-neutral-200/50">
           <div className="flex items-center justify-between px-5 h-14">
             <motion.button
               type="button"
@@ -414,7 +419,7 @@ export default function NotificationsPage() {
 
             <div className="flex items-center gap-4">
               <h1 className="text-base font-bold text-neutral-900">
-                Thông báo
+                {t("notification.notifications")}
               </h1>
             </div>
 
@@ -440,9 +445,9 @@ export default function NotificationsPage() {
 
         {/* ── Filter Tabs ── */}
         <div className="flex items-center gap-6 px-6 pt-3 pb-1">
-          {([
-            { key: "all" as const, label: "Tất cả", count: notifications.length },
-            { key: "unread" as const, label: "Chưa đọc", count: unReadCount },
+            {([
+            { key: "all" as const, label: t("notification.all"), count: notifications.length },
+            { key: "unread" as const, label: t("notification.unread"), count: unReadCount },
           ]).map((tab) => (
             <button
               key={tab.key}
@@ -482,7 +487,7 @@ export default function NotificationsPage() {
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-28">
               <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-sm font-medium text-neutral-400">Đang tải thông báo...</p>
+              <p className="text-sm font-medium text-neutral-400">{t("common.loading")}</p>
             </div>
           ) : grouped.length > 0 ? (
             grouped.map((group) => (
@@ -518,7 +523,7 @@ export default function NotificationsPage() {
                 <Bell className="w-7 h-7 text-neutral-300" />
               </div>
               <p className="text-sm font-medium text-neutral-400">
-                Không có thông báo
+                {t("notification.noNotifications")}
               </p>
             </motion.div>
           )}

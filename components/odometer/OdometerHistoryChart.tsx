@@ -75,12 +75,12 @@ export function OdometerHistoryChart({
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Gauge className={`h-4 w-4 ${isLatest ? "text-blue-600" : "text-gray-400"}`} />
-                    <h3 className={`font-semibold ${isLatest ? "text-blue-900" : "text-gray-900"}`}>
+                    <Gauge className={`h-4 w-4 ${isLatest ? "text-red-600" : "text-gray-400"}`} />
+                    <h3 className={`font-semibold ${isLatest ? "text-black-900" : "text-gray-900"}`}>
                       {formatNumber(item.odometerValue)} km
                     </h3>
                     {isLatest && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-red-500 text-white text-xs font-medium">
                         Mới nhất
                       </span>
                     )}

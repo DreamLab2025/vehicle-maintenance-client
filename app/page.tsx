@@ -4,15 +4,15 @@ import Header from "@/components/common/Header";
 import React, { useState } from "react";
 import {
   ChevronRight,
+  ChevronDown,
   Plus,
   Gauge,
-  Sparkles,
   MotorbikeIcon,
-  ShieldCheckIcon,
   X,
   AlertTriangle,
   CheckCircle2,
   Car,
+  BellDotIcon,
 } from "lucide-react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { useUserVehicles, useUserVehicleParts, useUserVehicleReminders } from "@/hooks/useUserVehice";
@@ -22,8 +22,10 @@ import Image from "next/image";
 import { UserVehiclePart, VehicleReminder } from "@/lib/api/services/fetchUserVehicle";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 import { ReminderDetailSheet } from "@/components/reminder/ReminderDetailSheet";
+import { useTranslation } from "react-i18next";
 
 export default function Page() {
+  const { t } = useTranslation();
   const { vehicles, isLoading } = useUserVehicles({
     PageNumber: 1,
     PageSize: 10,
@@ -33,6 +35,7 @@ export default function Page() {
   const [currentVehicleIndex, setCurrentVehicleIndex] = useState(0);
   const [selectedPart, setSelectedPart] = useState<UserVehiclePart | null>(null);
   const [selectedReminder, setSelectedReminder] = useState<VehicleReminder | null>(null);
+  const [isUndeclaredPartsOpen, setIsUndeclaredPartsOpen] = useState(true);
 
   const totalSlots = vehicles.length + 1;
   const isAddVehicleCard = currentVehicleIndex === vehicles.length;
@@ -130,8 +133,8 @@ export default function Page() {
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center mb-3 shadow-lg shadow-red-500/20">
                       <Plus className="h-7 w-7 text-white" />
                     </div>
-                    <h2 className="text-base font-semibold text-neutral-900 mb-1">Thêm xe mới</h2>
-                    <p className="text-[13px] text-neutral-500 text-center">Theo dõi bảo dưỡng xe của bạn</p>
+                    <h2 className="text-base font-semibold text-neutral-900 mb-1">{t("home.addVehicle")}</h2>
+                    <p className="text-[13px] text-neutral-500 text-center">{t("home.addVehicleDesc")}</p>
                   </div>
                 ) : (
                   // Vehicle Info Card
@@ -168,9 +171,22 @@ export default function Page() {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/10 text-[13px] font-medium">
-                        <ShieldCheckIcon className="h-5 w-5 text-green-500" />
-                        <span className="text-[13px] font-medium">{currentVehicle?.licensePlate || "59A-12345"}</span>
+                      <div className="flex items-center rounded-lg bg-black backdrop-blur-xl border border-black overflow-hidden h-10">
+                        <div className="flex-shrink-0 bg-black h-full flex items-center">
+                          <Image
+                            src="/images/VIE_rm_bg.png"
+                            alt="VIE Badge"
+                            width={50}
+                            height={48}
+                            className="object-contain h-full w-auto"
+                            unoptimized
+                          />
+                        </div>
+                        <div className="px-3 py-2 flex items-center bg-white h-full border border-white rounded-l-lg">
+                          <span className="text-[20px] font-bold text-black leading-none">
+                            {currentVehicle?.licensePlate || "59A-12345"}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -179,7 +195,7 @@ export default function Page() {
                       <div className="flex-1 bg-white/5 rounded-xl p-3">
                         <div className="flex items-center gap-1.5 text-white/40 text-[11px] mb-1">
                           <Gauge className="h-3 w-3" />
-                          Odometer
+                          {t("home.odometer")}
                         </div>
                         <p className="text-[17px] font-bold">
                           {currentVehicle ? `${(currentVehicle.currentOdometer / 1000).toFixed(1)}k` : "15.2k"} km
@@ -187,7 +203,7 @@ export default function Page() {
                       </div>
                       <div className="flex-1 bg-white/5 rounded-xl p-3">
                         <div className="flex items-center gap-1.5 text-white/40 text-[11px] mb-1">
-                          <MotorbikeIcon className="h-3 w-3" />/ ngày
+                          <MotorbikeIcon className="h-3 w-3" /> {t("home.avgPerDay")}
                         </div>
                         <p className="text-[17px] font-bold">{currentVehicle?.averageKmPerDay || 45} km</p>
                       </div>
@@ -195,7 +211,7 @@ export default function Page() {
                         onClick={() => router.push(`/vehicle/${currentVehicle?.id}`)}
                         className="h-full px-4 py-3 bg-gradient-to-r from-[#a73f3f] to-[#fa230b] hover:opacity-90 rounded-xl flex items-center gap-1 transition-all"
                       >
-                        <span className="text-[13px] font-medium text-white">Chi tiết</span>
+                        <span className="text-[13px] font-medium text-white">{t("home.detailButton")}</span>
                         <ChevronRight className="h-4 w-4 text-white" />
                       </button>
                     </div>
@@ -223,24 +239,44 @@ export default function Page() {
 
         {/* Undeclared Parts - Icon Grid */}
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-          <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={() => setIsUndeclaredPartsOpen(!isUndeclaredPartsOpen)}
+            className="flex items-center justify-between w-full mb-3 hover:opacity-80 transition-opacity"
+          >
             <div className="flex items-center gap-2">
-              <h2 className="text-[15px] font-semibold text-neutral-900">Chưa khai báo</h2>
+              <h2 className="text-[15px] font-semibold text-neutral-900">{t("home.undeclaredParts")}</h2>
               {undeclaredParts.length > 0 && (
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-semibold">
                   {undeclaredParts.length}
                 </span>
               )}
             </div>
-          </div>
+            {currentVehicle && undeclaredParts.length > 0 && (
+              <motion.div
+                animate={{ rotate: isUndeclaredPartsOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className="h-4 w-4 text-neutral-500" />
+              </motion.div>
+            )}
+          </button>
 
-          {!currentVehicle ? (
+          <AnimatePresence>
+            {isUndeclaredPartsOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                {!currentVehicle ? (
             <div className="bg-gradient-to-br from-neutral-50 to-slate-50 rounded-2xl p-6 text-center border border-neutral-200">
               <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-3">
                 <Car className="h-6 w-6 text-neutral-400" />
               </div>
-              <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">Chưa có xe</h3>
-              <p className="text-[12px] text-neutral-500">Vui lòng thêm xe để quản lý phụ tùng</p>
+              <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">{t("home.noVehicle")}</h3>
+              <p className="text-[12px] text-neutral-500">{t("home.noVehicleDesc")}</p>
             </div>
           ) : isLoadingParts ? (
             <div className="grid grid-cols-4 gap-3">
@@ -249,16 +285,16 @@ export default function Page() {
               ))}
             </div>
           ) : undeclaredParts.length === 0 ? (
-            <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-6 text-center border border-emerald-100">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-                <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+            <div className="bg-gradient-to-br from-white-50 to-green-50 rounded-2xl p-6 text-center border border-emerald-100">
+              <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mx-auto mb-3">
+                <CheckCircle2 className="h-6 w-6 text-green-500" />
               </div>
-              <h3 className="font-semibold text-emerald-800 text-[14px] mb-1">Hoàn tất!</h3>
-              <p className="text-[12px] text-emerald-600">Tất cả phụ tùng đã được khai báo</p>
+              <h3 className="font-semibold text-green-800 text-[14px] mb-1">{t("home.allDeclared")}</h3>
+              <p className="text-[12px] text-green-600">{t("home.allDeclaredDesc")}</p>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <div className="grid grid-cols-4 gap-3">
+            <div className="bg-white rounded-2xl p-3 shadow-sm">
+              <div className="grid grid-cols-4 gap-2">
                 {undeclaredParts.map((part, index) => (
                   <motion.button
                     key={part.id}
@@ -266,19 +302,21 @@ export default function Page() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.08 + index * 0.03 }}
                     onClick={() => handlePartClick(part)}
-                    className="flex flex-col items-center gap-2 p-2 rounded-xl hover:bg-neutral-50 transition-colors active:scale-95"
+                    className="flex flex-col items-center gap-1.5 p-1.5 rounded-xl hover:bg-neutral-50 transition-colors active:scale-95"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 flex items-center justify-center overflow-hidden">
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-white-50 to-orange-50 border border-black/10 flex items-center justify-center overflow-hidden">
                       {part.iconUrl ? (
                         <Image
                           src={part.iconUrl}
                           alt={part.partCategoryName}
-                          width={32}
-                          height={32}
+                          width={28}
+                          height={28}
                           className="object-contain"
+                          unoptimized
+                          key={`${part.id}-${part.iconUrl}`}
                         />
                       ) : (
-                        <AlertTriangle className="h-5 w-5 text-amber-500" />
+                        <AlertTriangle className="h-4 w-4 text-amber-500" />
                       )}
                     </div>
                     <span className="text-[10px] font-medium text-neutral-600 text-center leading-tight line-clamp-2">
@@ -288,16 +326,19 @@ export default function Page() {
                 ))}
               </div>
             </div>
-          )}
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.section>
 
         {/* Reminders - From API */}
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <h2 className="text-[15px] font-semibold text-neutral-900">Nhắc nhở bảo dưỡng</h2>
+              <h2 className="text-[15px] font-semibold text-neutral-900">{t("home.maintenanceReminders")}</h2>
               {reminders.length > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-semibold">
+                <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-semibold">
                   {reminders.length}
                 </span>
               )}
@@ -309,8 +350,8 @@ export default function Page() {
               <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-3">
                 <Car className="h-6 w-6 text-neutral-400" />
               </div>
-              <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">Chưa có xe</h3>
-              <p className="text-[12px] text-neutral-500">Vui lòng thêm xe để nhận nhắc nhở bảo dưỡng</p>
+              <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">{t("home.noVehicleForReminders")}</h3>
+              <p className="text-[12px] text-neutral-500">{t("home.noVehicleForRemindersDesc")}</p>
             </div>
           ) : isLoadingReminders ? (
             <div className="space-y-2.5">
@@ -321,10 +362,10 @@ export default function Page() {
           ) : reminders.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-3">
-                <Sparkles className="h-6 w-6 text-neutral-400" />
+                <BellDotIcon className="h-6 w-6 text-neutral-400" />
               </div>
-              <h3 className="font-semibold text-neutral-900 text-[15px] mb-1">Chưa có nhắc nhở</h3>
-              <p className="text-[13px] text-neutral-500">Khai báo phụ tùng để nhận nhắc nhở bảo dưỡng</p>
+              <h3 className="font-semibold text-neutral-900 text-[15px] mb-1">{t("home.noRemindersTitle")}</h3>
+              <p className="text-[13px] text-neutral-500">{t("home.noRemindersDesc2")}</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -352,6 +393,8 @@ export default function Page() {
                           width={28}
                           height={28}
                           className="object-contain"
+                          unoptimized
+                          key={`${reminder.id}-${reminder.partCategory.iconUrl}`}
                         />
                       ) : (
                         <LevelIcon className={`h-5 w-5 ${levelConfig.iconColor}`} />
@@ -422,6 +465,8 @@ export default function Page() {
                       width={48}
                       height={48}
                       className="object-contain"
+                      unoptimized
+                      key={`${selectedPart.id}-${selectedPart.iconUrl}`}
                     />
                   ) : (
                     <AlertTriangle className="h-10 w-10 text-amber-500" />
@@ -434,7 +479,7 @@ export default function Page() {
                 {/* Badge */}
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[12px] font-semibold mb-4">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  Chưa khai báo
+                  {t("home.notDeclared")}
                 </span>
 
                 {/* Description */}
@@ -446,7 +491,7 @@ export default function Page() {
                   className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-red-500/25 active:scale-[0.98] transition-all"
                 >
                   <Plus className="h-5 w-5" />
-                  <span className="text-[15px]">Khai báo phụ tùng</span>
+                  <span className="text-[15px]">{t("home.declarePart")}</span>
                 </button>
               </div>
             </motion.div>

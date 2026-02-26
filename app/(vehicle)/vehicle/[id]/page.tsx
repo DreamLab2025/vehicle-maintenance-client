@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
   Car,
@@ -12,23 +13,26 @@ import {
   TrendingUp,
   Edit,
   Share2,
-  Download,
   FileText,
   AlertCircle,
   History,
+  Eye,
+  EyeOff,
+  Trash2,
 } from "lucide-react";
 import Image from "next/image";
 import { useUserVehicles, useOdometerHistory } from "@/hooks/useUserVehice";
-import BottomNav from "@/components/common/BottomNav";
 import { OdometerHistoryChart } from "@/components/odometer/OdometerHistoryChart";
 import type { OdometerHistoryItem } from "@/lib/types/vehicle.types";
 
 export default function VehicleDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const vehicleId = params.id as string;
   const [currentPage, setCurrentPage] = useState(1);
   const [allHistory, setAllHistory] = useState<OdometerHistoryItem[]>([]);
+  const [showVin, setShowVin] = useState(false);
 
   const { vehicles, isLoading } = useUserVehicles({
     PageNumber: 1,
@@ -81,38 +85,36 @@ export default function VehicleDetailPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-dvh bg-gray-50">
+      <main className="min-h-dvh bg-neutral-50">
         <div className="mx-auto max-w-md">
           <div className="h-screen flex items-center justify-center">
-            <div className="animate-pulse text-gray-400">Đang tải...</div>
+            <div className="animate-pulse text-[13px] text-gray-400">{t("common.loading")}</div>
           </div>
         </div>
-        <BottomNav />
       </main>
     );
   }
 
   if (!vehicle) {
     return (
-      <main className="min-h-dvh bg-gray-50">
+      <main className="min-h-dvh bg-neutral-50">
         <div className="mx-auto max-w-md">
           <div className="h-screen flex flex-col items-center justify-center p-6">
             <AlertCircle className="h-16 w-16 text-gray-400 mb-4" />
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
-              Không tìm thấy xe
+            <h2 className="text-[15px] font-semibold text-gray-900 mb-2">
+              {t("vehicle.notFound")}
             </h2>
-            <p className="text-gray-600 text-center mb-6">
-              Xe bạn đang tìm không tồn tại hoặc đã bị xóa
+            <p className="text-[13px] text-gray-600 text-center mb-6">
+              {t("vehicle.notFoundDesc")}
             </p>
             <button
               onClick={() => router.push("/")}
-              className="px-6 py-3 bg-blue-500 text-white rounded-full font-semibold hover:bg-blue-600 transition"
+              className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl font-semibold hover:from-red-600 hover:to-red-700 transition active:scale-95 text-[15px]"
             >
-              Quay về trang chủ
+              {t("common.goHome")}
             </button>
           </div>
         </div>
-        <BottomNav />
       </main>
     );
   }
@@ -131,31 +133,31 @@ export default function VehicleDetailPage() {
   // };
 
   return (
-    <main className="min-h-dvh bg-gray-50 pb-24">
+    <main className="min-h-dvh bg-neutral-50 pb-28">
       <div className="mx-auto max-w-md">
         {/* Hero Section with Image */}
-        <div className="relative h-80 bg-gradient-to-br from-gray-900 to-gray-800 overflow-hidden">
+        <div className="relative h-[300px] bg-gradient-to-br from-gray-400 to-gray-500 overflow-hidden border-b border-l border-r  rounded-bl-3xl rounded-br-3xl">
           {/* Back Button */}
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => router.back()}
-            className="absolute top-6 left-4 z-20 w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition"
+            className="absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition active:scale-95"
           >
-            <ArrowLeft className="h-5 w-5 text-white" />
+            <ArrowLeft className="h-4 w-4 text-white" />
           </motion.button>
 
           {/* Action Buttons */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="absolute top-6 right-4 z-20 flex items-center gap-2"
+            className="absolute top-4 right-4 z-20 flex items-center gap-2"
           >
-            <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition">
-              <Share2 className="h-5 w-5 text-white" />
+            <button className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition active:scale-95">
+              <Share2 className="h-4 w-4 text-white" />
             </button>
-            <button className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition">
-              <Edit className="h-5 w-5 text-white" />
+            <button className="w-9 h-9 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center hover:bg-white/20 transition active:scale-95">
+              <Edit className="h-4 w-4 text-white" />
             </button>
           </motion.div>
 
@@ -181,133 +183,152 @@ export default function VehicleDetailPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="absolute bottom-6 left-4 right-4 z-10"
+            className="absolute bottom-4 left-4 right-4 z-10"
           >
             <div className="flex items-end justify-between">
               <div>
-                <p className="text-sm text-white/70 mb-1">
-                  {vehicle.nickname || "Xe của tôi"}
+                <p className="text-[13px] text-white/50 mb-1 font-normal">
+                  {vehicle.nickname || t("vehicle.myVehicle")}
                 </p>
-                <h1 className="text-3xl font-bold text-white mb-1">
+                <h1 className="text-lg font-semibold text-white mb-0.5 leading-tight">
                   {vehicle.userVehicleVariant.model.brandName}
                 </h1>
-                <p className="text-xl text-white/90">
+                <p className="text-[13px] text-white/50 font-normal">
                   {vehicle.userVehicleVariant.model.name}
                 </p>
               </div>
-              <div className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-xl border border-white/20">
-                <span className="text-lg font-bold text-white tracking-wide">
-                  {vehicle.licensePlate}
-                </span>
+              <div className="flex items-center rounded-lg bg-black backdrop-blur-xl border border-black overflow-hidden h-12">
+                <div className="flex-shrink-0 bg-black h-full flex items-center">
+                  <Image
+                    src="/images/VIE_rm_bg.png"
+                    alt="VIE Badge"
+                    width={50}
+                    height={48}
+                    className="object-contain h-full w-auto"
+                    unoptimized
+                  />
+                </div>
+                <div className="px-3 py-2 flex items-center bg-white h-full border border-white rounded-l-lg">
+                  <span className="text-[20px] font-bold text-black leading-none">
+                    {vehicle.licensePlate}
+                  </span>
+                </div>
               </div>
             </div>
           </motion.div>
         </div>
 
         {/* Content Section */}
-        <div className="px-4 pt-6 space-y-6">
-          {/* Quick Stats */}
+        <div className="px-5 pt-6 space-y-6">
+          {/* Vehicle Specifications - Combined List */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="grid grid-cols-3 gap-3"
           >
-            <div className="bg-white rounded-2xl p-4 border border-gray-100">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Gauge className="h-4 w-4 text-blue-600" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mb-1">Số km</p>
-              <p className="text-xl font-bold text-gray-900">
-                {(vehicle.currentOdometer / 1000).toFixed(1)}k
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 border border-gray-100">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mb-1">TB/ngày</p>
-              <p className="text-xl font-bold text-gray-900">
-                {vehicle.averageKmPerDay}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 border border-gray-100">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-                  <Calendar className="h-4 w-4 text-orange-600" />
-                </div>
-              </div>
-              <p className="text-xs text-gray-500 mb-1">Năm mua</p>
-              <p className="text-xl font-bold text-gray-900">
-                {new Date(vehicle.purchaseDate).getFullYear()}
-              </p>
-            </div>
-          </motion.div>
-
-          {/* Vehicle Specifications */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">
-              Thông số kỹ thuật
+            <h2 className="text-[15px] font-semibold text-gray-900 mb-3">
+              {t("vehicle.specifications")}
             </h2>
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 space-y-3">
-              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-2.5">
+              {/* Stats Items */}
+              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <Car className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">Loại xe</span>
+                  <Gauge className="h-4 w-4 text-gray-400" />
+                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.odometer")}</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-[13px] font-bold text-gray-900">
+                  {vehicle.currentOdometer.toLocaleString("vi-VN")}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-4 w-4 text-gray-400" />
+                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.avgPerDay")}</span>
+                </div>
+                <span className="text-[13px] font-semibold text-gray-900">
+                  {vehicle.averageKmPerDay || "_ _"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.purchaseYear")}</span>
+                </div>
+                <span className="text-[13px] font-semibold text-gray-900">
+                  {new Date(vehicle.purchaseDate).getFullYear()}
+                </span>
+              </div>
+
+              {/* Technical Specifications */}
+              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <Car className="h-4 w-4 text-gray-400" />
+                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.vehicleType")}</span>
+                </div>
+                <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.userVehicleVariant.model.typeName}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <Fuel className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">Nhiên liệu</span>
+                  <Fuel className="h-4 w-4 text-gray-400" />
+                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.fuelType")}</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.userVehicleVariant.model.fuelTypeName}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <SettingsIcon className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">Hộp số</span>
+                  <SettingsIcon className="h-4 w-4 text-gray-400" />
+                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.transmission")}</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.userVehicleVariant.model.transmissionTypeName}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">Năm sản xuất</span>
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.manufactureYear")}</span>
                 </div>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.userVehicleVariant.model.releaseYear}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between py-2">
+              <div className="flex items-center justify-between py-2.5">
                 <div className="flex items-center gap-3">
-                  <FileText className="h-5 w-5 text-gray-400" />
-                  <span className="text-sm text-gray-600">Số VIN</span>
+                  <FileText className="h-4 w-4 text-gray-400" />
+                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.vinNumber")}</span>
                 </div>
-                <span className="text-xs font-mono text-gray-900 bg-gray-50 px-2 py-1 rounded">
-                  {vehicle.vinNumber || "Chưa Cập Nhật"}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[15px] font-mono text-gray-900 bg-gray-50 px-2 py-1 rounded">
+                    {vehicle.vinNumber
+                      ? showVin
+                        ? vehicle.vinNumber
+                        : "•".repeat(vehicle.vinNumber.length)
+                      : t("vehicle.vinNotUpdated")}
+                  </span>
+                  {vehicle.vinNumber && (
+                    <button
+                      onClick={() => setShowVin(!showVin)}
+                      className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+                      aria-label={showVin ? t("vehicle.hideVin") : t("vehicle.showVin")}
+                    >
+                      {showVin ? (
+                        <EyeOff className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-500" />
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -319,15 +340,15 @@ export default function VehicleDetailPage() {
             transition={{ delay: 0.6 }}
           >
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Lịch sử cập nhật số km
+              <h2 className="text-[15px] font-semibold text-gray-900">
+                {t("vehicle.odometerHistory")}
               </h2>
-              <History className="h-5 w-5 text-blue-500" />
+              <History className="h-4 w-4 text-red-500" />
             </div>
             {isLoadingHistory && currentPage === 1 ? (
-              <div className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col items-center justify-center">
-                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
-                <p className="text-sm text-gray-500">Đang tải lịch sử...</p>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center">
+                <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-3" />
+                <p className="text-[13px] text-gray-500">{t("vehicle.loadingHistory")}</p>
               </div>
             ) : allHistory.length > 0 ? (
               <OdometerHistoryChart 
@@ -338,36 +359,34 @@ export default function VehicleDetailPage() {
                 isLoadingMore={isFetchingHistory && currentPage > 1}
               />
             ) : (
-              <div className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col items-center justify-center">
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center">
                 <History className="h-12 w-12 text-gray-300 mb-3" />
-                <p className="text-sm text-gray-500">Chưa có lịch sử cập nhật</p>
+                <p className="text-[13px] text-gray-500">{t("vehicle.noHistory")}</p>
               </div>
             )}
           </motion.div>
 
-          {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
-            className="grid grid-cols-2 gap-3 pb-6"
-          >
-            <button
-              onClick={() => router.push(`/odometer/${vehicleId}`)}
-              className="bg-blue-500 hover:bg-blue-600 text-white rounded-2xl p-4 font-semibold transition flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 active:scale-95"
-            >
-              <Gauge className="h-5 w-5" />
-              Cập nhật số km
-            </button>
-            <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 rounded-2xl p-4 font-semibold transition flex items-center justify-center gap-2 active:scale-95">
-              <Download className="h-5 w-5" />
-              Xuất báo cáo
-            </button>
-          </motion.div>
         </div>
       </div>
 
-      <BottomNav />
+      {/* Fixed Bottom Action Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 px-5 py-4 safe-area-bottom">
+        <div className="mx-auto max-w-md">
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => router.push(`/odometer/${vehicleId}`)}
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl p-4 font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-red-500/25 active:scale-[0.98]"
+            >
+              <Gauge className="h-5 w-5 text-white" />
+              <span className="text-[15px]">{t("vehicle.updateOdometer")}</span>
+            </button>
+            <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 rounded-2xl p-4 font-bold transition flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm">
+              <Trash2 className="h-5 w-5 text-gray-600" />
+              <span className="text-[15px]">{t("vehicle.deleteVehicle")}</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
