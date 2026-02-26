@@ -47,7 +47,7 @@ export default function LoginForm() {
       {/* Top hero image */}
       <div className="relative flex-1 w-full min-h-[52vh]">
         <Image
-          src="/images/login9.jpg"
+          src="/images/login.jpg"
           alt="Login hero"
           fill
           priority

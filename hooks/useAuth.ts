@@ -33,6 +33,7 @@ interface AuthResult {
   success: boolean;
   user?: User | null;
   error?: string;
+  message?: string; 
 }
 
 interface JwtPayload {
@@ -179,6 +180,51 @@ export function useAuth() {
       return { success: false, error: message };
     }
   };
+/* ===================== FORGOT PASSWORD ===================== */
+
+const forgotPassword = async (email: string): Promise<AuthResult> => {
+  setState((s) => ({ ...s, loading: true, error: null }));
+
+  try {
+    const response = await fetchAuth.forgotPassword(email);
+    const msg = response.data.message;
+
+    setState((s) => ({ ...s, loading: false }));
+    return { success: true, message: msg };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Gửi OTP thất bại";
+    setState((s) => ({ ...s, loading: false, error: message }));
+    return { success: false, error: message };
+  }
+};
+
+/* ===================== RESET PASSWORD ===================== */
+
+const resetPassword = async (
+  email: string,
+  otpCode: string,
+  newPassword: string,
+  confirmNewPassword: string
+): Promise<AuthResult> => {
+  setState((s) => ({ ...s, loading: true, error: null }));
+
+  try {
+    const response = await fetchAuth.resetPassword({
+      email,
+      otpCode,
+      newPassword,
+      confirmNewPassword,
+    });
+
+    const msg = response.data.message;
+    setState((s) => ({ ...s, loading: false }));
+    return { success: true, message: msg };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Đặt lại mật khẩu thất bại";
+    setState((s) => ({ ...s, loading: false, error: message }));
+    return { success: false, error: message };
+  }
+};
 
   /* ===================== LOGOUT ===================== */
 
@@ -284,6 +330,8 @@ export function useAuth() {
     login,
     register,
     verifyOtp,
+    forgotPassword,
+    resetPassword,
     logout,
     initAuthFromStorage,
     fetchCurrentUser,
