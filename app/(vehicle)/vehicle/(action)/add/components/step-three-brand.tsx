@@ -75,18 +75,39 @@ export function StepThreeBrand({ vehicleType, selectedBrandId, onSelect, onBrand
           {/* Clear Card - First Card */}
           {onClear && (
             <Card
-              className="relative p-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-[1.02] border-gray-200 border-dashed-gray-200 overflow-hidden"
+              className="relative p-4 cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-[1.02] border-2 border-dashed border-gray-300 hover:border-gray-400 bg-gray-50/50 overflow-hidden group"
               onClick={handleClear}
             >
               {/* Diagonal Line (Prohibition Sign) - From top-left to bottom-right */}
-              <div className="absolute inset-0 pointer-events-none">
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <line x1="0" y1="0" x2="100" y2="100" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
-                </svg>
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="relative w-12 h-12">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <line 
+                      x1="20" 
+                      y1="20" 
+                      x2="80" 
+                      y2="80" 
+                      stroke="#d1d5db" 
+                      strokeWidth="4" 
+                      strokeLinecap="round"
+                      className="transition-opacity duration-300 group-hover:opacity-80"
+                    />
+                    <line 
+                      x1="80" 
+                      y1="20" 
+                      x2="20" 
+                      y2="80" 
+                      stroke="#d1d5db" 
+                      strokeWidth="4" 
+                      strokeLinecap="round"
+                      className="transition-opacity duration-300 group-hover:opacity-80"
+                    />
+                  </svg>
+                </div>
               </div>
 
               {/* Empty space for visual balance */}
-              <div className="relative h-14 w-14 mx-auto bg-transparent flex items-center justify-center opacity-0">
+              <div className="relative h-14 w-14 mx-auto bg-transparent flex items-center justify-center">
                 <div className="w-8 h-8"></div>
               </div>
             </Card>
@@ -115,17 +136,19 @@ export function StepThreeBrand({ vehicleType, selectedBrandId, onSelect, onBrand
                   </div>
                 )}
 
-                <div className="relative h-14 w-14 mx-auto bg-white/70 rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="relative h-14 w-14 mx-auto bg-transparent rounded-lg flex items-center justify-center overflow-hidden">
                   {isValidImageUrl(brand.logoUrl) ? (
-                    <Image
-                      src={brand.logoUrl}
-                      alt={brand.name}
-                      fill
-                      sizes="56px"
-                      className={`object-contain transition-transform duration-300 ${
-                        isSelected ? "scale-110" : "group-hover:scale-105"
-                      }`}
-                    />
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={brand.logoUrl}
+                        alt={brand.name}
+                        fill
+                        unoptimized
+                        key={`${brand.id}-${brand.logoUrl}`}
+                        sizes="54px"
+                        className="object-contain transition-transform duration-300"
+                      />
+                    </div>
                   ) : (
                     <span className="text-xs text-gray-400 text-center px-1">{brand.name}</span>
                   )}

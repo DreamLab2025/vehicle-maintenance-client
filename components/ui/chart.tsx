@@ -6,10 +6,10 @@
 //   Tooltip,
 //   Legend,
 //   type TooltipContentProps,
-//   // type ValueType,
-//   // type NameType,
+//   type ValueType,
+//   type NameType,
 //   type LegendProps,
-//   // type Payload,
+//   type Payload,
 // } from "recharts";
 
 // import { cn } from "@/lib/utils";
@@ -116,14 +116,14 @@
 
 // const ChartTooltip = Tooltip;
 
-// // type ChartTooltipContentProps = TooltipContentProps<ValueType, NameType> &
-// //   React.ComponentProps<"div"> & {
-// //     hideLabel?: boolean;
-// //     hideIndicator?: boolean;
-// //     indicator?: "line" | "dot" | "dashed";
-// //     nameKey?: string;
-// //     labelKey?: string;
-// //   };
+// type ChartTooltipContentProps = TooltipContentProps<ValueType, NameType> &
+//   React.ComponentProps<"div"> & {
+//     hideLabel?: boolean;
+//     hideIndicator?: boolean;
+//     indicator?: "line" | "dot" | "dashed";
+//     nameKey?: string;
+//     labelKey?: string;
+//   };
 
 // const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContentProps>(
 //   (

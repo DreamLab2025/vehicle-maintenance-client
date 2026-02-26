@@ -6,6 +6,11 @@ import { CircularProgressProps } from "./types";
 const RADIUS = 40;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+// Hàm parse percent - làm tròn xuống số nguyên
+const parsePercent = (percent: number): number => {
+  return Math.floor(percent);
+};
+
 export function CircularProgress({
   percent,
   color,
@@ -13,6 +18,8 @@ export function CircularProgress({
   size = 72,
   strokeWidth = 8,
 }: CircularProgressProps) {
+  const displayPercent = parsePercent(percent);
+  
   return (
     <div className="relative flex-shrink-0" style={{ width: size, height: size }}>
       <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -43,7 +50,7 @@ export function CircularProgress({
       {/* Center text */}
       <div className="absolute inset-0 flex items-center justify-center">
         <span className="text-base font-bold" style={{ color }}>
-          {percent}
+          {displayPercent}
         </span>
         <span className="text-sm font-semibold" style={{ color }}>
           %
