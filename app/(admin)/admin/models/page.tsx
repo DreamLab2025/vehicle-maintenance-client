@@ -19,7 +19,9 @@ export default function ModelPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
 
-  const { models, metadata, isLoading, refetch } = useModels(filters as ModelQueryParams);
+  const { models, metadata, isLoading, refetch } = useModels(
+    filters as ModelQueryParams,
+  );
 
   const handleFilterChange = (newFilters: Partial<ModelQueryParams>) => {
     setFilters((prev) => ({
@@ -57,8 +59,10 @@ export default function ModelPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý Mẫu Xe</h1>
-          <p className="text-muted-foreground">Quản lý danh sách các mẫu xe trong hệ thống</p>
+          <h1 className="text-3xl tracking-tight">Quản lý Mẫu Xe</h1>
+          <p className="text-muted-foreground">
+            Quản lý danh sách các mẫu xe trong hệ thống
+          </p>
         </div>
       </div>
 
@@ -68,13 +72,26 @@ export default function ModelPage() {
 
       <ModelFilters filters={filters} onFilterChange={handleFilterChange} />
 
-      <ModelTable models={models} isLoading={isLoading} onEdit={handleEdit} onRefresh={refetch} />
+      <ModelTable
+        models={models}
+        isLoading={isLoading}
+        onEdit={handleEdit}
+        onRefresh={refetch}
+      />
 
       {metadata && (
-        <ModelPagination metadata={metadata} onPageChange={handlePageChange} onPageSizeChange={handlePageSizeChange} />
+        <ModelPagination
+          metadata={metadata}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
       )}
 
-      <ModelDialog open={isDialogOpen} onClose={handleDialogClose} modelId={selectedModelId} />
+      <ModelDialog
+        open={isDialogOpen}
+        onClose={handleDialogClose}
+        modelId={selectedModelId}
+      />
     </div>
   );
 }

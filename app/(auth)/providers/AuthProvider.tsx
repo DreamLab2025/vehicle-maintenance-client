@@ -14,6 +14,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
 
   useEffect(() => {
+    auth.initAuthFromStorage();
     const token = getCookie("auth-token") as string | undefined;
     if (token) {
       // Set token cho cả 3 API services

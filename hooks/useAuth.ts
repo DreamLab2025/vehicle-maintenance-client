@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import authApiService from "@/lib/api/authApiService";
 import coreApiService from "@/lib/api/coreApiService";
 import notificationHubService from "@/hubs/notificationHub";
+import apiService from "@/lib/api/apiService";
+import aiApiService from "@/lib/api/aiApiService";
 
 /* ===================== TYPES ===================== */
 
@@ -57,13 +59,16 @@ export function useAuth() {
 
   /* ---------- JWT HELPERS ---------- */
 
+  
   const decodeJwt = (token: string): JwtPayload => {
-    try {
-      const payload = token.split(".")[1];
-      return JSON.parse(atob(payload));
-    } catch {
-      return {};
-    }
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return {};
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return {};
+  }
   };
 
   const buildUserFromToken = (token: string): User => {
@@ -98,6 +103,8 @@ export function useAuth() {
       // ✅ SET TOKEN CHO APISERVICE
       authApiService.setAuthToken(token);
       coreApiService.setAuthToken(token);
+      apiService.setAuthToken(token);
+      aiApiService.setAuthToken(token);
       setState({
         user,
         accessToken: token,
@@ -219,7 +226,8 @@ export function useAuth() {
 
     authApiService.setAuthToken(token);
     coreApiService.setAuthToken(token);
-
+    apiService.setAuthToken(token);
+    aiApiService.setAuthToken(token);
     setState((s) => ({ ...s, accessToken: token }));
 
     await fetchCurrentUser();
