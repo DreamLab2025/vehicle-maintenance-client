@@ -55,6 +55,16 @@ export const fetchAuth = {
   verifyOtp: (email: string, otpCode: string) =>
     authApiService.post<ApiSuccessResponse<boolean>>("/api/v1/auth/verify-otp", { email, otpCode }),
 
+  forgotPassword: (email: string) =>
+    authApiService.post<ApiSuccessResponse<boolean>>("/api/v1/auth/forgot-password", { email }),
+
+  resetPassword: (payload: {
+    email: string;
+    otpCode: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  }) => authApiService.post<ApiSuccessResponse<boolean>>("/api/v1/auth/reset-password", payload),
+
   me: () => authApiService.get<ApiSuccessResponse<UserMeData>>("/api/v1/users/me"),
 };
 
