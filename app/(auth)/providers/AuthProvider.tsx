@@ -2,9 +2,7 @@
 
 import { createContext, useContext, useEffect } from "react";
 import { getCookie } from "cookies-next";
-import apiService from "@/lib/api/apiService";
-import coreApiService from "@/lib/api/coreApiService";
-import aiApiService from "@/lib/api/aiApiService";
+import api8080Service from "@/lib/api/api8080Service";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotificationListener } from "@/hooks/useNotification";
 
@@ -17,10 +15,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     auth.initAuthFromStorage();
     const token = getCookie("auth-token") as string | undefined;
     if (token) {
-      // Set token cho cả 3 API services
-      apiService.setAuthToken(token);
-      coreApiService.setAuthToken(token);
-      aiApiService.setAuthToken(token);
+      // Set token cho API service
+      api8080Service.setAuthToken(token);
       auth.initAuthFromStorage();
     }
   }, []);

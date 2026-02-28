@@ -1,5 +1,5 @@
 /** ===== Types (match API response) ===== */
-import coreApiService from "../coreApiService";
+import api8080Service from "../api8080Service";
 import type { RequestParams } from "../apiService";
 
 export type PartProductStatus = "Active" | "Inactive";
@@ -72,7 +72,7 @@ export interface UpdatePartProductRequest {
 export const PartProductService = {
   /** GET /api/v1/parts/products/category/{categoryId} */
   getProductsByCategory: async (categoryId: string) => {
-    const res = await coreApiService.get<ApiListResponse<PartProduct>>(
+    const res = await api8080Service.get<ApiListResponse<PartProduct>>(
       `/api/v1/parts/products/category/${categoryId}`,
     );
     return res.data;
@@ -80,7 +80,7 @@ export const PartProductService = {
 
   /** GET /api/v1/parts/products/{id} */
   getProductById: async (id: string) => {
-    const res = await coreApiService.get<ApiItemResponse<PartProduct>>(
+    const res = await api8080Service.get<ApiItemResponse<PartProduct>>(
       `/api/v1/parts/products/${id}`,
     );
     return res.data;
@@ -88,7 +88,7 @@ export const PartProductService = {
 
   /** POST /api/v1/parts/products */
   createProduct: async (payload: CreatePartProductRequest) => {
-    const res = await coreApiService.post<ApiMutationResponse<PartProduct>>(
+    const res = await api8080Service.post<ApiMutationResponse<PartProduct>>(
       "/api/v1/parts/products",
       payload,
     );
@@ -97,7 +97,7 @@ export const PartProductService = {
 
   /** PUT /api/v1/parts/products/{id} */
   updateProduct: async (id: string, payload: UpdatePartProductRequest) => {
-    const res = await coreApiService.put<ApiMutationResponse<PartProduct>>(
+    const res = await api8080Service.put<ApiMutationResponse<PartProduct>>(
       `/api/v1/parts/products/${id}`,
       payload,
     );
@@ -106,7 +106,7 @@ export const PartProductService = {
 
   /** DELETE /api/v1/parts/products/{id} */
   deleteProduct: async (id: string) => {
-    const res = await coreApiService.delete<ApiMutationResponse<null>>(
+    const res = await api8080Service.delete<ApiMutationResponse<null>>(
       `/api/v1/parts/products/${id}`,
     );
     return res.data;

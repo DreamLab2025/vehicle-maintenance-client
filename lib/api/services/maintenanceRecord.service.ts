@@ -1,5 +1,5 @@
 // src/lib/api/services/maintenanceRecord.service.ts
-import coreApiService from "../coreApiService";
+import api8080Service from "../api8080Service";
 
 // ==================== Types ====================
 
@@ -86,7 +86,7 @@ export const MaintenanceRecordService = {
     userVehicleId: string,
     payload: CreateMaintenanceRecordRequest
   ) => {
-    const response = await coreApiService.post<ApiResponse<MaintenanceRecordResponse>>(
+    const response = await api8080Service.post<ApiResponse<MaintenanceRecordResponse>>(
       `/api/v1/maintenance-records/vehicles/${userVehicleId}`,
       payload
     );

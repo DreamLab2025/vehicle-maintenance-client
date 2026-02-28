@@ -6,11 +6,7 @@ import { useState } from "react";
 import { fetchAuth } from "@/lib/api/services/fetchAuth";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
-import authApiService from "@/lib/api/authApiService";
-import coreApiService from "@/lib/api/coreApiService";
 import notificationHubService from "@/hubs/notificationHub";
-import apiService from "@/lib/api/apiService";
-import aiApiService from "@/lib/api/aiApiService";
 import api8080Service from "@/lib/api/api8080Service";
 
 /* ===================== TYPES ===================== */
@@ -102,10 +98,6 @@ export function useAuth() {
       });
 
       // ✅ SET TOKEN CHO APISERVICE
-      authApiService.setAuthToken(token);
-      coreApiService.setAuthToken(token);
-      apiService.setAuthToken(token);
-      aiApiService.setAuthToken(token);
       api8080Service.setAuthToken(token);
       setState({
         user,
@@ -187,8 +179,6 @@ export function useAuth() {
   const logout = () => {
     deleteCookie("auth-token", { path: "/" });
 
-    authApiService.setAuthToken(null);
-    coreApiService.setAuthToken(null);
     api8080Service.setAuthToken(null);
 
     // ✅ DISCONNECT FROM NOTIFICATION HUB
@@ -227,10 +217,6 @@ export function useAuth() {
       return;
     }
 
-    authApiService.setAuthToken(token);
-    coreApiService.setAuthToken(token);
-    apiService.setAuthToken(token);
-    aiApiService.setAuthToken(token);
     api8080Service.setAuthToken(token);
     setState((s) => ({ ...s, accessToken: token }));
 

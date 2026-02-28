@@ -1,4 +1,4 @@
-import coreApiService from "../coreApiService";
+import api8080Service from "../api8080Service";
 
 /** ===== Types (match API response) ===== */
 
@@ -46,25 +46,25 @@ export type VariantDeleteResponse = ApiResponse<string, null>;
 export const VariantService = {
   /** GET /variants/model/{vehicleModelId} */
   getVariantsByModelId: async (vehicleModelId: string) => {
-    const res = await coreApiService.get<VariantListResponse>(`/api/v1/variants/model/${vehicleModelId}`);
+    const res = await api8080Service.get<VariantListResponse>(`/api/v1/variants/model/${vehicleModelId}`);
     return res.data;
   },
 
   /** POST /variants (Admin) */
   createVariant: async (payload: CreateVariantRequest) => {
-    const res = await coreApiService.post<VariantMutationResponse>(`/api/v1/variants`, payload);
+    const res = await api8080Service.post<VariantMutationResponse>(`/api/v1/variants`, payload);
     return res.data;
   },
 
   /** PUT /variants/{id} (Admin) */
   updateVariant: async (id: string, payload: UpdateVariantRequest) => {
-    const res = await coreApiService.put<VariantMutationResponse>(`/api/v1/variants/${id}`, payload);
+    const res = await api8080Service.put<VariantMutationResponse>(`/api/v1/variants/${id}`, payload);
     return res.data;
   },
 
   /** DELETE /variants/{id} (Admin) */
   deleteVariant: async (id: string) => {
-    const res = await coreApiService.delete<VariantDeleteResponse>(`/api/v1/variants/${id}`);
+    const res = await api8080Service.delete<VariantDeleteResponse>(`/api/v1/variants/${id}`);
     return res.data;
   },
 };

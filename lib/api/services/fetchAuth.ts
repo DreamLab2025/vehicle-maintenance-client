@@ -1,5 +1,5 @@
 // lib/api/services/fetchAuth.ts
-import authApiService from "@/lib/api/authApiService";
+import api8080Service from "@/lib/api/api8080Service";
 
 /* ===================== RESPONSE TYPES ===================== */
 
@@ -47,15 +47,15 @@ export interface UserMeData {
 
 export const fetchAuth = {
   login: (email: string, password: string) =>
-    authApiService.post<ApiSuccessResponse<LoginResponseData>>("/api/v1/auth/login", { email, password }),
+    api8080Service.post<ApiSuccessResponse<LoginResponseData>>("/api/v1/auth/login", { email, password }),
 
   register: (email: string, password: string) =>
-    authApiService.post<ApiSuccessResponse<RegisterResponseData>>("/api/v1/auth/register", { email, password }),
+    api8080Service.post<ApiSuccessResponse<RegisterResponseData>>("/api/v1/auth/register", { email, password }),
 
   verifyOtp: (email: string, otpCode: string) =>
-    authApiService.post<ApiSuccessResponse<boolean>>("/api/v1/auth/verify-otp", { email, otpCode }),
+    api8080Service.post<ApiSuccessResponse<boolean>>("/api/v1/auth/verify-otp", { email, otpCode }),
 
-  me: () => authApiService.get<ApiSuccessResponse<UserMeData>>("/api/v1/users/me"),
+  me: () => api8080Service.get<ApiSuccessResponse<UserMeData>>("/api/v1/users/me"),
 };
 
 export default fetchAuth;
