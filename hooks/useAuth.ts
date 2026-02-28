@@ -11,6 +11,7 @@ import coreApiService from "@/lib/api/coreApiService";
 import notificationHubService from "@/hubs/notificationHub";
 import apiService from "@/lib/api/apiService";
 import aiApiService from "@/lib/api/aiApiService";
+import api8080Service from "@/lib/api/api8080Service";
 
 /* ===================== TYPES ===================== */
 
@@ -105,6 +106,7 @@ export function useAuth() {
       coreApiService.setAuthToken(token);
       apiService.setAuthToken(token);
       aiApiService.setAuthToken(token);
+      api8080Service.setAuthToken(token);
       setState({
         user,
         accessToken: token,
@@ -187,6 +189,7 @@ export function useAuth() {
 
     authApiService.setAuthToken(null);
     coreApiService.setAuthToken(null);
+    api8080Service.setAuthToken(null);
 
     // ✅ DISCONNECT FROM NOTIFICATION HUB
     console.log("🔌 Disconnecting from notification hub on logout...");
@@ -228,6 +231,7 @@ export function useAuth() {
     coreApiService.setAuthToken(token);
     apiService.setAuthToken(token);
     aiApiService.setAuthToken(token);
+    api8080Service.setAuthToken(token);
     setState((s) => ({ ...s, accessToken: token }));
 
     await fetchCurrentUser();
