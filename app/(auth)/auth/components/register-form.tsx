@@ -40,7 +40,7 @@ export default function RegisterForm() {
       {/* --- Header / Hero Area --- */}
       <div className="relative h-[32vh] w-full shrink-0">
         <Image
-          src="/images/Background.jpg"
+          src="/images/login10.png"
           alt="Register background"
           fill
           priority
