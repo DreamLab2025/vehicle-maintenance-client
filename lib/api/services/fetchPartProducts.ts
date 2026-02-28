@@ -11,7 +11,7 @@ export interface PartProduct {
   name: string;
   brand: string;
   description: string;
-  imageUrl: string;
+  imageUrl: string | null;
   referencePrice: number;
   recommendedKmInterval: number;
   recommendedMonthsInterval: number;
@@ -51,7 +51,7 @@ export interface CreatePartProductRequest {
   name: string;
   brand: string;
   description: string;
-  imageUrl: string;
+  imageUrl: string | null;
   referencePrice: number;
   recommendedKmInterval: number;
   recommendedMonthsInterval: number;
@@ -62,7 +62,7 @@ export interface UpdatePartProductRequest {
   name: string;
   brand: string;
   description: string;
-  imageUrl: string;
+  imageUrl: string | null;
   referencePrice: number;
   recommendedKmInterval: number;
   recommendedMonthsInterval: number;
