@@ -2,7 +2,6 @@
  * Notification Service - API calls for notifications
  */
 
-import coreApiService from "../coreApiService";
 import { RequestParams } from "../apiService";
 import {
   NotificationStatusResponse,

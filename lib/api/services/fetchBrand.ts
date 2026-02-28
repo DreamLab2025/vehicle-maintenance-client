@@ -1,4 +1,4 @@
-import coreApiService from "@/lib/api/coreApiService";
+import api8080Service from "@/lib/api/api8080Service";
 
 // ===== Types =====
 export interface Brand {
@@ -62,13 +62,13 @@ export type BrandQueryParams = {
 export const BrandService = {
   // 1. Lấy danh sách thương hiệu phân trang
   getBrands: async (params: BrandQueryParams) => {
-    const response = await coreApiService.get<BrandListResponse>("/api/v1/brands", params);
+    const response = await api8080Service.get<BrandListResponse>("/api/v1/brands", params);
     return response.data;
   },
 
   // 2. Lấy danh sách thương hiệu theo loại xe
   getBrandsByType: async (typeId: string) => {
-    const response = await coreApiService.get<BrandListResponse>(`/api/v1/brands/types/${typeId}`);
+    const response = await api8080Service.get<BrandListResponse>(`/api/v1/brands/types/${typeId}`);
     return response.data;
   },
 
@@ -80,7 +80,7 @@ export const BrandService = {
     website?: string;
     supportPhone?: string;
   }) => {
-    const response = await coreApiService.post<BrandSingleResponse>("/api/v1/brands", payload);
+    const response = await api8080Service.post<BrandSingleResponse>("/api/v1/brands", payload);
     return response.data;
   },
 
@@ -94,7 +94,7 @@ export const BrandService = {
       supportPhone?: string;
     }>;
   }) => {
-    const response = await coreApiService.post<BrandBulkResponse>("/api/v1/brands/bulk", payload);
+    const response = await api8080Service.post<BrandBulkResponse>("/api/v1/brands/bulk", payload);
     return response.data;
   },
 
@@ -103,7 +103,7 @@ export const BrandService = {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await coreApiService.post<BrandBulkResponse>("/api/v1/brands/bulk/upload", formData);
+    const response = await api8080Service.post<BrandBulkResponse>("/api/v1/brands/bulk/upload", formData);
 
     return response.data;
   },
@@ -119,13 +119,13 @@ export const BrandService = {
       supportPhone?: string;
     }
   ) => {
-    const response = await coreApiService.put<BrandSingleResponse>(`/api/v1/brands/${id}`, payload);
+    const response = await api8080Service.put<BrandSingleResponse>(`/api/v1/brands/${id}`, payload);
     return response.data;
   },
 
   // 7. Xóa thương hiệu (Admin)
   deleteBrand: async (id: string) => {
-    const response = await coreApiService.delete<{ message: string }>(`/api/v1/brands/${id}`);
+    const response = await api8080Service.delete<{ message: string }>(`/api/v1/brands/${id}`);
     return response.data;
   },
 };

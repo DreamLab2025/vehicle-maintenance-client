@@ -1,5 +1,5 @@
 // src/lib/api/services/fetchPartCategories.ts
-import coreApiService from "../coreApiService";
+import api8080Service from "../api8080Service";
 import { RequestParams } from "../apiService";
 
 export type PartCategoryStatus = "Active" | "Inactive";
@@ -74,7 +74,7 @@ export type UpdatePartCategoryRequest = CreatePartCategoryRequest;
 
 export const PartCategoryService = {
   getCategories: async (params: PartCategoryQueryParams) => {
-    const res = await coreApiService.get<PartCategoryListResponse>(
+    const res = await api8080Service.get<PartCategoryListResponse>(
       "/api/v1/parts/categories",
       params,
     );
@@ -82,14 +82,14 @@ export const PartCategoryService = {
   },
 
   getCategoryById: async (id: string) => {
-    const res = await coreApiService.get<PartCategoryDetailResponse>(
+    const res = await api8080Service.get<PartCategoryDetailResponse>(
       `/api/v1/parts/categories/${id}`,
     );
     return res.data;
   },
 
   createCategory: async (payload: CreatePartCategoryRequest) => {
-    const res = await coreApiService.post<PartCategoryMutationResponse>(
+    const res = await api8080Service.post<PartCategoryMutationResponse>(
       "/api/v1/parts/categories",
       payload,
     );
@@ -97,7 +97,7 @@ export const PartCategoryService = {
   },
 
   updateCategory: async (id: string, payload: UpdatePartCategoryRequest) => {
-    const res = await coreApiService.put<PartCategoryMutationResponse>(
+    const res = await api8080Service.put<PartCategoryMutationResponse>(
       `/api/v1/parts/categories/${id}`,
       payload,
     );
@@ -105,7 +105,7 @@ export const PartCategoryService = {
   },
 
   deleteCategory: async (id: string) => {
-    const res = await coreApiService.delete<PartCategoryMutationResponse>(
+    const res = await api8080Service.delete<PartCategoryMutationResponse>(
       `/api/v1/parts/categories/${id}`,
     );
     return res.data;

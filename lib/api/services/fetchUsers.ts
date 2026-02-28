@@ -1,6 +1,6 @@
 // src/lib/api/services/fetchUsers.ts
 import { RequestParams } from "../apiService";
-import authApiService from "../authApiService";
+import api8080Service from "../api8080Service";
 
 export type UserStatus = "Active" | "Inactive" | "Banned" | "Locked" | string;
 
@@ -47,11 +47,11 @@ export interface UsersQueryParams extends RequestParams {
 
 export const UserService = {
   getUsers: async (params: UsersQueryParams) => {
-    const res = await authApiService.get<UsersListResponse>("/api/v1/users", params);
+    const res = await api8080Service.get<UsersListResponse>("/api/v1/users", params);
     return res.data;
   },
   getUserById: async (id: string) => {
-    const res = await authApiService.get<UserDetailResponse>(`/api/v1/users/${id}`);
+    const res = await api8080Service.get<UserDetailResponse>(`/api/v1/users/${id}`);
     return res.data;
   },
 };
