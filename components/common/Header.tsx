@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, User, ChevronDown, Globe, Check } from "lucide-react";
+import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useTranslation } from "react-i18next";
@@ -140,10 +141,13 @@ export default function Header() {
                 className="flex items-center gap-3"
               >
                 <div className="relative">
-                  <img
+                  <Image
                     src={user.avatarUrl}
                     alt={user.userName || "Avatar"}
+                    width={36}
+                    height={36}
                     className="h-9 w-9 rounded-full object-cover border-2 border-neutral-100"
+                    unoptimized
                   />
                   <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
                 </div>
@@ -152,7 +156,7 @@ export default function Header() {
                     {user.userName || "Xin chào"}
                   </p>
                   <p className="text-[11px] text-neutral-400 flex items-center gap-0.5">
-                    Tài khoản
+                    {t("common.account")}
                     <ChevronDown
                       className={`h-3 w-3 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
                     />
@@ -263,17 +267,21 @@ export default function Header() {
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500 text-white text-[13px] font-medium"
             >
               <User className="w-4 h-4" />
-              Đăng nhập
+              {t("common.login")}
             </motion.button>
           )}
         </div>
 
-        {/* Center: App Title */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <h1 className="text-[15px] font-bold tracking-tight">
-            <span className="text-neutral-900">Vehicle</span>
-            <span className="text-red-500">Care</span>
-          </h1>
+        {/* Center: Logo */}
+        <div className="absolute left-1/2 -translate-x-1/2 scale-150 -my-2">
+          <Image
+            src="/images/logo.png"
+            alt="Vehicle Care"
+            width={280}
+            height={80}
+            className="h-16 w-auto object-contain"
+            unoptimized
+          />
         </div>
 
         {/* Right: Spacer */}

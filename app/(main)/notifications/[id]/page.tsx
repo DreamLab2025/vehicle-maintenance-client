@@ -3,13 +3,16 @@
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   ChevronLeft,
   ChevronRight,
   Gauge,
   Calendar,
   MapPin,
+  Car,
 } from "lucide-react";
+import Image from "next/image";
 
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 import { useNotificationById } from "@/hooks/useNotification";
@@ -106,6 +109,7 @@ function KmProgressLine({
 // ─── Main Page ──────────────────────────────────────────────
 
 export default function NotificationDetailPage() {
+  const { t } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
@@ -213,9 +217,9 @@ export default function NotificationDetailPage() {
       const licensePlate = vehicle?.licensePlate || maintenanceReminderInfo.vehicleDisplayName || "";
       const brandName = vehicle?.userVehicleVariant?.model?.brandName || "Xe";
       const modelName = vehicle?.userVehicleVariant?.model?.name || "";
-      
+      const brandLogo = vehicle?.userVehicleVariant?.imageUrl || "";
       return {
-        brandLogo: "🏍️",
+        brandLogo,
         brandName,
         modelName,
         licensePlate,
@@ -238,7 +242,7 @@ export default function NotificationDetailPage() {
     return (
       <div className="min-h-screen bg-[#f5f5f7] flex flex-col items-center justify-center px-6">
         <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-base font-medium text-neutral-500">Đang tải...</p>
+        <p className="text-base font-medium text-neutral-500">{t("common.loading")}</p>
       </div>
     );
   }
@@ -248,23 +252,23 @@ export default function NotificationDetailPage() {
     return (
       <div className="min-h-screen bg-[#f5f5f7] flex flex-col items-center justify-center px-6">
         <p className="text-base font-medium text-neutral-500 mb-4">
-          Không tìm thấy thông báo
+          {t("notification.notFound")}
         </p>
         <button
           type="button"
           onClick={() => router.back()}
           className="px-5 py-2.5 rounded-xl bg-neutral-900 text-white text-sm font-medium"
         >
-          Quay lại
+          {t("common.back")}
         </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] pb-28">
+    <div className="min-h-screen bg-white pb-28">
       {/* ── Header ── */}
-      <header className="sticky top-0 z-40 bg-[#f5f5f7]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl">
         <div className="flex items-center justify-between px-5 h-14">
           <motion.button
             type="button"
@@ -275,7 +279,7 @@ export default function NotificationDetailPage() {
             <ChevronLeft className="w-5 h-5 text-neutral-700" />
           </motion.button>
           <h1 className="text-base font-bold text-neutral-900">
-            Chi tiết thông báo
+            {t("notification.title")}
           </h1>
           <div className="w-9" />
         </div>
@@ -289,14 +293,25 @@ export default function NotificationDetailPage() {
       >
         {/* Vehicle row */}
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-2xl shadow-sm">
-            {vehicleDetail?.brandLogo || "🏍️"}
+          <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center overflow-hidden shadow-sm">
+            {vehicleDetail?.brandLogo ? (
+              <Image
+                src={vehicleDetail.brandLogo}
+                alt={vehicleDetail.brandName || "Vehicle"}
+                width={48}
+                height={48}
+                className="object-contain w-full h-full"
+                unoptimized
+              />
+            ) : (
+              <Car className="h-6 w-6 text-gray-400" />
+            )}
           </div>
           <div className="flex-1">
             <p className="text-lg font-bold text-neutral-900">
               {vehicleDetail
                 ? `${vehicleDetail.brandName} ${vehicleDetail.modelName}`
-                : vehicleInfo?.vehicleDisplayName || notification.vehicleName || "Xe của bạn"}
+                : vehicleInfo?.vehicleDisplayName || notification.vehicleName || t("vehicle.myVehicle")}
             </p>
             <p className="text-xs text-neutral-400 font-medium">
               {vehicleDetail?.licensePlate || vehicleInfo?.licensePlate || ""}
@@ -372,22 +387,36 @@ export default function NotificationDetailPage() {
               </div>
             </div>
 
-            {/* Action Button - MaintenanceReminder stays on detail page */}
+            {/* Action Buttons - MaintenanceReminder stays on detail page */}
             {levelConfig && (
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => {
-                  // MaintenanceReminder: already on detail page, can add more actions if needed
-                  // For now, just show button (can navigate to reminder detail later)
-                }}
-                className="w-full flex items-center justify-center gap-2 mt-8 py-3.5 rounded-2xl text-sm font-semibold text-white"
-                style={{
-                  background: `linear-gradient(135deg, ${levelConfig.hexColor}, ${levelConfig.hexColor}cc)`,
-                }}
-              >
-                Đặt lịch bảo dưỡng
-                <ChevronRight className="w-4 h-4" />
-              </motion.button>
+              <div className="mt-8 space-y-1">
+                {/* Xác Nhận Thay Thế Button */}
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    // Handle confirm replacement action
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold text-red-600 bg-white border border-red-500 hover:bg-red-50 transition-colors"
+                >
+                  {t("notification.confirmReplacement")}
+                </motion.button>
+                
+                {/* Đặt lịch bảo dưỡng Button */}
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => {
+                    // MaintenanceReminder: already on detail page, can add more actions if needed
+                    // For now, just show button (can navigate to reminder detail later)
+                  }}
+                  style={{
+                    background: `linear-gradient(135deg, ${levelConfig.hexColor}, ${levelConfig.hexColor}cc)`,
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold text-white"
+                >
+                  {t("notification.scheduleMaintenance")}
+                  <ChevronRight className="w-4 h-4" />
+                </motion.button>
+              </div>
             )}
           </>
         )}
@@ -398,7 +427,7 @@ export default function NotificationDetailPage() {
             {/* Current Odometer Display - Prominent */}
             <div className="mt-6 px-4 py-3 rounded-xl bg-blue-50 border border-blue-100">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-blue-600 font-medium">Số km hiện tại</span>
+                <span className="text-xs text-blue-600 font-medium">{t("notification.currentOdometer")}</span>
                 <span className="text-sm font-bold text-blue-700">
                   {formatNumber(vehicleInfo.currentOdometer)} km
                 </span>
@@ -408,14 +437,14 @@ export default function NotificationDetailPage() {
             {/* Additional info */}
             <div className="mt-4 bg-white rounded-2xl p-4 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-neutral-500">Chưa cập nhật</span>
+                <span className="text-xs text-neutral-500">{t("notification.notUpdated")}</span>
                 <span className="text-sm font-semibold text-orange-600">
-                  {vehicleInfo.daysSinceUpdate} ngày
+                  {vehicleInfo.daysSinceUpdate} {t("notification.days")}
                 </span>
               </div>
               {vehicleInfo.lastOdometerUpdateFormatted && (
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-neutral-100">
-                  <span className="text-xs text-neutral-500">Lần cập nhật cuối</span>
+                  <span className="text-xs text-neutral-500">{t("notification.lastUpdate")}</span>
                   <span className="text-xs font-medium text-neutral-600">
                     {vehicleInfo.lastOdometerUpdateFormatted}
                   </span>
@@ -430,7 +459,7 @@ export default function NotificationDetailPage() {
                 onClick={() => router.push(`/odometer/${vehicleInfo.userVehicleId}`)}
                 className="w-full flex items-center justify-center gap-2 mt-6 py-3.5 rounded-2xl text-sm font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600"
               >
-                Cập nhật số km
+                {t("notification.updateOdometer")}
                 <ChevronRight className="w-4 h-4" />
               </motion.button>
             )}
@@ -458,7 +487,7 @@ export default function NotificationDetailPage() {
                   background: `linear-gradient(135deg, ${levelConfig.hexColor}, ${levelConfig.hexColor}cc)`,
                 }}
               >
-                Xem chi tiết
+                {t("notification.viewDetails")}
                 <ChevronRight className="w-4 h-4" />
               </motion.button>
             )}

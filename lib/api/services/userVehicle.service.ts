@@ -2,8 +2,7 @@
  * User Vehicle Service - API calls for user vehicles
  */
 
-import coreApiService from "../coreApiService";
-import aiApiService from "../aiApiService";
+import api8080Service from "../api8080Service";
 import {
   CreateUserVehicleRequest,
   CreateUserVehicleResponse,
@@ -23,31 +22,31 @@ export const UserVehicleService = {
   // ==================== Vehicle CRUD ====================
 
   createUserVehicle: async (payload: CreateUserVehicleRequest) => {
-    const response = await coreApiService.post<CreateUserVehicleResponse>("/api/v1/user-vehicles", payload);
+    const response = await api8080Service.post<CreateUserVehicleResponse>("/api/v1/user-vehicles", payload);
     return response.data;
   },
 
   getUserVehicles: async (params: UserVehicleQueryParams) => {
-    const response = await coreApiService.get<UserVehicleListResponse>("/api/v1/user-vehicles", params);
+    const response = await api8080Service.get<UserVehicleListResponse>("/api/v1/user-vehicles", params);
     return response.data;
   },
 
   deleteUserVehicle: async (id: string) => {
-    const response = await coreApiService.delete<DeleteUserVehicleResponse>(`/api/v1/user-vehicles/${id}`);
+    const response = await api8080Service.delete<DeleteUserVehicleResponse>(`/api/v1/user-vehicles/${id}`);
     return response.data;
   },
 
   // ==================== Vehicle Parts ====================
 
   getUserVehicleParts: async (userVehicleId: string) => {
-    const response = await coreApiService.get<UserVehiclePartsResponse>(`/api/v1/user-vehicles/${userVehicleId}/parts`);
+    const response = await api8080Service.get<UserVehiclePartsResponse>(`/api/v1/user-vehicles/${userVehicleId}/parts`);
     return response.data;
   },
 
   // ==================== AI Analysis ====================
 
   analyzeQuestionnaire: async (payload: AnalyzeQuestionnaireRequest) => {
-    const response = await aiApiService.post<AnalyzeQuestionnaireResponse>(
+    const response = await api8080Service.post<AnalyzeQuestionnaireResponse>(
       "/api/v1/ai/vehicle-questionnaire/analyze",
       payload,
     );
@@ -57,7 +56,7 @@ export const UserVehicleService = {
   // ==================== Tracking & Reminders ====================
 
   applyTracking: async (userVehicleId: string, payload: ApplyTrackingRequest) => {
-    const response = await coreApiService.post<ApplyTrackingResponse>(
+    const response = await api8080Service.post<ApplyTrackingResponse>(
       `/api/v1/user-vehicles/${userVehicleId}/apply-tracking`,
       payload,
     );
@@ -65,7 +64,7 @@ export const UserVehicleService = {
   },
 
   getReminders: async (userVehicleId: string) => {
-    const response = await coreApiService.get<VehicleRemindersResponse>(
+    const response = await api8080Service.get<VehicleRemindersResponse>(
       `/api/v1/user-vehicles/${userVehicleId}/reminders`,
     );
     return response.data;
@@ -74,7 +73,7 @@ export const UserVehicleService = {
   // ==================== Odometer ====================
 
   updateOdometer: async (userVehicleId: string, payload: UpdateOdometerRequest) => {
-    const response = await coreApiService.patch<UpdateOdometerResponse>(
+    const response = await api8080Service.patch<UpdateOdometerResponse>(
       `/api/v1/user-vehicles/${userVehicleId}/odometer`,
       payload,
     );
@@ -82,7 +81,7 @@ export const UserVehicleService = {
   },
 
   scanOdometer: async (image: File, onProgress?: (percent: number) => void) => {
-    const response = await aiApiService.upload<ScanOdometerResponse>(
+    const response = await api8080Service.upload<ScanOdometerResponse>(
       "/api/v1/ai/odometer/scan",
       image,
       "image",
@@ -95,7 +94,7 @@ export const UserVehicleService = {
   // ==================== Odometer History ====================
 
   getOdometerHistory: async (userVehicleId: string, params: OdometerHistoryQueryParams) => {
-    const response = await coreApiService.get<OdometerHistoryResponse>(
+    const response = await api8080Service.get<OdometerHistoryResponse>(
       `/api/v1/user-vehicles/${userVehicleId}/odometer-history`,
       params,
     );

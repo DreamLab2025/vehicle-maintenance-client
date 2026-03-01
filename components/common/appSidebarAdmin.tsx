@@ -5,7 +5,9 @@ import {
   ArrowUpCircleIcon,
   BadgeCent,
   BikeIcon,
+  Boxes,
   CameraIcon,
+  Cog,
   FileCodeIcon,
   FileTextIcon,
   ImageIcon,
@@ -26,7 +28,9 @@ import {
 import { NavMain } from "./navMain";
 // import { NavUser } from './navUser';
 
-export function AppSidebarAdmin({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebarAdmin({
+  ...props
+}: React.ComponentProps<typeof Sidebar>) {
   const navigationData = {
     navMain: [
       {
@@ -48,6 +52,21 @@ export function AppSidebarAdmin({ ...props }: React.ComponentProps<typeof Sideba
         title: "Quản lý Mẫu xe",
         url: "/admin/models",
         icon: BikeIcon,
+      },
+      {
+        title: "Quản lý Màu & Hình ảnh",
+        url: "/admin/variants",
+        icon: ImageIcon,
+      },
+      {
+        title: "Quản lý Phụ tùng",
+        url: "/admin/parts",
+        icon: Cog,
+      },
+      {
+        title: "Sản Phẩm Phụ Tùng",
+        url: "/admin/products",
+        icon: Boxes,
       },
       {
         title: "Quản lý Xe người dùng",
@@ -149,7 +168,10 @@ export function AppSidebarAdmin({ ...props }: React.ComponentProps<typeof Sideba
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+            <SidebarMenuButton
+              asChild
+              className="data-[slot=sidebar-menu-button]:!p-1.5"
+            >
               <a href="/admin/dashboard">
                 <ArrowUpCircleIcon className="h-5 w-5" />
                 <span className="text-base font-semibold">Verendar Inc.</span>

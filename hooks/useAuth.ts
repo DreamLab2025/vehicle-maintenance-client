@@ -6,9 +6,8 @@ import { useState } from "react";
 import { fetchAuth } from "@/lib/api/services/fetchAuth";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
-import authApiService from "@/lib/api/authApiService";
-import coreApiService from "@/lib/api/coreApiService";
 import notificationHubService from "@/hubs/notificationHub";
+import api8080Service from "@/lib/api/api8080Service";
 
 /* ===================== TYPES ===================== */
 
@@ -31,6 +30,7 @@ interface AuthResult {
   success: boolean;
   user?: User | null;
   error?: string;
+  message?: string; 
 }
 
 interface JwtPayload {
@@ -57,13 +57,16 @@ export function useAuth() {
 
   /* ---------- JWT HELPERS ---------- */
 
+  
   const decodeJwt = (token: string): JwtPayload => {
-    try {
-      const payload = token.split(".")[1];
-      return JSON.parse(atob(payload));
-    } catch {
-      return {};
-    }
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return {};
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return {};
+  }
   };
 
   const buildUserFromToken = (token: string): User => {
@@ -96,8 +99,7 @@ export function useAuth() {
       });
 
       // ✅ SET TOKEN CHO APISERVICE
-      authApiService.setAuthToken(token);
-      coreApiService.setAuthToken(token);
+      api8080Service.setAuthToken(token);
       setState({
         user,
         accessToken: token,
@@ -172,14 +174,58 @@ export function useAuth() {
       return { success: false, error: message };
     }
   };
+/* ===================== FORGOT PASSWORD ===================== */
+
+const forgotPassword = async (email: string): Promise<AuthResult> => {
+  setState((s) => ({ ...s, loading: true, error: null }));
+
+  try {
+    const response = await fetchAuth.forgotPassword(email);
+    const msg = response.data.message;
+
+    setState((s) => ({ ...s, loading: false }));
+    return { success: true, message: msg };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Gửi OTP thất bại";
+    setState((s) => ({ ...s, loading: false, error: message }));
+    return { success: false, error: message };
+  }
+};
+
+/* ===================== RESET PASSWORD ===================== */
+
+const resetPassword = async (
+  email: string,
+  otpCode: string,
+  newPassword: string,
+  confirmNewPassword: string
+): Promise<AuthResult> => {
+  setState((s) => ({ ...s, loading: true, error: null }));
+
+  try {
+    const response = await fetchAuth.resetPassword({
+      email,
+      otpCode,
+      newPassword,
+      confirmNewPassword,
+    });
+
+    const msg = response.data.message;
+    setState((s) => ({ ...s, loading: false }));
+    return { success: true, message: msg };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Đặt lại mật khẩu thất bại";
+    setState((s) => ({ ...s, loading: false, error: message }));
+    return { success: false, error: message };
+  }
+};
 
   /* ===================== LOGOUT ===================== */
 
   const logout = () => {
     deleteCookie("auth-token", { path: "/" });
 
-    authApiService.setAuthToken(null);
-    coreApiService.setAuthToken(null);
+    api8080Service.setAuthToken(null);
 
     // ✅ DISCONNECT FROM NOTIFICATION HUB
     console.log("🔌 Disconnecting from notification hub on logout...");
@@ -217,9 +263,7 @@ export function useAuth() {
       return;
     }
 
-    authApiService.setAuthToken(token);
-    coreApiService.setAuthToken(token);
-
+    api8080Service.setAuthToken(token);
     setState((s) => ({ ...s, accessToken: token }));
 
     await fetchCurrentUser();
@@ -276,6 +320,8 @@ export function useAuth() {
     login,
     register,
     verifyOtp,
+    forgotPassword,
+    resetPassword,
     logout,
     initAuthFromStorage,
     fetchCurrentUser,

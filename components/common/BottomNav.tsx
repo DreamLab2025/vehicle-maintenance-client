@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, LayoutGroup } from "framer-motion";
-import { Home, Car, Settings, User, Map, Bell, type LucideIcon } from "lucide-react";
+import { Home, Car, Settings, User, Map, Bell, Wrench, type LucideIcon } from "lucide-react";
 import { useNotificationStatus } from "@/hooks/useNotification";
 
 interface NavItem {
@@ -15,9 +15,9 @@ interface NavItem {
 
 const items: NavItem[] = [
   { href: "/", Icon: Home, label: "Trang chủ" },
-  { href: "/maps", Icon: Map, label: "Bản đồ" },
+  { href: "/maintenance", Icon: Wrench, label: "Thay phụ tùng" },
   { href: "/notifications", Icon: Bell, label: "Thông báo", hasBadge: true },
-  { href: "/profile", Icon: User, label: "Tài khoản" },
+  // { href: "/profile", Icon: User, label: "Tài khoản" },
 ];
 
 function normalizePath(p: string) {

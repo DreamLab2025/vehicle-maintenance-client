@@ -1,4 +1,4 @@
-import coreApiService from "../coreApiService";
+import api8080Service from "../api8080Service";
 import { RequestParams } from "../apiService";
 
 export interface VehicleType {
@@ -72,21 +72,21 @@ export interface TypeDeleteResponse {
 }
 export const TypeService = {
   getTypes: async (params: TypeQueryParams) => {
-    const response = await coreApiService.get<TypeListResponse>("/api/v1/types", params);
+    const response = await api8080Service.get<TypeListResponse>("/api/v1/types", params);
     return response.data;
   },
   createType: async (payload: TypeCreatePayload) => {
-    const response = await coreApiService.post<TypeSingleResponse>("/api/v1/types", payload);
+    const response = await api8080Service.post<TypeSingleResponse>("/api/v1/types", payload);
     return response.data;
   },
 
   updateType: async (id: string, payload: TypeUpdatePayload) => {
-    const response = await coreApiService.put<TypeSingleResponse>(`/api/v1/types/${id}`, payload);
+    const response = await api8080Service.put<TypeSingleResponse>(`/api/v1/types/${id}`, payload);
     return response.data;
   },
 
   deleteType: async (id: string) => {
-    const response = await coreApiService.delete<TypeDeleteResponse>(`/api/v1/types/${id}`);
+    const response = await api8080Service.delete<TypeDeleteResponse>(`/api/v1/types/${id}`);
     return response.data;
   },
 };
