@@ -394,7 +394,15 @@ export default function NotificationDetailPage() {
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => {
-                    // Handle confirm replacement action
+                    if (maintenanceReminderInfo?.userVehicleId && maintenanceReminderInfo?.partCategoryName) {
+                      // Redirect đến maintenance flow với thông tin đã điền sẵn
+                      const params = new URLSearchParams({
+                        vehicleId: maintenanceReminderInfo.userVehicleId,
+                        categoryName: maintenanceReminderInfo.partCategoryName,
+                        odometer: maintenanceReminderInfo.currentOdometer.toString(),
+                      });
+                      router.push(`/maintenance/new?${params.toString()}`);
+                    }
                   }}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold text-red-600 bg-white border border-red-500 hover:bg-red-50 transition-colors"
                 >

@@ -88,6 +88,13 @@ export const PartCategoryService = {
     return res.data;
   },
 
+  getCategoriesByVehicleId: async (vehicleId: string) => {
+    const res = await api8080Service.get<PartCategoryListResponse>(
+      `/api/v1/parts/categories/user-vehicle/${vehicleId}`,
+    );
+    return res.data;
+  },
+
   createCategory: async (payload: CreatePartCategoryRequest) => {
     const res = await api8080Service.post<PartCategoryMutationResponse>(
       "/api/v1/parts/categories",

@@ -21,9 +21,20 @@ import {
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
-import { useUserVehicles, useOdometerHistory } from "@/hooks/useUserVehice";
+import { useUserVehicles, useOdometerHistory, useDeleteUserVehicle } from "@/hooks/useUserVehice";
 import { OdometerHistoryChart } from "@/components/odometer/OdometerHistoryChart";
 import type { OdometerHistoryItem } from "@/lib/types/vehicle.types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function VehicleDetailPage() {
   const { t } = useTranslation();
@@ -34,12 +45,22 @@ export default function VehicleDetailPage() {
   const [allHistory, setAllHistory] = useState<OdometerHistoryItem[]>([]);
   const [showVin, setShowVin] = useState(false);
 
+  // Reset state when component mounts (to handle navigation back to this page)
+  React.useEffect(() => {
+    setCurrentPage(1);
+    setAllHistory([]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const { vehicles, isLoading } = useUserVehicles({
     PageNumber: 1,
     PageSize: 100,
   });
 
   const vehicle = vehicles.find((v) => v.id === vehicleId);
+
+  // Delete vehicle hook
+  const { deleteVehicleAsync, isDeleting } = useDeleteUserVehicle();
 
   // Fetch odometer history
   const { 
@@ -57,28 +78,51 @@ export default function VehicleDetailPage() {
     !!vehicleId
   );
 
-  // Accumulate history data
-  React.useEffect(() => {
-    if (odometerHistory && odometerHistory.length > 0) {
-      if (currentPage === 1) {
-        // Reset on first page
-        setAllHistory(odometerHistory);
-      } else {
-        // Append new data
-        setAllHistory((prev) => [...prev, ...odometerHistory]);
-      }
-    }
-  }, [odometerHistory, currentPage]);
-
   // Reset when vehicleId changes
   React.useEffect(() => {
     setCurrentPage(1);
     setAllHistory([]);
   }, [vehicleId]);
 
+  // Reset allHistory when starting to fetch page 1 (to avoid showing stale data)
+  React.useEffect(() => {
+    if (currentPage === 1 && isLoadingHistory) {
+      setAllHistory([]);
+    }
+  }, [currentPage, isLoadingHistory]);
+
+  // Accumulate history data
+  React.useEffect(() => {
+    // Only update when we have actual data from API (not undefined)
+    if (odometerHistory === undefined) return;
+    
+    if (currentPage === 1) {
+      // Reset on first page - always set to current data (even if empty)
+      setAllHistory(odometerHistory);
+    } else {
+      // Append new data only if there's data to append
+      if (odometerHistory.length > 0) {
+        setAllHistory((prev) => [...prev, ...odometerHistory]);
+      }
+    }
+  }, [odometerHistory, currentPage]);
+
   const handleLoadMore = () => {
     if (historyMetadata?.hasNextPage && !isFetchingHistory) {
       setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const handleDeleteVehicle = async () => {
+    if (!vehicleId) return;
+    
+    try {
+      await deleteVehicleAsync(vehicleId);
+      // Navigate to home after successful deletion
+      router.push("/");
+    } catch (error) {
+      // Error is already handled by the hook (toast.error)
+      console.error("Failed to delete vehicle:", error);
     }
   };
 
@@ -380,10 +424,59 @@ export default function VehicleDetailPage() {
               <Gauge className="h-5 w-5 text-white" />
               <span className="text-[15px]">{t("vehicle.updateOdometer")}</span>
             </button>
-            <button className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 rounded-2xl p-4 font-bold transition flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm">
-              <Trash2 className="h-5 w-5 text-gray-600" />
-              <span className="text-[15px]">{t("vehicle.deleteVehicle")}</span>
-            </button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  disabled={isDeleting}
+                  className="bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 rounded-2xl p-4 font-bold transition flex items-center justify-center gap-2 active:scale-[0.98] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-[15px]">Đang xóa...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-5 w-5 text-gray-600" />
+                      <span className="text-[15px]">{t("vehicle.deleteVehicle")}</span>
+                    </>
+                  )}
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-white border border-gray-200 shadow-xl rounded-2xl p-6 max-w-sm w-[calc(100%-2rem)]">
+                <AlertDialogHeader className="space-y-3">
+                  <AlertDialogTitle className="text-lg font-semibold text-gray-900">
+                    Xác nhận xóa xe
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-sm text-gray-600 leading-relaxed">
+                    Bạn có chắc chắn muốn xóa xe{" "}
+                    <strong className="text-gray-900 font-semibold">
+                      {vehicle.nickname || vehicle.licensePlate}
+                    </strong>
+                    ? Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan đến xe này sẽ bị xóa vĩnh viễn.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="flex-col gap-2 sm:flex-col mt-6">
+                  <AlertDialogAction
+                    onClick={handleDeleteVehicle}
+                    disabled={isDeleting}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white rounded-xl px-4 py-2.5 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isDeleting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Đang xóa...
+                      </span>
+                    ) : (
+                      "Xóa xe"
+                    )}
+                  </AlertDialogAction>
+                  <AlertDialogCancel className="w-full border-gray-200 bg-white hover:bg-gray-50 text-gray-700 rounded-xl px-4 py-2.5 font-medium transition-colors mt-0">
+                    Hủy
+                  </AlertDialogCancel>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>
