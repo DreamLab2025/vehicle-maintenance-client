@@ -25,6 +25,7 @@ export interface ReminderLevelConfig {
   // Hex colors for SVG/Canvas
   hexColor: string;
   hexColorLight: string;
+  hexBorderColor: string;
 
   // Badge
   badgeBg: string;

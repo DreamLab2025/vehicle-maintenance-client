@@ -239,6 +239,9 @@ export function useOdometerHistory(
       message: data.message,
       isSuccess: data.isSuccess,
     }),
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
+    staleTime: 0, // Always consider data stale to ensure fresh fetch
   });
 
   return {

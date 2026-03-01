@@ -3,6 +3,8 @@
 import { createContext, useContext, useEffect } from "react";
 import { getCookie } from "cookies-next";
 import api8080Service from "@/lib/api/api8080Service";
+import coreApiService from "@/lib/api/coreApiService";
+import authApiService from "@/lib/api/authApiService";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotificationListener } from "@/hooks/useNotification";
 
@@ -15,8 +17,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     auth.initAuthFromStorage();
     const token = getCookie("auth-token") as string | undefined;
     if (token) {
-      // Set token cho API service
+      // ✅ SET TOKEN CHO TẤT CẢ API SERVICES
       api8080Service.setAuthToken(token);
+      coreApiService.setAuthToken(token);
+      authApiService.setAuthToken(token);
       auth.initAuthFromStorage();
     }
   }, []);

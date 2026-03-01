@@ -6,8 +6,11 @@ import { useState } from "react";
 import { fetchAuth } from "@/lib/api/services/fetchAuth";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import notificationHubService from "@/hubs/notificationHub";
 import api8080Service from "@/lib/api/api8080Service";
+import coreApiService from "@/lib/api/coreApiService";
+import authApiService from "@/lib/api/authApiService";
 
 /* ===================== TYPES ===================== */
 
@@ -54,6 +57,7 @@ export function useAuth() {
   });
 
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   /* ---------- JWT HELPERS ---------- */
 
@@ -98,8 +102,10 @@ export function useAuth() {
         sameSite: "lax",
       });
 
-      // ✅ SET TOKEN CHO APISERVICE
+      // ✅ SET TOKEN CHO TẤT CẢ API SERVICES
       api8080Service.setAuthToken(token);
+      coreApiService.setAuthToken(token);
+      authApiService.setAuthToken(token);
       setState({
         user,
         accessToken: token,
@@ -223,9 +229,19 @@ const resetPassword = async (
   /* ===================== LOGOUT ===================== */
 
   const logout = () => {
-    deleteCookie("auth-token", { path: "/" });
+    // ✅ XÓA COOKIE (với tất cả các options để đảm bảo xóa hoàn toàn)
+    deleteCookie("auth-token", { 
+      path: "/",
+      domain: undefined, // Xóa trên tất cả domains
+    });
 
+    // ✅ CLEAR TOKEN Ở TẤT CẢ API SERVICES
     api8080Service.setAuthToken(null);
+    coreApiService.setAuthToken(null);
+    authApiService.setAuthToken(null);
+
+    // ✅ CLEAR REACT QUERY CACHE (xóa toàn bộ cache)
+    queryClient.clear();
 
     // ✅ DISCONNECT FROM NOTIFICATION HUB
     console.log("🔌 Disconnecting from notification hub on logout...");
@@ -233,6 +249,7 @@ const resetPassword = async (
       console.log("✅ Notification hub disconnected");
     });
 
+    // ✅ CLEAR STATE
     setState({
       user: null,
       accessToken: null,
@@ -240,6 +257,7 @@ const resetPassword = async (
       error: null,
     });
 
+    // ✅ REDIRECT TO LOGIN
     router.push("/login");
   };
 
@@ -263,7 +281,11 @@ const resetPassword = async (
       return;
     }
 
+    // ✅ SET TOKEN CHO TẤT CẢ API SERVICES
     api8080Service.setAuthToken(token);
+    coreApiService.setAuthToken(token);
+    authApiService.setAuthToken(token);
+    
     setState((s) => ({ ...s, accessToken: token }));
 
     await fetchCurrentUser();

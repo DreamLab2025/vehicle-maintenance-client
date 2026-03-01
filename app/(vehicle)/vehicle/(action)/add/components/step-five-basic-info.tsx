@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CalendarDays, IdCard, Tag, Hash, Gauge } from "lucide-react";
 import { motion, useMotionValue, animate } from "framer-motion";
+import { DatePicker } from "@/components/ui/date-picker";
 
 type VehicleInfo = {
   licensePlate: string;
@@ -286,30 +287,13 @@ export function StepFiveVehicleInfo({ value, onChange, odometerDigits = 6 }: Ste
                 <span className="text-xs text-gray-500">Bắt buộc</span>
               </div>
 
-              <div className="relative group">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-gray-900 transition-colors">
-                  <CalendarDays className="h-5 w-5" />
-                </div>
-
-                <Input
-                  id="purchaseDate"
-                  type="date"
-                  value={value.purchaseDate}
-                  onChange={(e) => update({ purchaseDate: e.target.value })}
-                  required
-                  className="
-                    pl-10 h-12 rounded-xl
-                    border border-gray-200
-                    bg-white
-                    shadow-sm
-                    hover:shadow-md hover:border-gray-300
-                    focus:border-black focus:ring-2 focus:ring-black/10
-                    transition-all
-                    text-gray-900
-                    [color-scheme:light]
-                  "
-                />
-              </div>
+              <DatePicker
+                value={value.purchaseDate}
+                onChange={(date) => update({ purchaseDate: date })}
+                placeholder="Chọn ngày mua / nhận xe"
+                max={new Date()}
+                className="w-full h-12 rounded-xl border z-20 border-gray-200 bg-white shadow-sm hover:shadow-md hover:border-gray-300 focus:border-black focus:ring-2 focus:ring-black/10 transition-all"
+              />
 
               <p className="text-xs text-gray-500 leading-relaxed">
                 Chọn ngày theo lịch hệ thống (tối ưu cho thiết bị của bạn).

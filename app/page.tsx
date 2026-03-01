@@ -397,14 +397,22 @@ export default function Page() {
                           key={`${reminder.id}-${reminder.partCategory.iconUrl}`}
                         />
                       ) : (
-                        <LevelIcon className={`h-5 w-5 ${levelConfig.iconColor}`} />
+                        <LevelIcon
+                          className="h-5 w-5"
+                          style={{ color: levelConfig.hexColor }}
+                        />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-neutral-900 text-[14px]">{reminder.partCategory.name}</h3>
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${levelConfig.badgeBg} ${levelConfig.badgeText}`}
+                          className="px-1.5 py-0.5 rounded text-[10px] font-semibold border"
+                          style={{
+                            backgroundColor: levelConfig.hexColorLight,
+                            color: levelConfig.hexColor,
+                            borderColor: levelConfig.hexBorderColor,
+                          }}
                         >
                           {levelConfig.labelVi}
                         </span>
