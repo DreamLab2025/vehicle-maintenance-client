@@ -94,3 +94,30 @@ export function useDeletePartCategory() {
     },
   });
 }
+
+export function usePartCategoriesByVehicleId(vehicleId: string | null, enabled = true) {
+  const query = useQuery<PartCategoryListResponse, Error, UseCategoriesSelected>({
+    queryKey: ["parts", "categories", "user-vehicle", vehicleId],
+    queryFn: () => PartCategoryService.getCategoriesByVehicleId(vehicleId!),
+    enabled: enabled && !!vehicleId,
+    select: (data) => ({
+      categories: data.data ?? [],
+      metadata: data.metadata,
+      message: data.message,
+      isSuccess: data.isSuccess,
+    }),
+    staleTime: 30_000,
+  });
+
+  return {
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+    categories: query.data?.categories ?? [],
+    metadata: query.data?.metadata,
+    message: query.data?.message,
+    isSuccess: query.data?.isSuccess,
+  };
+}

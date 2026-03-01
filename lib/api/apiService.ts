@@ -4,6 +4,7 @@ import axios, {
   AxiosRequestConfig,
   AxiosResponse,
 } from 'axios';
+import { deleteCookie } from 'cookies-next';
 
 /* =========================
    Types
@@ -38,6 +39,7 @@ export interface RequestParams {
 export class ApiService {
   private client: AxiosInstance;
   private authToken: string | null = null;
+  private static isRedirecting = false; // Flag để tránh redirect nhiều lần
 
   constructor(baseURL: string, timeout = 10000) {
     this.client = axios.create({
@@ -77,8 +79,23 @@ export class ApiService {
       res => res,
       (error: AxiosError<ApiErrorData>) => {
         if (error.response?.status === 401) {
-          // Xử lý lỗi 401 (Unauthorized)
-          alert('Token xác thực không hợp lệ hoặc đã hết hạn');
+          // Xử lý lỗi 401 (Unauthorized) - Xóa token và redirect đến login
+          // Chỉ xử lý nếu đang ở client side và chưa redirect
+          if (typeof window !== 'undefined' && !ApiService.isRedirecting) {
+            ApiService.isRedirecting = true;
+            
+            // Xóa token cookie
+            deleteCookie('auth-token', { path: '/' });
+            
+            // Clear token trong service
+            this.setAuthToken(null);
+            
+            // Redirect đến login
+            window.location.href = '/login';
+            
+            // Return early để không throw error
+            return Promise.reject(new Error('Unauthorized'));
+          }
         }
         const apiError: ApiError = {
           status: error.response?.status,
