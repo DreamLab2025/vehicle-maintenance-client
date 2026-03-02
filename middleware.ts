@@ -4,10 +4,9 @@ const AUTH_COOKIE = "auth-token";
 
 // Các route auth
 const authRoutes = ["/login", "/register", "/forgot-password"];
-const publicRoutes = ["/", "/properties"]; // home public (admin vẫn vào được)
 
 // Các route cần login
-const needAuthPrefixes = ["/messages", "/hosting", "/saler"];
+const needAuthPrefixes = ["/maintenance"];
 
 // Admin-only
 const adminPrefix = "/admin";
@@ -80,7 +79,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 4) Home/public routes: ai cũng vào được, admin cũng vào được
+  // 4) Home route: cần token, nếu không có token => redirect về login
+  if (pathname === "/" && !hasToken) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // 5) Public routes: ai cũng vào được
   return NextResponse.next();
 }
 

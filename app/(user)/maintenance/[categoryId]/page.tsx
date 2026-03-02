@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, Suspense } from "react";
+import { useState, useCallback, useMemo, useEffect, Suspense, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, Check, Package, Loader2, DollarSign, FileText, Car, Plus, MotorbikeIcon, Gauge } from "lucide-react";
+import { ChevronLeft, Check, Package, Loader2, DollarSign, FileText, Car, Plus, MotorbikeIcon, Gauge, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { usePartCategoriesByVehicleId } from "@/hooks/usePartCategories";
@@ -128,27 +128,34 @@ function ProductCard({
         </div>
       )}
 
-      <div className="flex-1 text-left">
-        <div className="flex items-center justify-between mb-6">
-        <h3 className={`font-medium text-sm ${isAlreadyAdded ? "text-neutral-400" : "text-neutral-900"}`}>
+      <div className="flex-1 text-left min-w-0">
+        {/* Product Name and Brand - Better layout for long text */}
+        <div className="flex items-start gap-2 mb-2">
+          <h3 className={`font-medium text-sm flex-1 min-w-0 line-clamp-2 ${isAlreadyAdded ? "text-neutral-400" : "text-neutral-900"}`}>
             {product.name}
           </h3>
-          <p className={`text-xs mt-0.5 border border-red-500 rounded-full px-2 py-1 bg-red-500 text-white ${isAlreadyAdded ? "text-white bg-red-500" : "text-neutral-500"}`}>
+          <span className={`text-[10px] font-medium border border-red-500 rounded-full px-2 py-0.5 bg-red-500 text-white whitespace-nowrap flex-shrink-0 ${isAlreadyAdded ? "opacity-60" : ""}`}>
             {product.brand}
-          </p>
+          </span>
         </div>
+        
+        {/* Description */}
         {product.description && (
-          <p className={`text-xs mt-1 line-clamp-1 ${isAlreadyAdded ? "text-neutral-300" : "text-neutral-400"}`}>
+          <p className={`text-xs mt-1 line-clamp-2 ${isAlreadyAdded ? "text-neutral-300" : "text-neutral-500"}`}>
             {product.description}
           </p>
         )}
+        
+        {/* Price */}
         {product.referencePrice > 0 && (
-          <p className={`text-sm font-medium mt-1 ${isAlreadyAdded ? "text-neutral-400" : "text-neutral-600"}`}>
+          <p className={`text-sm font-semibold mt-2 ${isAlreadyAdded ? "text-neutral-400" : "text-[#dc2626]"}`}>
             {product.referencePrice.toLocaleString("vi-VN")} đ
           </p>
         )}
+        
+        {/* Already Added Badge */}
         {isAlreadyAdded && (
-          <p className="text-xs text-neutral-500 mt-1 font-medium">Đã được thêm</p>
+          <p className="text-xs text-neutral-500 mt-1.5 font-medium">Đã được thêm</p>
         )}
       </div>
 
@@ -400,6 +407,9 @@ function MaintenanceCategoryPageContent() {
   const [customKmInterval, setCustomKmInterval] = useState<string>("");
   const [customMonthsInterval, setCustomMonthsInterval] = useState<string>("");
 
+  // Ref for product details form to scroll to
+  const productDetailsFormRef = useRef<HTMLDivElement>(null);
+
   // Fetch vehicles
   const { vehicles, isLoading: isLoadingVehicles } = useUserVehicles({
     PageNumber: 1,
@@ -427,11 +437,24 @@ function MaintenanceCategoryPageContent() {
     return null;
   }, [selectedCategoryId, matchedCategoryFromQuery]);
 
+  // Pagination state for products
+  const [productPageNumber, setProductPageNumber] = useState(1);
+  const productPageSize = 5;
+
   // Fetch products for selected category
-  const { products, isLoading: isLoadingProducts } = useProductsByCategory(
+  const { products, isLoading: isLoadingProducts, metadata: productsMetadata } = useProductsByCategory(
     effectiveCategoryId || "",
-    step === "products" && !!effectiveCategoryId
+    step === "products" && !!effectiveCategoryId,
+    {
+      pageNumber: productPageNumber,
+      pageSize: productPageSize,
+    }
   );
+
+  // Reset pagination when category changes
+  useEffect(() => {
+    setProductPageNumber(1);
+  }, [effectiveCategoryId]);
 
   // Get selected vehicle
   const selectedVehicle = useMemo(() => {
@@ -505,6 +528,14 @@ function MaintenanceCategoryPageContent() {
     if (product && product.referencePrice > 0) {
       setCurrentPrice(product.referencePrice.toString());
     }
+    
+    // Scroll to product details form with smooth animation
+    setTimeout(() => {
+      productDetailsFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
   }, [products]);
 
   const handleAddItem = useCallback(() => {
@@ -1176,23 +1207,91 @@ function MaintenanceCategoryPageContent() {
                   {isLoadingProducts ? (
                     <LoadingSpinner text="Đang tải sản phẩm..." />
                   ) : products.length > 0 ? (
-                    <div className="space-y-3">
-                      {products.map((product, index) => {
-                        const isAlreadyAdded = selectedItems.some((item) => !item.isCustom && item.productId === product.id);
-                        return (
-                          <ProductCard
-                            key={product.id}
-                            product={product}
-                            isSelected={currentProductId === product.id}
-                            isAlreadyAdded={isAlreadyAdded}
-                            onClick={() => {
-                              handleProductSelect(product.id);
-                            }}
-                            index={index}
-                          />
-                        );
-                      })}
-                    </div>
+                    <>
+                      <div className="space-y-3">
+                        {products.map((product, index) => {
+                          const isAlreadyAdded = selectedItems.some((item) => !item.isCustom && item.productId === product.id);
+                          return (
+                            <ProductCard
+                              key={product.id}
+                              product={product}
+                              isSelected={currentProductId === product.id}
+                              isAlreadyAdded={isAlreadyAdded}
+                              onClick={() => {
+                                handleProductSelect(product.id);
+                              }}
+                              index={index}
+                            />
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Pagination */}
+                      {productsMetadata && productsMetadata.totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-6">
+                          {/* Previous Button */}
+                          <motion.button
+                            type="button"
+                            onClick={() => setProductPageNumber((prev) => Math.max(1, prev - 1))}
+                            disabled={productPageNumber === 1}
+                            whileTap={{ scale: 0.95 }}
+                            className="w-9 h-9 rounded-lg border border-neutral-300 bg-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 transition-colors"
+                          >
+                            <ChevronLeft className="w-4 h-4 text-neutral-700" />
+                          </motion.button>
+
+                          {/* Page Numbers */}
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: productsMetadata.totalPages }, (_, i) => i + 1).map((pageNum) => {
+                              // Show first page, last page, current page, and pages around current
+                              const showPage = 
+                                pageNum === 1 ||
+                                pageNum === productsMetadata.totalPages ||
+                                (pageNum >= productPageNumber - 1 && pageNum <= productPageNumber + 1);
+                              
+                              if (!showPage) {
+                                // Show ellipsis
+                                if (pageNum === productPageNumber - 2 || pageNum === productPageNumber + 2) {
+                                  return (
+                                    <span key={pageNum} className="px-2 text-neutral-400">
+                                      ...
+                                    </span>
+                                  );
+                                }
+                                return null;
+                              }
+
+                              return (
+                                <motion.button
+                                  key={pageNum}
+                                  type="button"
+                                  onClick={() => setProductPageNumber(pageNum)}
+                                  whileTap={{ scale: 0.95 }}
+                                  className={`w-9 h-9 rounded-lg border flex items-center justify-center text-sm font-medium transition-colors ${
+                                    productPageNumber === pageNum
+                                      ? "bg-[#dc2626] text-white border-[#dc2626]"
+                                      : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
+                                  }`}
+                                >
+                                  {pageNum}
+                                </motion.button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Next Button */}
+                          <motion.button
+                            type="button"
+                            onClick={() => setProductPageNumber((prev) => Math.min(productsMetadata.totalPages, prev + 1))}
+                            disabled={productPageNumber === productsMetadata.totalPages}
+                            whileTap={{ scale: 0.95 }}
+                            className="w-9 h-9 rounded-lg border border-neutral-300 bg-white flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-neutral-50 transition-colors"
+                          >
+                            <ChevronRight className="w-4 h-4 text-neutral-700" />
+                          </motion.button>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="flex flex-col items-center justify-center py-20 p-6 rounded-2xl bg-neutral-50 border-2 border-dashed border-neutral-200">
                       <Package className="w-12 h-12 text-neutral-300 mb-4" />
@@ -1265,8 +1364,10 @@ function MaintenanceCategoryPageContent() {
               {/* Product Details Form - Show for both system product and custom product */}
               {(currentProduct || isCustomProduct) && (
                 <motion.div
+                  ref={productDetailsFormRef}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
                   className="p-4 rounded-xl bg-neutral-50 border border-neutral-200 space-y-4"
                 >
                   <h4 className="font-semibold text-sm text-neutral-900">

@@ -1,0 +1,18 @@
+{
+    "buildCommand": "npm run build",
+    "devCommand": "npm run dev",
+    "installCommand": "npm install",
+    "framework": "nextjs",
+    "regions": ["sin1"],
+    "nodeVersion": "20.x",
+    "functions": {
+      "app/**/*.tsx": {
+        "maxDuration": 10,
+        "memory": 1024
+      },
+      "app/**/*.ts": {
+        "maxDuration": 10,
+        "memory": 1024
+      }
+    }
+  }

@@ -20,11 +20,20 @@ export interface PartProduct {
   updatedAt: string | null;
 }
 
+export interface PaginationMetadata {
+  pageNumber: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
 export interface ApiListResponse<T> {
   isSuccess: boolean;
   message: string;
   data: T[];
-  metadata: null | string;
+  metadata: PaginationMetadata | null | string;
 }
 
 export interface ApiItemResponse<T> {
@@ -44,6 +53,9 @@ export interface ApiMutationResponse<T> {
 /** Nếu backend CHƯA có paging/sort cho list by category thì cứ để optional */
 export interface PartProductListByCategoryParams extends RequestParams {
   CategoryId: string; // uuid
+  PageNumber?: number;
+  PageSize?: number;
+  IsDescending?: boolean;
 }
 
 export interface CreatePartProductRequest {
@@ -71,10 +83,22 @@ export interface UpdatePartProductRequest {
 /** ===== Service ===== */
 export const PartProductService = {
   /** GET /api/v1/parts/products/category/{categoryId} */
-  getProductsByCategory: async (categoryId: string) => {
-    const res = await api8080Service.get<ApiListResponse<PartProduct>>(
-      `/api/v1/parts/products/category/${categoryId}`,
-    );
+  getProductsByCategory: async (categoryId: string, params?: { PageNumber?: number; PageSize?: number; IsDescending?: boolean }) => {
+    const queryParams: Record<string, string> = {};
+    if (params?.PageNumber !== undefined) {
+      queryParams.PageNumber = params.PageNumber.toString();
+    }
+    if (params?.PageSize !== undefined) {
+      queryParams.PageSize = params.PageSize.toString();
+    }
+    if (params?.IsDescending !== undefined) {
+      queryParams.IsDescending = params.IsDescending.toString();
+    }
+    
+    const queryString = new URLSearchParams(queryParams).toString();
+    const url = `/api/v1/parts/products/category/${categoryId}${queryString ? `?${queryString}` : ''}`;
+    
+    const res = await api8080Service.get<ApiListResponse<PartProduct>>(url);
     return res.data;
   },
 

@@ -5,23 +5,36 @@ import PartProductService, {
   UpdatePartProductRequest,
   ApiItemResponse,
   ApiListResponse,
+  PaginationMetadata,
 } from "@/lib/api/services/fetchPartProducts";
 
 type UseProductsSelected = {
   products: PartProduct[];
   message: string;
   isSuccess: boolean;
+  metadata: PaginationMetadata | null;
 };
 
-export function useProductsByCategory(categoryId: string, enabled = true) {
+export function useProductsByCategory(
+  categoryId: string, 
+  enabled = true,
+  pagination?: { pageNumber: number; pageSize: number; isDescending?: boolean }
+) {
   const query = useQuery<ApiListResponse<PartProduct>, Error, UseProductsSelected>({
-    queryKey: ["part-products", "by-category", categoryId],
-    queryFn: () => PartProductService.getProductsByCategory(categoryId),
+    queryKey: ["part-products", "by-category", categoryId, pagination?.pageNumber, pagination?.pageSize, pagination?.isDescending],
+    queryFn: () => PartProductService.getProductsByCategory(categoryId, {
+      PageNumber: pagination?.pageNumber,
+      PageSize: pagination?.pageSize,
+      IsDescending: pagination?.isDescending,
+    }),
     enabled: enabled && !!categoryId,
     select: (data) => ({
       products: data.data ?? [],
       message: data.message,
       isSuccess: data.isSuccess,
+      metadata: typeof data.metadata === 'object' && data.metadata !== null && 'pageNumber' in data.metadata
+        ? (data.metadata as PaginationMetadata)
+        : null,
     }),
     staleTime: 30_000,
   });
@@ -35,6 +48,7 @@ export function useProductsByCategory(categoryId: string, enabled = true) {
     products: query.data?.products ?? [],
     message: query.data?.message,
     isSuccess: query.data?.isSuccess,
+    metadata: query.data?.metadata ?? null,
   };
 }
 
