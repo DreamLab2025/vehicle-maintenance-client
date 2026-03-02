@@ -129,5 +129,19 @@
     "noNotifications": "Chưa có thông báo",
     "noNotificationsDesc": "Bạn sẽ nhận thông báo khi có cập nhật mới",
     "level": "Mức độ"
+  },
+  "reminder": {
+    "current": "Hiện tại",
+    "target": "Mục tiêu",
+    "remaining": "Còn lại",
+    "overdue": "Vượt quá",
+    "traveled": "Đã đi",
+    "daysRemaining": "Còn {{count}} ngày",
+    "overdueDays": "Đã quá hạn",
+    "identificationSigns": "Dấu hiệu nhận biết",
+    "consequences": "Hậu quả nếu không xử lý",
+    "scheduleMaintenance": "Đặt lịch bảo dưỡng",
+    "remainingKm": "Còn {{count}} km",
+    "overdueKm": "Vượt quá {{count}} km"
   }
 }

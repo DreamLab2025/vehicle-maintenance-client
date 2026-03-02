@@ -29,6 +29,7 @@ import VariantsToolbar from "./components/VariantsToolbar";
 import VariantsTable from "./components/VariantsTable";
 import VariantsPagination from "./components/VariantsPagination";
 import VariantsFilters from "./components/VariantsFilters";
+import { TableWithImageSkeleton } from "@/components/ui/skeletons";
 
 type ApiErrorShape = {
   response?: {
@@ -353,20 +354,7 @@ export default function Variantspage() {
             </Button>
           </div>
         ) : isLoading || isFetching ? (
-          <div className="bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm">
-            <div className="h-12 bg-slate-50 border-b border-slate-100 animate-pulse" />
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex gap-4 p-4 border-b border-slate-50 items-center"
-              >
-                <div className="h-10 w-10 bg-slate-100 rounded-lg animate-pulse" />
-                <div className="h-4 w-1/4 bg-slate-100 rounded animate-pulse" />
-                <div className="h-4 w-1/5 bg-slate-50 rounded animate-pulse" />
-                <div className="h-4 w-2/5 bg-slate-100 rounded animate-pulse ml-auto" />
-              </div>
-            ))}
-          </div>
+          <TableWithImageSkeleton rows={6} />
         ) : totalItems === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-slate-100 shadow-sm">
             <div className="p-4 bg-slate-50 rounded-full mb-4">

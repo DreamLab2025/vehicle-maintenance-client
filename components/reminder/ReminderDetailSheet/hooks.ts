@@ -9,7 +9,7 @@ export function useReminderData(reminder: VehicleReminder | null) {
   );
 
   const remainingKm = useMemo(
-    () => (reminder ? Math.max(0, reminder.targetOdometer - reminder.currentOdometer) : 0),
+    () => (reminder ? reminder.targetOdometer - reminder.currentOdometer : 0),
     [reminder]
   );
 

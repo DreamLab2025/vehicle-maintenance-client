@@ -32,6 +32,11 @@ export function ReminderStats({
 }: ReminderStatsProps) {
   const formatKm = (km: number) => `${km.toLocaleString()} km`;
 
+  // Determine label and value based on remainingKm
+  const isOverdue = remainingKm < 0;
+  const remainingLabel = isOverdue ? "Vượt quá" : "Còn lại";
+  const remainingValue = isOverdue ? Math.abs(remainingKm) : remainingKm;
+
   return (
     <div>
       <StatRow
@@ -46,8 +51,8 @@ export function ReminderStats({
       />
       <StatRow
         icon={<TrendingDown className="w-4 h-4" style={{ color: levelConfig.hexColor }} />}
-        label="Còn lại"
-        value={formatKm(remainingKm)}
+        label={remainingLabel}
+        value={formatKm(remainingValue)}
         color={levelConfig.hexColor}
       />
     </div>

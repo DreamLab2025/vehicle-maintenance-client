@@ -16,6 +16,7 @@ import {
   useTypes,
   useUpdateType,
 } from "@/hooks/useType";
+import { TableSkeleton } from "@/components/ui/skeletons";
 
 export default function VehicleTypesPage() {
   const [page, setPage] = useState(1);
@@ -128,20 +129,7 @@ export default function VehicleTypesPage() {
             </Button>
           </div>
         ) : isLoading || isFetching ? (
-          /* Table Skeleton Loading */
-          <div className="bg-white rounded-xl border border-slate-100 overflow-hidden shadow-sm">
-            <div className="h-12 bg-slate-50 border-b border-slate-100 animate-pulse" />
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex gap-4 p-4 border-b border-slate-50 items-center"
-              >
-                <div className="h-4 w-1/4 bg-slate-100 rounded animate-pulse" />
-                <div className="h-4 w-2/4 bg-slate-50 rounded animate-pulse" />
-                <div className="h-4 w-1/4 bg-slate-100 rounded animate-pulse ml-auto" />
-              </div>
-            ))}
-          </div>
+          <TableSkeleton rows={6} />
         ) : types.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-slate-100 shadow-sm">
             <div className="p-4 bg-slate-50 rounded-full mb-4">

@@ -8,6 +8,7 @@ import {
   NotificationListResponse,
   NotificationDetailResponse,
   MarkAllAsReadResponse,
+  MarkAsReadResponse,
 } from "@/lib/types/notification.types";
 import api8080Service from "../api8080Service";
 
@@ -43,6 +44,13 @@ export const NotificationService = {
 
   markAllAsRead: async () => {
     const response = await api8080Service.post<MarkAllAsReadResponse>("/api/v1/notifications/read-all");
+    return response.data;
+  },
+
+  // ==================== Mark As Read ====================
+
+  markAsRead: async (id: string) => {
+    const response = await api8080Service.post<MarkAsReadResponse>(`/api/v1/notifications/${id}/read`);
     return response.data;
   },
 };

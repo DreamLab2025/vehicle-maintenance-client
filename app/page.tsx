@@ -23,6 +23,7 @@ import { UserVehiclePart, VehicleReminder } from "@/lib/api/services/fetchUserVe
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 import { ReminderDetailSheet } from "@/components/reminder/ReminderDetailSheet";
 import { useTranslation } from "react-i18next";
+import { HomePageSkeleton, PartsGridSkeleton, ReminderListSkeleton } from "@/components/ui/skeletons";
 
 export default function Page() {
   const { t } = useTranslation();
@@ -81,22 +82,7 @@ export default function Page() {
     return (
       <main className="min-h-dvh bg-neutral-50">
         <Header />
-        <div className="px-5 pt-6 pb-32 space-y-6">
-          <div className="h-[200px] rounded-[20px] bg-white animate-pulse" />
-          <div className="space-y-4">
-            <div className="h-6 w-32 bg-white rounded animate-pulse" />
-            <div className="grid grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-square rounded-2xl bg-white animate-pulse" />
-              ))}
-            </div>
-          </div>
-          <div className="space-y-3">
-            {[1, 2].map((i) => (
-              <div key={i} className="h-20 rounded-2xl bg-white animate-pulse" />
-            ))}
-          </div>
-        </div>
+        <HomePageSkeleton />
         <BottomNav />
       </main>
     );
@@ -198,7 +184,7 @@ export default function Page() {
                           {t("home.odometer")}
                         </div>
                         <p className="text-[17px] font-bold">
-                          {currentVehicle ? `${(currentVehicle.currentOdometer / 1000).toFixed(1)}k` : "15.2k"} km
+                          {currentVehicle ? `${(currentVehicle.currentOdometer.toLocaleString("vi-VN"))}` : "0"}
                         </p>
                       </div>
                       <div className="flex-1 bg-white/5 rounded-xl p-3">
@@ -279,11 +265,7 @@ export default function Page() {
               <p className="text-[12px] text-neutral-500">{t("home.noVehicleDesc")}</p>
             </div>
           ) : isLoadingParts ? (
-            <div className="grid grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="aspect-square rounded-2xl bg-white animate-pulse" />
-              ))}
-            </div>
+            <PartsGridSkeleton count={4} />
           ) : undeclaredParts.length === 0 ? (
             <div className="bg-gradient-to-br from-white-50 to-green-50 rounded-2xl p-6 text-center border border-emerald-100">
               <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mx-auto mb-3">
@@ -354,11 +336,7 @@ export default function Page() {
               <p className="text-[12px] text-neutral-500">{t("home.noVehicleForRemindersDesc")}</p>
             </div>
           ) : isLoadingReminders ? (
-            <div className="space-y-2.5">
-              {[1, 2].map((i) => (
-                <div key={i} className="bg-white rounded-2xl p-4 h-20 animate-pulse" />
-              ))}
-            </div>
+            <ReminderListSkeleton count={2} />
           ) : reminders.length === 0 ? (
             <div className="bg-white rounded-2xl p-8 text-center shadow-sm">
               <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-3">
@@ -382,9 +360,9 @@ export default function Page() {
                     onClick={() => setSelectedReminder(reminder)}
                     className="bg-white rounded-2xl p-4 flex items-center gap-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98]"
                   >
-                    {/* Icon with colored border instead of gradient background */}
+                    {/* Icon with neutral gray background - consistent across all levels */}
                     <div
-                      className={`w-11 h-11 rounded-xl border-2 ${levelConfig.borderColor} ${levelConfig.bgLight} flex items-center justify-center flex-shrink-0 overflow-hidden`}
+                      className="w-11 h-11 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden"
                     >
                       {reminder.partCategory.iconUrl ? (
                         <Image
@@ -398,8 +376,7 @@ export default function Page() {
                         />
                       ) : (
                         <LevelIcon
-                          className="h-5 w-5"
-                          style={{ color: levelConfig.hexColor }}
+                          className="h-5 w-5 text-neutral-600"
                         />
                       )}
                     </div>
