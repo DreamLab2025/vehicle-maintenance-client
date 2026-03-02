@@ -4,7 +4,6 @@
     "installCommand": "npm install",
     "framework": "nextjs",
     "regions": ["sin1"],
-    "nodeVersion": "20.x",
     "functions": {
       "app/**/*.tsx": {
         "maxDuration": 10,

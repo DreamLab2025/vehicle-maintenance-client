@@ -19,7 +19,7 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key (optional, nếu dùng 
 - **Build Command**: `npm run build`
 - **Output Directory**: `.next` (default)
 - **Install Command**: `npm install`
-- **Node Version**: 20.x (đã config trong vercel.json)
+- **Node Version**: 20.x (có thể set trong Vercel Dashboard > Settings > General > Node.js Version, hoặc tạo file `.nvmrc` với nội dung `20`)
 
 ## Troubleshooting
 
