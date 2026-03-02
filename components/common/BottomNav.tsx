@@ -3,17 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, LayoutGroup } from "framer-motion";
-import { Home, Map, Settings, User } from "lucide-react";
+import { Home, Car, Settings, User, Map, Bell, Wrench, type LucideIcon } from "lucide-react";
+import { useNotificationStatus } from "@/hooks/useNotification";
 
-const items = [
-  { href: "/", Icon: Home },
-  { href: "/maps", Icon: Map },
-  { href: "/settings", Icon: Settings },
-  { href: "/profile", Icon: User },
+interface NavItem {
+  href: string;
+  Icon: LucideIcon;
+  label: string;
+  hasBadge?: boolean;
+}
+
+const items: NavItem[] = [
+  { href: "/", Icon: Home, label: "Trang chủ" },
+  { href: "/maintenance", Icon: Wrench, label: "Thay phụ tùng" },
+  { href: "/notifications", Icon: Bell, label: "Thông báo", hasBadge: true },
+  // { href: "/profile", Icon: User, label: "Tài khoản" },
 ];
 
 function normalizePath(p: string) {
-  // bỏ query/hash + bỏ dấu "/" cuối (trừ "/")
   const clean = p.split("?")[0].split("#")[0];
   if (clean !== "/" && clean.endsWith("/")) return clean.slice(0, -1);
   return clean;
@@ -23,53 +30,62 @@ export default function BottomNav() {
   const pathnameRaw = usePathname() || "/";
   const pathname = normalizePath(pathnameRaw);
 
+  const { unReadCount } = useNotificationStatus();
+
   const isActive = (href: string) => {
     const h = normalizePath(href);
     if (h === "/") return pathname === "/";
-    // active cho route con luôn: /map/abc vẫn active tab /map
     return pathname === h || pathname.startsWith(h + "/");
   };
 
   return (
-    <nav className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
-      <LayoutGroup id="bottom-nav">
-        <div className="relative flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-xl border border-white/30 px-3 py-2 shadow-[0_12px_40px_rgba(0,0,0,0.25)]">
-          {items.map(({ href, Icon }) => {
-            const active = isActive(href);
+    <nav className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
+      <div className="bg-white/80 backdrop-blur-xl border-t border-slate-100">
+        <LayoutGroup id="bottom-nav">
+          <div className="flex items-center justify-around px-2 py-2 max-w-md mx-auto">
+            {items.map(({ href, Icon, label, hasBadge }) => {
+              const active = isActive(href);
+              const showBadge = hasBadge && unReadCount > 0;
 
-            return (
-              <Link key={href} href={href} className="relative">
-                <motion.button
-                  type="button"
-                  className="relative h-14 w-14 rounded-full grid place-items-center"
-                  whileTap={{ scale: 0.94 }}
-                >
-                  {active && (
-                    <motion.div
-                      layoutId="nav-active"
-                      initial={false}
-                      transition={{
-                        type: "spring",
-                        stiffness: 520,
-                        damping: 38,
-                      }}
-                      className="absolute inset-0 rounded-full bg-white shadow-[0_8px_20px_rgba(0,0,0,0.25)]"
-                    />
-                  )}
+              return (
+                <Link key={href} href={href} className="relative flex-1">
+                  <motion.div className="flex flex-col items-center gap-1 py-2 relative" whileTap={{ scale: 0.9 }}>
+                    {active && (
+                      <motion.div
+                        layoutId="nav-active-bg"
+                        initial={false}
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 35,
+                        }}
+                        className="absolute inset-x-2 -top-1 h-0.5 bg-red-500 rounded-full"
+                      />
+                    )}
 
-                  <span className="relative z-10">
-                    <Icon
-                      className={`h-6 w-6 ${
-                        active ? "text-black" : "text-black/60"
+                    <div className={`relative p-2 rounded-xl transition-colors ${active ? "bg-red-50" : "bg-transparent"}`}>
+                      <Icon className={`h-5 w-5 transition-colors ${active ? "text-red-500" : "text-slate-400"}`} />
+                      {showBadge && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] px-1 flex items-center justify-center bg-red-500 rounded-full text-[9px] font-bold text-white">
+                          {unReadCount > 9 ? "9+" : unReadCount}
+                        </span>
+                      )}
+                    </div>
+
+                    <span
+                      className={`text-[10px] font-medium transition-colors ${
+                        active ? "text-red-500" : "text-slate-400"
                       }`}
-                    />
-                  </span>
-                </motion.button>
-              </Link>
-            );
-          })}
-        </div>
-      </LayoutGroup>
+                    >
+                      {label}
+                    </span>
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </div>
+        </LayoutGroup>
+      </div>
     </nav>
   );
 }

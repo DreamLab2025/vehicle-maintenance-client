@@ -6,8 +6,12 @@ import { useState } from "react";
 import { fetchAuth } from "@/lib/api/services/fetchAuth";
 import { setCookie, getCookie, deleteCookie } from "cookies-next";
 import { useRouter } from "next/navigation";
-import authApiService from "@/lib/api/authApiService";
+import { useQueryClient } from "@tanstack/react-query";
+import notificationHubService from "@/hubs/notificationHub";
+import api8080Service from "@/lib/api/api8080Service";
 import coreApiService from "@/lib/api/coreApiService";
+import authApiService from "@/lib/api/authApiService";
+import type { ApiError } from "@/lib/api/apiService";
 
 /* ===================== TYPES ===================== */
 
@@ -30,6 +34,7 @@ interface AuthResult {
   success: boolean;
   user?: User | null;
   error?: string;
+  message?: string; 
 }
 
 interface JwtPayload {
@@ -53,16 +58,20 @@ export function useAuth() {
   });
 
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   /* ---------- JWT HELPERS ---------- */
 
+  
   const decodeJwt = (token: string): JwtPayload => {
-    try {
-      const payload = token.split(".")[1];
-      return JSON.parse(atob(payload));
-    } catch {
-      return {};
-    }
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return {};
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return {};
+  }
   };
 
   const buildUserFromToken = (token: string): User => {
@@ -94,9 +103,10 @@ export function useAuth() {
         sameSite: "lax",
       });
 
-      // ✅ SET TOKEN CHO APISERVICE
-      authApiService.setAuthToken(token);
+      // ✅ SET TOKEN CHO TẤT CẢ API SERVICES
+      api8080Service.setAuthToken(token);
       coreApiService.setAuthToken(token);
+      authApiService.setAuthToken(token);
       setState({
         user,
         accessToken: token,
@@ -104,9 +114,28 @@ export function useAuth() {
         error: null,
       });
 
+      // ✅ CONNECT TO NOTIFICATION HUB
+      console.log("🔌 Attempting to connect to notification hub after login...");
+      notificationHubService.startConnection(token).then((connected) => {
+        if (connected) {
+          console.log("✅ Notification hub connected successfully after login!");
+        } else {
+          console.warn("⚠️ Failed to connect to notification hub after login");
+        }
+      });
+
       return { success: true, user };
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Đăng nhập thất bại";
+      // Lấy message từ BE response nếu có
+      let message = "Đăng nhập thất bại";
+      if (err && typeof err === "object" && "message" in err) {
+        // Nếu là ApiError từ interceptor
+        const apiError = err as ApiError;
+        message = apiError.message || apiError.error?.message || message;
+      } else if (err instanceof Error) {
+        message = err.message || message;
+      }
+      
       setState((s) => ({ ...s, loading: false, error: message }));
       return { success: false, error: message };
     }
@@ -161,15 +190,76 @@ export function useAuth() {
       return { success: false, error: message };
     }
   };
+/* ===================== FORGOT PASSWORD ===================== */
+
+const forgotPassword = async (email: string): Promise<AuthResult> => {
+  setState((s) => ({ ...s, loading: true, error: null }));
+
+  try {
+    const response = await fetchAuth.forgotPassword(email);
+    const msg = response.data.message;
+
+    setState((s) => ({ ...s, loading: false }));
+    return { success: true, message: msg };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Gửi OTP thất bại";
+    setState((s) => ({ ...s, loading: false, error: message }));
+    return { success: false, error: message };
+  }
+};
+
+/* ===================== RESET PASSWORD ===================== */
+
+const resetPassword = async (
+  email: string,
+  otpCode: string,
+  newPassword: string,
+  confirmNewPassword: string
+): Promise<AuthResult> => {
+  setState((s) => ({ ...s, loading: true, error: null }));
+
+  try {
+    const response = await fetchAuth.resetPassword({
+      email,
+      otpCode,
+      newPassword,
+      confirmNewPassword,
+    });
+
+    const msg = response.data.message;
+    setState((s) => ({ ...s, loading: false }));
+    return { success: true, message: msg };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Đặt lại mật khẩu thất bại";
+    setState((s) => ({ ...s, loading: false, error: message }));
+    return { success: false, error: message };
+  }
+};
 
   /* ===================== LOGOUT ===================== */
 
   const logout = () => {
-    deleteCookie("auth-token", { path: "/" });
+    // ✅ XÓA COOKIE (với tất cả các options để đảm bảo xóa hoàn toàn)
+    deleteCookie("auth-token", { 
+      path: "/",
+      domain: undefined, // Xóa trên tất cả domains
+    });
 
-    authApiService.setAuthToken(null);
+    // ✅ CLEAR TOKEN Ở TẤT CẢ API SERVICES
+    api8080Service.setAuthToken(null);
     coreApiService.setAuthToken(null);
+    authApiService.setAuthToken(null);
 
+    // ✅ CLEAR REACT QUERY CACHE (xóa toàn bộ cache)
+    queryClient.clear();
+
+    // ✅ DISCONNECT FROM NOTIFICATION HUB
+    console.log("🔌 Disconnecting from notification hub on logout...");
+    notificationHubService.stopConnection().then(() => {
+      console.log("✅ Notification hub disconnected");
+    });
+
+    // ✅ CLEAR STATE
     setState({
       user: null,
       accessToken: null,
@@ -177,6 +267,7 @@ export function useAuth() {
       error: null,
     });
 
+    // ✅ REDIRECT TO LOGIN
     router.push("/login");
   };
 
@@ -200,12 +291,27 @@ export function useAuth() {
       return;
     }
 
-    authApiService.setAuthToken(token);
+    // ✅ SET TOKEN CHO TẤT CẢ API SERVICES
+    api8080Service.setAuthToken(token);
     coreApiService.setAuthToken(token);
-
+    authApiService.setAuthToken(token);
+    
     setState((s) => ({ ...s, accessToken: token }));
 
     await fetchCurrentUser();
+
+    // ✅ CONNECT TO NOTIFICATION HUB (if user is authenticated)
+    const currentState = getCookie("auth-token") as string | undefined;
+    if (currentState) {
+      console.log("🔌 Attempting to connect to notification hub on init...");
+      notificationHubService.startConnection(currentState).then((connected) => {
+        if (connected) {
+          console.log("✅ Notification hub connected successfully on init!");
+        } else {
+          console.warn("⚠️ Failed to connect to notification hub on init");
+        }
+      });
+    }
 
     setState((s) => ({ ...s, loading: false }));
   };
@@ -246,6 +352,8 @@ export function useAuth() {
     login,
     register,
     verifyOtp,
+    forgotPassword,
+    resetPassword,
     logout,
     initAuthFromStorage,
     fetchCurrentUser,

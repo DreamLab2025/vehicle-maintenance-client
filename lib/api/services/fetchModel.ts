@@ -1,6 +1,6 @@
 /** ===== Types (match API response) ===== */
 
-import coreApiService from "../coreApiService";
+import api8080Service from "../api8080Service";
 import { RequestParams } from "../apiService";
 
 export type TransmissionType = "Manual" | "Automatic" | "Sport" | "ManualCar" | "AutomaticCar" | "Electric";
@@ -77,13 +77,82 @@ export interface ModelQueryParams extends RequestParams {
   PageSize: number;
   IsDescending?: boolean;
 }
+export interface CreateModelRequest {
+  name: string;
+  brandId: string;
+  typeId: string;
+  releaseYear: number;
+  fuelType: string;
+  transmissionType: string;
+  images: {
+    color: string;
+    hexCode: string;
+    imageUrl: string;
+  }[];
+  engineDisplacement: number;
+  engineCapacity: number;
+  oilCapacity: number;
+  tireSizeFront: string;
+  tireSizeRear: string;
+}
 
+export interface UpdateModelRequest {
+  name: string;
+  brandId: string;
+  typeId: string;
+  releaseYear: number;
+  fuelType: string;
+  transmissionType: string;
+  images: {
+    color: string;
+    hexCode: string;
+    imageUrl: string;
+  }[];
+  engineDisplacement: number;
+  engineCapacity: number;
+  oilCapacity: number;
+  tireSizeFront: string;
+  tireSizeRear: string;
+}
+
+export interface ModelDetailResponse {
+  isSuccess: boolean;
+  message: string;
+  data: VehicleModel;
+  metadata: null;
+}
+
+export interface ModelMutationResponse {
+  isSuccess: boolean;
+  message: string;
+  data: VehicleModel | null;
+  metadata: null;
+}
 /** ===== Service ===== */
 
 export const ModelService = {
   getModels: async (params: ModelQueryParams) => {
-    const response = await coreApiService.get<ModelListResponse>("/api/v1/models", params);
+    const response = await api8080Service.get<ModelListResponse>("/api/v1/models", params);
     return response.data; // full payload: { isSuccess, message, data, metadata }
+  },
+  getModelById: async (id: string) => {
+    const response = await api8080Service.get<ModelDetailResponse>(`/api/v1/models/${id}`);
+    return response.data;
+  },
+
+  createModel: async (data: CreateModelRequest) => {
+    const response = await api8080Service.post<ModelMutationResponse>("/api/v1/models", data);
+    return response.data;
+  },
+
+  updateModel: async (id: string, data: UpdateModelRequest) => {
+    const response = await api8080Service.put<ModelMutationResponse>(`/api/v1/models/${id}`, data);
+    return response.data;
+  },
+
+  deleteModel: async (id: string) => {
+    const response = await api8080Service.delete<ModelMutationResponse>(`/api/v1/models/${id}`);
+    return response.data;
   },
 };
 

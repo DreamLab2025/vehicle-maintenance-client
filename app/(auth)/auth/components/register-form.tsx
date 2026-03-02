@@ -39,7 +39,13 @@ export default function RegisterForm() {
     <main className="h-[100dvh] bg-[#F8F9FA] text-black flex flex-col overflow-hidden font-sans">
       {/* --- Header / Hero Area --- */}
       <div className="relative h-[32vh] w-full shrink-0">
-        <Image src="/images/redbg.webp" alt="Register background" fill priority className="object-cover" />
+        <Image
+          src="/images/login10.png"
+          alt="Register background"
+          fill
+          priority
+          className="object-cover"
+        />
         {/* Subtle Gradient Overlay for depth */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent" />
 
@@ -53,7 +59,6 @@ export default function RegisterForm() {
 
         <div className="absolute bottom-14 left-8 text-white">
           <h1 className="text-3xl font-bold tracking-tight">Create Account</h1>
-          <p className="opacity-90 text-sm mt-1">Start your journey with us today</p>
         </div>
       </div>
 
@@ -130,13 +135,19 @@ export default function RegisterForm() {
                     onClick={() => setShowPw(!showPw)}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPw ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPw ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div className="group">
-                <label className="text-[13px] font-bold text-gray-400 ml-1 mb-1.5 block">CONFIRM PASSWORD</label>
+                <label className="text-[13px] font-bold text-gray-400 ml-1 mb-1.5 block">
+                  CONFIRM PASSWORD
+                </label>
                 <input
                   type={showPw ? "text" : "password"}
                   required
@@ -172,7 +183,11 @@ export default function RegisterForm() {
                     flex items-center justify-center gap-3
                     "
               >
-                {loading ? <Loader2 className="w-20 h-10 animate-spin" /> : "Sign Up"}
+                {loading ? (
+                  <Loader2 className="w-20 h-10 animate-spin" />
+                ) : (
+                  "Sign Up"
+                )}
               </button>
             </div>
 
@@ -180,7 +195,10 @@ export default function RegisterForm() {
             <div className="text-center mt-6 pb-2">
               <p className="text-sm text-gray-500">
                 Already have an account?{" "}
-                <Link href="/login" className="text-red-500 font-bold hover:underline">
+                <Link
+                  href="/login"
+                  className="text-red-500 font-bold hover:underline"
+                >
                   Sign In
                 </Link>
               </p>

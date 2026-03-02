@@ -1,117 +1,53 @@
-// src/lib/api/services/fetchUserVehicle.ts
-/** ===== Types ===== */
-import coreApiService from "../coreApiService";
-import { RequestParams } from "../apiService";
+/**
+ * @deprecated This file is kept for backward compatibility.
+ * Please import from '@/lib/types' for types and '@/lib/api/services/userVehicle.service' for service.
+ */
 
-export interface CreateUserVehicleRequest {
-  vehicleVariantId: string; 
-  licensePlate: string;
-  nickname: string;
-  vinNumber: string;
-  purchaseDate: string;
-  currentOdometer: number;
-}
+// Re-export types for backward compatibility
+export type {
+  // Vehicle types
+  VehicleModel,
+  UserVehicleVariant,
+  UserVehicle,
+  UserVehiclePart,
+  CreateUserVehicleRequest,
+  CreateUserVehicleResponse,
+  UserVehicleListResponse,
+  UserVehicleQueryParams,
+  DeleteUserVehicleResponse,
+  UserVehiclePartsResponse,
+  UpdateOdometerRequest,
+  UpdateOdometerResponse,
+} from "@/lib/types/vehicle.types";
 
-export interface VehicleModel {
-  id: string;
-  name: string;
-  brandId: string;
-  brandName: string;
-  typeId: string;
-  typeName: string;
-  releaseYear: number;
-  fuelType: number;
-  fuelTypeName: string;
-  transmissionType: number;
-  transmissionTypeName: string;
-  engineDisplacementDisplay: string | null;
-  engineCapacity: number | null;
-  oilCapacity: number | null;
-  tireSizeFront: string | null;
-  tireSizeRear: string | null;
-  createdAt: string;
-  updatedAt: string | null;
-}
+export type {
+  // Reminder types
+  ReminderPartCategory,
+  VehicleReminder,
+  PartTrackingReminder,
+  ApplyTrackingData,
+  ApplyTrackingRequest,
+  ApplyTrackingResponse,
+  VehicleRemindersResponse,
+} from "@/lib/types/reminder.types";
 
-export interface UserVehicleVariant {
-  id: string;
-  vehicleModelId: string;
-  color: string;
-  hexCode: string;
-  imageUrl: string;
-  createdAt: string;
-  updatedAt: string | null;
-  model: VehicleModel;
-}
+export type {
+  // AI types
+  QuestionAnswer,
+  AnalyzeQuestionnaireRequest,
+  AIRecommendation,
+  AIMetadata,
+  AnalyzeQuestionnaireData,
+  AnalyzeQuestionnaireResponse,
+  ScanOdometerData,
+  ScanOdometerResponse,
+} from "@/lib/types/ai.types";
 
-export interface UserVehicle {
-  id: string;
-  userId: string;
-  licensePlate: string;
-  nickname: string;
-  vinNumber: string;
-  purchaseDate: string;
-  currentOdometer: number;
-  lastOdometerUpdateAt: string;
-  averageKmPerDay: number;
-  lastCalculatedDate: string | null;
-  createdAt: string;
-  updatedAt: string | null;
-  userVehicleVariant: UserVehicleVariant;
-}
+export type {
+  // Common types
+  PaginationMetadata,
+} from "@/lib/types/common.types";
 
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-export interface CreateUserVehicleResponse {
-  isSuccess: boolean;
-  message: string;
-  data: UserVehicle;
-  metadata: unknown;
-}
-
-export interface UserVehicleListResponse {
-  isSuccess: boolean;
-  message: string;
-  data: UserVehicle[];
-  metadata: PaginationMetadata;
-}
-
-export interface UserVehicleQueryParams extends RequestParams {
-  PageNumber?: number;
-  PageSize?: number;
-  IsDescending?: boolean;
-}
-
-export interface DeleteUserVehicleResponse {
-  isSuccess: boolean;
-  message: string;
-  data: string;
-  metadata: string;
-}
-
-/** ===== Service ===== */
-export const UserVehicleService = {
-  createUserVehicle: async (payload: CreateUserVehicleRequest) => {
-    const response = await coreApiService.post<CreateUserVehicleResponse>("/api/v1/user-vehicles", payload);
-    return response.data;
-  },
-
-  getUserVehicles: async (params: UserVehicleQueryParams) => {
-    const response = await coreApiService.get<UserVehicleListResponse>("/api/v1/user-vehicles", params);
-    return response.data;
-  },
-
-  deleteUserVehicle: async (id: string) => {
-    const response = await coreApiService.delete<DeleteUserVehicleResponse>(`/api/v1/user-vehicles/${id}`);
-    return response.data;
-  },
-};
-
-export default UserVehicleService;
+// Re-export service
+export { UserVehicleService } from "./userVehicle.service";
+export { default } from "./userVehicle.service";
