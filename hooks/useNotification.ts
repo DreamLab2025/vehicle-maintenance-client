@@ -6,6 +6,7 @@ import {
   InAppNotificationPayload,
   NotificationListResponse,
   NotificationDetailResponse,
+  MarkAsReadResponse,
   mapApiNotificationToNotification,
 } from "@/lib/types/notification.types";
 import notificationHubService from "@/hubs/notificationHub";
@@ -209,6 +210,27 @@ export function useMarkAllAsRead() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Không thể đánh dấu tất cả thông báo");
+    },
+  });
+}
+
+/**
+ * Hook to mark a single notification as read
+ */
+export function useMarkAsRead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => NotificationService.markAsRead(id),
+    onSuccess: (data: MarkAsReadResponse) => {
+      // Invalidate notification status, list, and detail to refresh
+      queryClient.invalidateQueries({ queryKey: ["notifications", "status"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
+      queryClient.invalidateQueries({ queryKey: ["notifications", "detail"] });
+    },
+    onError: (error: Error) => {
+      // Silently fail - don't show error toast for mark as read
+      console.error("Failed to mark notification as read:", error);
     },
   });
 }

@@ -17,7 +17,8 @@ import {
 import { useRouter } from "next/navigation";
 import type { Notification } from "@/lib/types";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
-import { useNotifications, useNotificationStatus } from "@/hooks/useNotification";
+import { useNotifications, useNotificationStatus, useMarkAsRead } from "@/hooks/useNotification";
+import { NotificationListSkeleton } from "@/components/ui/skeletons";
 
 function formatTimeAgo(dateString: string): string {
   const now = new Date();
@@ -170,6 +171,9 @@ export default function NotificationDropdown() {
   // Get unread count from status API
   const { unReadCount } = useNotificationStatus();
 
+  // Mark single notification as read mutation
+  const { mutate: markAsRead } = useMarkAsRead();
+
   const displayNotifications = useMemo(() => {
     return notifications.slice(0, 15);
   }, [notifications]);
@@ -223,7 +227,10 @@ export default function NotificationDropdown() {
   };
 
   const handleNotificationPress = (notification: Notification) => {
-    // TODO: Call API to mark as read
+    // Mark as read when viewing details
+    if (!notification.isRead) {
+      markAsRead(notification.id);
+    }
     
     // MaintenanceReminder (reminder type) → navigate to detail page
     if (notification.type === "reminder" && notification.level) {
@@ -380,9 +387,8 @@ export default function NotificationDropdown() {
                 }}
               >
                 {isLoading ? (
-                  <div className="py-12 text-center">
-                    <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                    <p className="text-xs text-neutral-400">Đang tải thông báo...</p>
+                  <div className="py-4">
+                    <NotificationListSkeleton count={3} />
                   </div>
                 ) : displayNotifications.length > 0 ? (
                   <div className="divide-y divide-neutral-100">

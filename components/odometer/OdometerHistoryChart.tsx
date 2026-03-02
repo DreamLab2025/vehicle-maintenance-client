@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Gauge, Calendar, TrendingUp, ChevronDown } from "lucide-react";
 import type { OdometerHistoryItem } from "@/lib/types/vehicle.types";
 import type { PaginationMetadata } from "@/lib/types/common.types";
+import { LoadingSpinner } from "@/components/ui/skeletons";
 
 interface OdometerHistoryChartProps {
   data: OdometerHistoryItem[];
@@ -29,10 +30,7 @@ export function OdometerHistoryChart({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-8 flex flex-col items-center justify-center">
-        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-3" />
-        <p className="text-sm text-gray-500">Đang tải lịch sử...</p>
-      </div>
+      <LoadingSpinner text="Đang tải lịch sử..." className="bg-white rounded-2xl border border-gray-100 p-8" />
     );
   }
 

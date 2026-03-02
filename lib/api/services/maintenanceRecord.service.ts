@@ -5,13 +5,17 @@ import api8080Service from "../api8080Service";
 
 export interface MaintenanceRecordItem {
   partCategoryCode: string;
-  partProductId: string;
+  // Case 1: Product from system
+  partProductId?: string;
+  // Case 2: Custom product (not in system)
+  customPartName?: string;
+  customKmInterval?: number;
+  customMonthsInterval?: number;
+  // Common fields
   instanceIdentifier?: string;
   price?: number;
   itemNotes?: string;
   updatesTracking: boolean;
-  customKmInterval?: number;
-  customMonthsInterval?: number;
   predictedNextOdometer?: number;
   predictedNextDate?: string; // ISO date string
 }
@@ -45,8 +49,8 @@ export interface MaintenanceRecordTracking {
   partCategoryName: string;
   partCategoryCode: string;
   instanceIdentifier?: string;
-  currentPartProductId: string;
-  currentPartProductName: string;
+  currentPartProductId: string | null;
+  currentPartProductName: string | null;
   lastReplacementOdometer: number;
   lastReplacementDate: string;
   customKmInterval?: number;
@@ -75,6 +79,42 @@ export interface ApiResponse<T> {
   metadata: string | null;
 }
 
+// ==================== List & Detail Types ====================
+
+export interface MaintenanceRecordListItem {
+  id: string;
+  userVehicleId: string;
+  serviceDate: string; // ISO date string (YYYY-MM-DD)
+  odometerAtService: number;
+  garageName: string | null;
+  totalCost: number;
+  notes: string | null;
+  invoiceImageUrl: string | null;
+  itemCount: number;
+}
+
+export interface MaintenanceRecordDetailItem {
+  id: string;
+  partName: string;
+  partCategoryCode: string;
+  partProductId: string | null;
+  instanceIdentifier: string | null;
+  price: number;
+  notes: string | null;
+}
+
+export interface MaintenanceRecordDetail {
+  id: string;
+  userVehicleId: string;
+  serviceDate: string; // ISO date string (YYYY-MM-DD)
+  odometerAtService: number;
+  garageName: string | null;
+  totalCost: number;
+  notes: string | null;
+  invoiceImageUrl: string | null;
+  items: MaintenanceRecordDetailItem[];
+}
+
 // ==================== Service ====================
 
 export const MaintenanceRecordService = {
@@ -89,6 +129,28 @@ export const MaintenanceRecordService = {
     const response = await api8080Service.post<ApiResponse<MaintenanceRecordResponse>>(
       `/api/v1/maintenance-records/vehicles/${userVehicleId}`,
       payload
+    );
+    return response.data;
+  },
+
+  /**
+   * GET /api/v1/maintenance-records/vehicles/{userVehicleId}
+   * Lấy lịch sử bảo dưỡng theo xe
+   */
+  getMaintenanceRecordsByVehicle: async (userVehicleId: string) => {
+    const response = await api8080Service.get<ApiResponse<MaintenanceRecordListItem[]>>(
+      `/api/v1/maintenance-records/vehicles/${userVehicleId}`
+    );
+    return response.data;
+  },
+
+  /**
+   * GET /api/v1/maintenance-records/{maintenanceRecordId}
+   * Lấy chi tiết phiếu bảo dưỡng
+   */
+  getMaintenanceRecordById: async (maintenanceRecordId: string) => {
+    const response = await api8080Service.get<ApiResponse<MaintenanceRecordDetail>>(
+      `/api/v1/maintenance-records/${maintenanceRecordId}`
     );
     return response.data;
   },

@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
   ArrowLeft,
@@ -19,6 +19,8 @@ import {
   Eye,
   EyeOff,
   Trash2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import Image from "next/image";
 import { useUserVehicles, useOdometerHistory, useDeleteUserVehicle } from "@/hooks/useUserVehice";
@@ -35,6 +37,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { VehicleDetailSkeleton, LoadingSpinner } from "@/components/ui/skeletons";
+import { MaintenanceRecordsList } from "@/components/maintenance/MaintenanceRecordsList";
+import { MaintenanceRecordDetailSheet } from "@/components/maintenance/MaintenanceRecordDetailSheet";
 
 export default function VehicleDetailPage() {
   const { t } = useTranslation();
@@ -44,6 +49,12 @@ export default function VehicleDetailPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [allHistory, setAllHistory] = useState<OdometerHistoryItem[]>([]);
   const [showVin, setShowVin] = useState(false);
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null);
+  const [isOdometerHistoryOpen, setIsOdometerHistoryOpen] = useState(false);
+  const [isMaintenanceHistoryOpen, setIsMaintenanceHistoryOpen] = useState(false);
+  
+  const odometerHistoryRef = useRef<HTMLDivElement>(null);
+  const maintenanceHistoryRef = useRef<HTMLDivElement>(null);
 
   // Reset state when component mounts (to handle navigation back to this page)
   React.useEffect(() => {
@@ -126,15 +137,65 @@ export default function VehicleDetailPage() {
     }
   };
 
+  // Handle odometer history toggle
+  const handleToggleOdometerHistory = () => {
+    setIsOdometerHistoryOpen(!isOdometerHistoryOpen);
+  };
+
+  // Handle maintenance history toggle
+  const handleToggleMaintenanceHistory = () => {
+    setIsMaintenanceHistoryOpen(!isMaintenanceHistoryOpen);
+  };
+
+  // Auto-scroll when odometer history opens
+  useEffect(() => {
+    if (isOdometerHistoryOpen && odometerHistoryRef.current) {
+      // Wait for animation to start and content to begin rendering
+      const timeoutId = setTimeout(() => {
+        if (odometerHistoryRef.current) {
+          // Get the element's position
+          const element = odometerHistoryRef.current;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - 20; // 20px offset from top
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }, 150);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isOdometerHistoryOpen]);
+
+  // Auto-scroll when maintenance history opens
+  useEffect(() => {
+    if (isMaintenanceHistoryOpen && maintenanceHistoryRef.current) {
+      // Wait for animation to start and content to begin rendering
+      const timeoutId = setTimeout(() => {
+        if (maintenanceHistoryRef.current) {
+          // Get the element's position
+          const element = maintenanceHistoryRef.current;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - 20; // 20px offset from top
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+        }
+      }, 150);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isMaintenanceHistoryOpen]);
+
 
   if (isLoading) {
     return (
       <main className="min-h-dvh bg-neutral-50">
-        <div className="mx-auto max-w-md">
-          <div className="h-screen flex items-center justify-center">
-            <div className="animate-pulse text-[13px] text-gray-400">{t("common.loading")}</div>
-          </div>
-        </div>
+        <VehicleDetailSkeleton />
       </main>
     );
   }
@@ -379,39 +440,116 @@ export default function VehicleDetailPage() {
 
           {/* Odometer History */}
           <motion.div
+            ref={odometerHistoryRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[15px] font-semibold text-gray-900">
-                {t("vehicle.odometerHistory")}
-              </h2>
-              <History className="h-4 w-4 text-red-500" />
-            </div>
-            {isLoadingHistory && currentPage === 1 ? (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center">
-                <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-3" />
-                <p className="text-[13px] text-gray-500">{t("vehicle.loadingHistory")}</p>
+            <button
+              onClick={handleToggleOdometerHistory}
+              className="w-full flex items-center justify-between mb-3 hover:opacity-80 transition-opacity"
+            >
+              <div className="flex items-center gap-2">
+                <h2 className="text-[15px] font-semibold text-gray-900">
+                  {t("vehicle.odometerHistory")}
+                </h2>
+                <History className="h-4 w-4 text-red-500" />
               </div>
-            ) : allHistory.length > 0 ? (
-              <OdometerHistoryChart 
-                data={allHistory} 
-                isLoading={false}
-                metadata={historyMetadata}
-                onLoadMore={handleLoadMore}
-                isLoadingMore={isFetchingHistory && currentPage > 1}
-              />
-            ) : (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center">
-                <History className="h-12 w-12 text-gray-300 mb-3" />
-                <p className="text-[13px] text-gray-500">{t("vehicle.noHistory")}</p>
+              {isOdometerHistoryOpen ? (
+                <ChevronUp className="h-4 w-4 text-gray-500" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              )}
+            </button>
+            <AnimatePresence initial={false}>
+              {isOdometerHistoryOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ 
+                    duration: 0.3,
+                    ease: [0.4, 0, 0.2, 1]
+                  }}
+                  className="overflow-hidden"
+                >
+                  <div>
+                    {isLoadingHistory && currentPage === 1 ? (
+                      <LoadingSpinner text={t("vehicle.loadingHistory")} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8" />
+                    ) : allHistory.length > 0 ? (
+                      <OdometerHistoryChart 
+                        data={allHistory} 
+                        isLoading={false}
+                        metadata={historyMetadata}
+                        onLoadMore={handleLoadMore}
+                        isLoadingMore={isFetchingHistory && currentPage > 1}
+                      />
+                    ) : (
+                      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center">
+                        <History className="h-12 w-12 text-gray-300 mb-3" />
+                        <p className="text-[13px] text-gray-500">{t("vehicle.noHistory")}</p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Maintenance Records */}
+          <motion.div
+            ref={maintenanceHistoryRef}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            <button
+              onClick={handleToggleMaintenanceHistory}
+              className="w-full flex items-center justify-between mb-3 hover:opacity-80 transition-opacity"
+            >
+              <div className="flex items-center gap-2">
+                <h2 className="text-[15px] font-semibold text-gray-900">
+                  Lịch sử bảo dưỡng
+                </h2>
+                <FileText className="h-4 w-4 text-red-500" />
               </div>
-            )}
+              {isMaintenanceHistoryOpen ? (
+                <ChevronUp className="h-4 w-4 text-gray-500" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              )}
+            </button>
+            <AnimatePresence initial={false}>
+              {isMaintenanceHistoryOpen && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ 
+                    duration: 0.3,
+                    ease: [0.4, 0, 0.2, 1]
+                  }}
+                  className="overflow-hidden"
+                >
+                  <div>
+                    <MaintenanceRecordsList
+                      userVehicleId={vehicleId}
+                      onRecordClick={(recordId) => setSelectedRecordId(recordId)}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
         </div>
       </div>
+
+      {/* Maintenance Record Detail Sheet */}
+      <MaintenanceRecordDetailSheet
+        recordId={selectedRecordId}
+        onClose={() => setSelectedRecordId(null)}
+      />
 
       {/* Fixed Bottom Action Buttons */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 px-5 py-4 safe-area-bottom">

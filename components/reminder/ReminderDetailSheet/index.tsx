@@ -159,7 +159,7 @@ export function ReminderDetailSheet({ reminder, onClose }: ReminderDetailSheetPr
               />
 
               {/* Action Button */}
-              <motion.button
+              {/* <motion.button
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -168,7 +168,7 @@ export function ReminderDetailSheet({ reminder, onClose }: ReminderDetailSheetPr
               >
                 <span className="text-[14px]">Đặt lịch bảo dưỡng</span>
                 <ChevronRight className="w-4 h-4" />
-              </motion.button>
+              </motion.button> */}
             </div>
           </motion.div>
         </>
