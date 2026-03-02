@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -19,7 +19,8 @@ import {
 import { useRouter } from "next/navigation";
 import type { Notification } from "@/lib/types";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
-import { useNotifications, useNotificationStatus, useMarkAllAsRead } from "@/hooks/useNotification";
+import { useNotifications, useNotificationStatus, useMarkAllAsRead, useMarkAsRead } from "@/hooks/useNotification";
+import { NotificationListSkeleton, LoadingSpinner } from "@/components/ui/skeletons";
 
 // ─── Helpers ────────────────────────────────────────────────
 
@@ -190,10 +191,12 @@ function DetailPopup({
   notification,
   onClose,
   onNavigate,
+  onMarkAsRead,
 }: {
   notification: Notification;
   onClose: () => void;
   onNavigate: (url: string) => void;
+  onMarkAsRead: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const { Icon, bg, color } = getNotifIcon(notification);
@@ -201,6 +204,13 @@ function DetailPopup({
   const levelConfig = hasLevel
     ? getReminderLevelConfig(notification.level!)
     : null;
+
+  // Mark as read when popup opens
+  useEffect(() => {
+    if (!notification.isRead) {
+      onMarkAsRead(notification.id);
+    }
+  }, [notification.id, notification.isRead, onMarkAsRead]);
 
   return (
     <>
@@ -346,6 +356,9 @@ export default function NotificationsPage() {
   // Mark all as read mutation
   const { mutate: markAllAsRead, isPending: isMarkingAllAsRead } = useMarkAllAsRead();
 
+  // Mark single notification as read mutation
+  const { mutate: markAsRead } = useMarkAsRead();
+
   const filtered = useMemo(
     () =>
       filter === "unread"
@@ -359,8 +372,10 @@ export default function NotificationsPage() {
 
   const handleSelect = useCallback(
     (n: Notification) => {
-      // TODO: Call API to mark as read
-      // For now, just navigate/select
+      // Mark as read when viewing details
+      if (!n.isRead) {
+        markAsRead(n.id);
+      }
       
       // MaintenanceReminder (reminder type) → navigate to detail page
       if (n.type === "reminder" && n.level) {
@@ -385,7 +400,7 @@ export default function NotificationsPage() {
       // Other types → popup
       setSelected(n);
     },
-    [router]
+    [router, markAsRead]
   );
 
   const handleClose = useCallback(() => setSelected(null), []);
@@ -485,9 +500,8 @@ export default function NotificationsPage() {
         {/* ── List ── */}
         <div className="pt-2">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-28">
-              <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-sm font-medium text-neutral-400">{t("common.loading")}</p>
+            <div className="bg-white mx-4 rounded-2xl overflow-hidden shadow-sm shadow-neutral-200/40">
+              <NotificationListSkeleton count={5} />
             </div>
           ) : grouped.length > 0 ? (
             grouped.map((group) => (
@@ -537,6 +551,11 @@ export default function NotificationsPage() {
               notification={selected}
               onClose={handleClose}
               onNavigate={handleNavigate}
+              onMarkAsRead={(id) => {
+                if (!selected.isRead) {
+                  markAsRead(id);
+                }
+              }}
             />
           )}
         </AnimatePresence>

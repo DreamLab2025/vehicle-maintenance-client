@@ -12,6 +12,10 @@ import { useCreateMaintenanceRecord } from "@/hooks/useMaintenanceRecord";
 import type { PartProduct } from "@/lib/api/services/fetchPartProducts";
 import type { PartCategory } from "@/lib/api/services/fetchPartCategories";
 import { DatePicker } from "@/components/ui/date-picker";
+import { 
+  VehicleCardGridSkeleton, 
+  LoadingSpinner 
+} from "@/components/ui/skeletons";
 
 // ─── Category Card ─────────────────────────────────────────────
 
@@ -101,7 +105,7 @@ function ProductCard({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={`w-full flex items-center gap-4 p-3 rounded-lg border transition-all ${
+      className={`w-full flex items-center gap-4 p-3 rounded-lg border transition-all  ${
         isAlreadyAdded
           ? "border-neutral-200 bg-neutral-100 opacity-60 cursor-not-allowed"
           : isSelected
@@ -119,18 +123,20 @@ function ProductCard({
           unoptimized
         />
       ) : (
-        <div className="w-16 h-16 rounded-lg bg-neutral-200 flex items-center justify-center">
-          <Package className="w-8 h-8 text-neutral-400" />
+        <div className=" rounded-lg flex items-center justify-center">
+          <Image src="/images/product_test.png" alt="Product Test" width={56} height={56} className="w-full h-full rounded-xl object-fit relative" />
         </div>
       )}
 
       <div className="flex-1 text-left">
+        <div className="flex items-center justify-between mb-6">
         <h3 className={`font-medium text-sm ${isAlreadyAdded ? "text-neutral-400" : "text-neutral-900"}`}>
-          {product.name}
-        </h3>
-        <p className={`text-xs mt-0.5 ${isAlreadyAdded ? "text-neutral-400" : "text-neutral-500"}`}>
-          {product.brand}
-        </p>
+            {product.name}
+          </h3>
+          <p className={`text-xs mt-0.5 border border-red-500 rounded-full px-2 py-1 bg-red-500 text-white ${isAlreadyAdded ? "text-white bg-red-500" : "text-neutral-500"}`}>
+            {product.brand}
+          </p>
+        </div>
         {product.description && (
           <p className={`text-xs mt-1 line-clamp-1 ${isAlreadyAdded ? "text-neutral-300" : "text-neutral-400"}`}>
             {product.description}
@@ -170,11 +176,18 @@ interface SelectedItem {
   categoryId: string;
   categoryCode: string;
   categoryName: string;
-  productId: string;
-  productName: string;
+  // Case 1: Product from system
+  productId?: string;
+  productName?: string;
+  // Case 2: Custom product
+  customPartName?: string;
+  customKmInterval?: number;
+  customMonthsInterval?: number;
+  // Common fields
   price?: string;
   itemNotes?: string;
   instanceIdentifier?: string;
+  isCustom: boolean;
 }
 
 function SelectedItemCard({
@@ -187,12 +200,35 @@ function SelectedItemCard({
   onRemove: () => void;
   onEdit: () => void;
 }) {
+  const productName = item.isCustom ? item.customPartName : item.productName;
+  
   return (
     <div className="p-4 rounded-2xl border-2 border-neutral-200 bg-white">
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
-          <h4 className="font-semibold text-sm text-neutral-900">{item.productName}</h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold text-sm text-neutral-900">{productName}</h4>
+            {item.isCustom && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500 text-white font-medium">
+                Tùy chỉnh
+              </span>
+            )}
+          </div>
           <p className="text-xs text-neutral-500 mt-0.5">{item.categoryName}</p>
+          {item.isCustom && (
+            <div className="flex items-center gap-3 mt-1">
+              {item.customKmInterval && (
+                <p className="text-xs text-neutral-600">
+                  {item.customKmInterval.toLocaleString("vi-VN")} km
+                </p>
+              )}
+              {item.customMonthsInterval && (
+                <p className="text-xs text-neutral-600">
+                  {item.customMonthsInterval} tháng
+                </p>
+              )}
+            </div>
+          )}
         </div>
         <button
           type="button"
@@ -357,6 +393,12 @@ function MaintenanceCategoryPageContent() {
   const [currentPrice, setCurrentPrice] = useState<string>("");
   const [currentItemNotes, setCurrentItemNotes] = useState<string>("");
   const [currentInstanceIdentifier, setCurrentInstanceIdentifier] = useState<string>("");
+  
+  // Custom product fields
+  const [isCustomProduct, setIsCustomProduct] = useState<boolean>(false);
+  const [customPartName, setCustomPartName] = useState<string>("");
+  const [customKmInterval, setCustomKmInterval] = useState<string>("");
+  const [customMonthsInterval, setCustomMonthsInterval] = useState<string>("");
 
   // Fetch vehicles
   const { vehicles, isLoading: isLoadingVehicles } = useUserVehicles({
@@ -412,17 +454,17 @@ function MaintenanceCategoryPageContent() {
   // Create maintenance record mutation
   const { mutate: createMaintenanceRecord, isPending: isSubmitting } = useCreateMaintenanceRecord();
 
-  // Set odometer from query or vehicle when vehicle is selected
+  // Set odometer from vehicle when vehicle is selected (always use latest from API)
   useEffect(() => {
-    if (selectedVehicleId && vehicles.length > 0 && !odometerAtService) {
+    if (selectedVehicleId && vehicles.length > 0) {
       const vehicle = vehicles.find((v) => v.id === selectedVehicleId);
       if (vehicle) {
-        if (odometerFromQuery) {
-          setOdometerAtService(odometerFromQuery);
-        } else {
-          setOdometerAtService(vehicle.currentOdometer.toString());
-        }
+        // Always use the latest value from vehicle API, not from query param
+        setOdometerAtService(vehicle.currentOdometer.toString());
       }
+    } else if (selectedVehicleId && odometerFromQuery && !odometerAtService) {
+      // Only use query param as fallback if vehicle hasn't loaded yet
+      setOdometerAtService(odometerFromQuery);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedVehicleId, vehicles, odometerFromQuery]);
@@ -451,6 +493,10 @@ function MaintenanceCategoryPageContent() {
     setCurrentPrice("");
     setCurrentItemNotes("");
     setCurrentInstanceIdentifier("");
+    setIsCustomProduct(false);
+    setCustomPartName("");
+    setCustomKmInterval("");
+    setCustomMonthsInterval("");
   }, []);
 
   const handleProductSelect = useCallback((productId: string) => {
@@ -462,38 +508,78 @@ function MaintenanceCategoryPageContent() {
   }, [products]);
 
   const handleAddItem = useCallback(() => {
-    if (!selectedCategory || !currentProduct) return;
+    if (!selectedCategory) return;
 
-    // Kiểm tra xem product đã được thêm vào selectedItems chưa (trừ khi đang edit)
-    if (editingItemIndex === null) {
-      const isAlreadyAdded = selectedItems.some((item) => item.productId === currentProduct.id);
-      if (isAlreadyAdded) {
-        return; // Không cho thêm lại nếu đã được thêm
+    // Validate based on product type
+    if (!isCustomProduct) {
+      // Case 1: Product from system
+      if (!currentProduct) return;
+      
+      // Kiểm tra xem product đã được thêm vào selectedItems chưa (trừ khi đang edit)
+      if (editingItemIndex === null) {
+        const isAlreadyAdded = selectedItems.some((item) => !item.isCustom && item.productId === currentProduct.id);
+        if (isAlreadyAdded) {
+          return; // Không cho thêm lại nếu đã được thêm
+        }
       }
-    }
 
-    const newItem: SelectedItem = {
-      categoryId: selectedCategory.id,
-      categoryCode: selectedCategory.code,
-      categoryName: selectedCategory.name,
-      productId: currentProduct.id,
-      productName: currentProduct.name,
-      price: currentPrice || undefined,
-      itemNotes: currentItemNotes || undefined,
-      instanceIdentifier: currentInstanceIdentifier || undefined,
-    };
+      const newItem: SelectedItem = {
+        categoryId: selectedCategory.id,
+        categoryCode: selectedCategory.code,
+        categoryName: selectedCategory.name,
+        productId: currentProduct.id,
+        productName: currentProduct.name,
+        price: currentPrice || undefined,
+        itemNotes: currentItemNotes || undefined,
+        instanceIdentifier: currentInstanceIdentifier || undefined,
+        isCustom: false,
+      };
 
-    if (editingItemIndex !== null) {
-      // Edit existing item
-      setSelectedItems((prev) => {
-        const updated = [...prev];
-        updated[editingItemIndex] = newItem;
-        return updated;
-      });
-      setEditingItemIndex(null);
+      if (editingItemIndex !== null) {
+        // Edit existing item
+        setSelectedItems((prev) => {
+          const updated = [...prev];
+          updated[editingItemIndex] = newItem;
+          return updated;
+        });
+        setEditingItemIndex(null);
+      } else {
+        // Add new item
+        setSelectedItems((prev) => [...prev, newItem]);
+      }
     } else {
-      // Add new item
-      setSelectedItems((prev) => [...prev, newItem]);
+      // Case 2: Custom product
+      if (!customPartName.trim()) return;
+      
+      // Validate required fields
+      if (!customKmInterval || Number(customKmInterval) <= 0) return;
+      if (!customMonthsInterval || Number(customMonthsInterval) <= 0) return;
+
+      const newItem: SelectedItem = {
+        categoryId: selectedCategory.id,
+        categoryCode: selectedCategory.code,
+        categoryName: selectedCategory.name,
+        customPartName: customPartName.trim(),
+        customKmInterval: Number(customKmInterval),
+        customMonthsInterval: Number(customMonthsInterval),
+        price: currentPrice || undefined,
+        itemNotes: currentItemNotes || undefined,
+        instanceIdentifier: currentInstanceIdentifier || undefined,
+        isCustom: true,
+      };
+
+      if (editingItemIndex !== null) {
+        // Edit existing item
+        setSelectedItems((prev) => {
+          const updated = [...prev];
+          updated[editingItemIndex] = newItem;
+          return updated;
+        });
+        setEditingItemIndex(null);
+      } else {
+        // Add new item
+        setSelectedItems((prev) => [...prev, newItem]);
+      }
     }
 
     // Reset form
@@ -501,9 +587,25 @@ function MaintenanceCategoryPageContent() {
     setCurrentPrice("");
     setCurrentItemNotes("");
     setCurrentInstanceIdentifier("");
+    setIsCustomProduct(false);
+    setCustomPartName("");
+    setCustomKmInterval("");
+    setCustomMonthsInterval("");
     setSelectedCategoryId(null);
     setStep("categories");
-  }, [selectedCategory, currentProduct, currentPrice, currentItemNotes, currentInstanceIdentifier, selectedItems, editingItemIndex]);
+  }, [
+    selectedCategory,
+    currentProduct,
+    isCustomProduct,
+    customPartName,
+    customKmInterval,
+    customMonthsInterval,
+    currentPrice,
+    currentItemNotes,
+    currentInstanceIdentifier,
+    selectedItems,
+    editingItemIndex,
+  ]);
 
   const handleRemoveItem = useCallback((index: number) => {
     setSelectedItems((prev) => prev.filter((_, i) => i !== index));
@@ -513,7 +615,20 @@ function MaintenanceCategoryPageContent() {
     const item = selectedItems[index];
     setEditingItemIndex(index);
     setSelectedCategoryId(item.categoryId);
-    setCurrentProductId(item.productId);
+    setIsCustomProduct(item.isCustom);
+    
+    if (item.isCustom) {
+      setCustomPartName(item.customPartName || "");
+      setCustomKmInterval(item.customKmInterval?.toString() || "");
+      setCustomMonthsInterval(item.customMonthsInterval?.toString() || "");
+      setCurrentProductId(null);
+    } else {
+      setCurrentProductId(item.productId || null);
+      setCustomPartName("");
+      setCustomKmInterval("");
+      setCustomMonthsInterval("");
+    }
+    
     setCurrentPrice(item.price || "");
     setCurrentItemNotes(item.itemNotes || "");
     setCurrentInstanceIdentifier(item.instanceIdentifier || "");
@@ -529,6 +644,10 @@ function MaintenanceCategoryPageContent() {
       setCurrentPrice("");
       setCurrentItemNotes("");
       setCurrentInstanceIdentifier("");
+      setIsCustomProduct(false);
+      setCustomPartName("");
+      setCustomKmInterval("");
+      setCustomMonthsInterval("");
       setEditingItemIndex(null);
     } else if (step === "form") {
       if (selectedItems.length > 0) {
@@ -562,14 +681,31 @@ function MaintenanceCategoryPageContent() {
       totalCost: totalCost ? Number(totalCost) : undefined,
       notes: notes || undefined,
       invoiceImageUrl: invoiceImageUrl || undefined,
-      items: selectedItems.map((item) => ({
-        partCategoryCode: item.categoryCode,
-        partProductId: item.productId,
-        instanceIdentifier: item.instanceIdentifier || undefined,
-        price: item.price ? Number(item.price) : undefined,
-        itemNotes: item.itemNotes || undefined,
-        updatesTracking: true,
-      })),
+      items: selectedItems.map((item) => {
+        if (item.isCustom) {
+          // Case 2: Custom product
+          return {
+            partCategoryCode: item.categoryCode,
+            customPartName: item.customPartName,
+            customKmInterval: item.customKmInterval,
+            customMonthsInterval: item.customMonthsInterval,
+            instanceIdentifier: item.instanceIdentifier || undefined,
+            price: item.price ? Number(item.price) : undefined,
+            itemNotes: item.itemNotes || undefined,
+            updatesTracking: true,
+          };
+        } else {
+          // Case 1: Product from system
+          return {
+            partCategoryCode: item.categoryCode,
+            partProductId: item.productId,
+            instanceIdentifier: item.instanceIdentifier || undefined,
+            price: item.price ? Number(item.price) : undefined,
+            itemNotes: item.itemNotes || undefined,
+            updatesTracking: true,
+          };
+        }
+      }),
     };
 
     createMaintenanceRecord(
@@ -580,7 +716,8 @@ function MaintenanceCategoryPageContent() {
       {
         onSuccess: () => {
           setTimeout(() => {
-            router.push("/maintenance");
+            // Use replace to avoid going back to maintenance page
+            router.replace(`/vehicle/${selectedVehicleId}`);
           }, 1500);
         },
       }
@@ -654,11 +791,7 @@ function MaintenanceCategoryPageContent() {
                 </label>
                 
                 {isLoadingVehicles ? (
-                  <div className="space-y-3">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="h-[180px] rounded-xl bg-neutral-100 animate-pulse" />
-                    ))}
-                  </div>
+                  <VehicleCardGridSkeleton count={2} />
                 ) : vehicles.length === 0 ? (
                   <div className="p-6 rounded-xl bg-neutral-50 border border-neutral-200 text-center">
                     <p className="text-sm text-neutral-600">Chưa có xe nào. Vui lòng thêm xe trước.</p>
@@ -737,7 +870,7 @@ function MaintenanceCategoryPageContent() {
                                   Số km hiện tại
                                 </div>
                                 <p className="text-[17px] font-bold">
-                                  {vehicle.currentOdometer ? `${(vehicle.currentOdometer / 1000).toFixed(1)}k` : "0"} km
+                                {vehicle ? `${(vehicle.currentOdometer.toLocaleString("vi-VN"))}` : "0"}
                                 </p>
                               </div>
                               {vehicle.averageKmPerDay > 0 && (
@@ -845,7 +978,14 @@ function MaintenanceCategoryPageContent() {
                       >
                         <div className="flex items-center gap-2 flex-1">
                           <div className="w-1.5 h-1.5 rounded-full bg-neutral-900" />
-                          <span className="text-sm text-neutral-700">{item.productName}</span>
+                          <span className="text-sm text-neutral-700">
+                            {item.isCustom ? item.customPartName : item.productName}
+                          </span>
+                          {item.isCustom && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500 text-white font-medium">
+                              Tùy chỉnh
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5">
                           <button
@@ -875,10 +1015,7 @@ function MaintenanceCategoryPageContent() {
                   Chọn loại phụ tùng đã thay
                 </h3>
                 {isLoadingCategories ? (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-4" />
-                    <p className="text-sm font-medium text-neutral-400">Đang tải danh mục...</p>
-                  </div>
+                  <LoadingSpinner text="Đang tải danh mục..." />
                 ) : categories.length > 0 ? (
                   <div className="space-y-3">
                     {categories.map((category, index) => (
@@ -971,44 +1108,162 @@ function MaintenanceCategoryPageContent() {
                 </motion.div>
               )}
 
-              {/* Products List */}
-              <div>
-                <h3 className="text-sm font-semibold text-neutral-900 mb-3">
-                  Chọn sản phẩm
-                </h3>
-                {isLoadingProducts ? (
-                  <div className="flex flex-col items-center justify-center py-20">
-                    <Loader2 className="w-8 h-8 text-red-500 animate-spin mb-4" />
-                    <p className="text-sm font-medium text-neutral-400">Đang tải sản phẩm...</p>
-                  </div>
-                ) : products.length > 0 ? (
-                  <div className="space-y-3">
-                    {products.map((product, index) => {
-                      const isAlreadyAdded = selectedItems.some((item) => item.productId === product.id);
-                      return (
-                        <ProductCard
-                          key={product.id}
-                          product={product}
-                          isSelected={currentProductId === product.id}
-                          isAlreadyAdded={isAlreadyAdded}
-                          onClick={() => handleProductSelect(product.id)}
-                          index={index}
-                        />
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-20 p-6 rounded-2xl bg-neutral-50 border-2 border-dashed border-neutral-200">
-                    <Package className="w-12 h-12 text-neutral-300 mb-4" />
-                    <p className="text-sm font-medium text-neutral-400 text-center">
-                      Không có sản phẩm nào cho loại này
-                    </p>
-                  </div>
-                )}
+              {/* Toggle between system products and custom product */}
+              <div className="relative p-1.5 rounded-2xl bg-neutral-100 mb-4 inline-flex w-full">
+                {/* Animated background slider */}
+                <motion.div
+                  layoutId="toggle-bg"
+                  className="absolute top-1.5 bottom-1.5 rounded-xl bg-[#dc2626]"
+                  initial={false}
+                  animate={{
+                    left: isCustomProduct ? "50%" : "0.375rem",
+                    width: "calc(50% - 0.75rem)",
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 30,
+                  }}
+                />
+                
+                {/* System Products Button */}
+                <motion.button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomProduct(false);
+                    setCurrentProductId(null);
+                    setCustomPartName("");
+                    setCustomKmInterval("");
+                    setCustomMonthsInterval("");
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative z-10 flex-1 py-2.5 px-6 rounded-xl font-medium text-sm transition-colors duration-200 ${
+                    !isCustomProduct
+                      ? "text-white"
+                      : "text-neutral-600"
+                  }`}
+                >
+                  Chọn từ hệ thống
+                </motion.button>
+                
+                {/* Custom Product Button */}
+                <motion.button
+                  type="button"
+                  onClick={() => {
+                    setIsCustomProduct(true);
+                    setCurrentProductId(null);
+                    setCustomPartName("");
+                    setCustomKmInterval("");
+                    setCustomMonthsInterval("");
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`relative z-10 flex-1 py-2.5 px-6 rounded-xl font-medium text-sm transition-colors duration-200 ${
+                    isCustomProduct
+                      ? "text-white"
+                      : "text-neutral-600"
+                  }`}
+                >
+                  Nhập tùy chỉnh
+                </motion.button>
               </div>
 
-              {/* Product Details Form */}
-              {currentProduct && (
+              {/* Products List - Only show when not custom */}
+              {!isCustomProduct && (
+                <div>
+                  <h3 className="text-sm font-semibold text-neutral-900 mb-3">
+                    Chọn sản phẩm
+                  </h3>
+                  {isLoadingProducts ? (
+                    <LoadingSpinner text="Đang tải sản phẩm..." />
+                  ) : products.length > 0 ? (
+                    <div className="space-y-3">
+                      {products.map((product, index) => {
+                        const isAlreadyAdded = selectedItems.some((item) => !item.isCustom && item.productId === product.id);
+                        return (
+                          <ProductCard
+                            key={product.id}
+                            product={product}
+                            isSelected={currentProductId === product.id}
+                            isAlreadyAdded={isAlreadyAdded}
+                            onClick={() => {
+                              handleProductSelect(product.id);
+                            }}
+                            index={index}
+                          />
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-20 p-6 rounded-2xl bg-neutral-50 border-2 border-dashed border-neutral-200">
+                      <Package className="w-12 h-12 text-neutral-300 mb-4" />
+                      <p className="text-sm font-medium text-neutral-400 text-center">
+                        Không có sản phẩm nào cho loại này
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Custom Product Form */}
+              {isCustomProduct && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-4"
+                >
+                  {/* Custom Part Name */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-neutral-700">
+                      Tên sản phẩm <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={customPartName}
+                      onChange={(e) => setCustomPartName(e.target.value)}
+                      placeholder="Dầu nhớt Liquid 5900"
+                      className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white focus:border-[#dc2626] focus:outline-none text-sm transition-colors"
+                    />
+                  </div>
+
+                  {/* Custom Intervals - Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Custom KM Interval */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-neutral-700">
+                        Chu kỳ thay theo km <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={customKmInterval}
+                        onChange={(e) => setCustomKmInterval(e.target.value)}
+                        placeholder="2500"
+                        min="0"
+                        required
+                        className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white focus:border-[#dc2626] focus:outline-none text-sm transition-colors"
+                      />
+                    </div>
+
+                    {/* Custom Months Interval */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-medium text-neutral-700">
+                        Chu kỳ thay theo tháng <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={customMonthsInterval}
+                        onChange={(e) => setCustomMonthsInterval(e.target.value)}
+                        placeholder="6 "
+                        min="0"
+                        required
+                        className="w-full px-3 py-2.5 rounded-lg border border-neutral-300 bg-white focus:border-[#dc2626] focus:outline-none text-sm transition-colors"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Product Details Form - Show for both system product and custom product */}
+              {(currentProduct || isCustomProduct) && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1028,7 +1283,7 @@ function MaintenanceCategoryPageContent() {
                       type="number"
                       value={currentPrice}
                       onChange={(e) => setCurrentPrice(e.target.value)}
-                      placeholder={currentProduct.referencePrice > 0 ? currentProduct.referencePrice.toString() : "Nhập giá"}
+                      placeholder={currentProduct && currentProduct.referencePrice > 0 ? currentProduct.referencePrice.toString() : "Nhập giá"}
                       min="0"
                       className="w-full px-3 py-2 rounded-xl border-2 border-neutral-200 bg-white focus:border-red-500 focus:outline-none text-sm"
                     />
@@ -1070,7 +1325,10 @@ function MaintenanceCategoryPageContent() {
                   <motion.button
                     type="button"
                     onClick={handleAddItem}
-                    disabled={!currentProductId}
+                    disabled={
+                      (!isCustomProduct && !currentProductId) || 
+                      (isCustomProduct && (!customPartName.trim() || !customKmInterval || Number(customKmInterval) <= 0 || !customMonthsInterval || Number(customMonthsInterval) <= 0))
+                    }
                     whileTap={{ scale: 0.98 }}
                     className="w-full py-3 rounded-lg bg-[#dc2626] text-white font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >

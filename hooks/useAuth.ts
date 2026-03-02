@@ -11,6 +11,7 @@ import notificationHubService from "@/hubs/notificationHub";
 import api8080Service from "@/lib/api/api8080Service";
 import coreApiService from "@/lib/api/coreApiService";
 import authApiService from "@/lib/api/authApiService";
+import type { ApiError } from "@/lib/api/apiService";
 
 /* ===================== TYPES ===================== */
 
@@ -125,7 +126,16 @@ export function useAuth() {
 
       return { success: true, user };
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Đăng nhập thất bại";
+      // Lấy message từ BE response nếu có
+      let message = "Đăng nhập thất bại";
+      if (err && typeof err === "object" && "message" in err) {
+        // Nếu là ApiError từ interceptor
+        const apiError = err as ApiError;
+        message = apiError.message || apiError.error?.message || message;
+      } else if (err instanceof Error) {
+        message = err.message || message;
+      }
+      
       setState((s) => ({ ...s, loading: false, error: message }));
       return { success: false, error: message };
     }

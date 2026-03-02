@@ -43,7 +43,7 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="h-[100dvh] bg-white text-black flex flex-col overflow-hidden">
+    <main className="h-[100dvh]  bg-white text-black flex flex-col overflow-hidden">
       {/* Top hero image */}
       <div className="relative flex-1 w-full min-h-[52vh]">
         <Image
@@ -78,15 +78,6 @@ export default function LoginForm() {
             </Link>
           </p>
         </div>
-
-        {/* Hiển thị lỗi nếu có */}
-        {authError && (
-          <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2 text-red-600 text-sm">
-            <AlertCircle className="w-4 h-4" />
-            <span>{authError}</span>
-          </div>
-        )}
-
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="text-xs text-gray-400 ">Email</label>
@@ -165,27 +156,6 @@ export default function LoginForm() {
           >
             {authLoading ? "Đang xử lý..." : "Login"}
           </button>
-
-          {/* Social */}
-          <div className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="h-px flex-1 bg-gray-200" />
-              <span className="text-xs text-gray-500">Or login with</span>
-              <div className="h-px flex-1 bg-gray-200" />
-            </div>
-
-            <div className="mt-4 flex justify-center gap-3">
-              {["G", "f", ""].map((icon) => (
-                <button
-                  key={icon}
-                  type="button"
-                  className="w-12 h-12 rounded-2xl bg-white border border-gray-200 hover:bg-gray-50 transition font-bold"
-                >
-                  {icon}
-                </button>
-              ))}
-            </div>
-          </div>
         </form>
       </div>
     </main>

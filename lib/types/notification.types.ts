@@ -153,6 +153,13 @@ export interface MarkAllAsReadResponse {
   metadata: string | null;
 }
 
+export interface MarkAsReadResponse {
+  isSuccess: boolean;
+  message: string;
+  data: boolean;
+  metadata: null;
+}
+
 // ==================== SignalR Notification Payload ====================
 
 export interface InAppNotificationPayload {

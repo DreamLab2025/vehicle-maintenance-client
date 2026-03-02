@@ -15,8 +15,10 @@ import {
 import Image from "next/image";
 
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
-import { useNotificationById } from "@/hooks/useNotification";
+import { useNotificationById, useMarkAsRead } from "@/hooks/useNotification";
 import { useUserVehicles } from "@/hooks/useUserVehice";
+import { LoadingSpinner } from "@/components/ui/skeletons";
+import { useEffect } from "react";
 
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -98,7 +100,13 @@ function KmProgressLine({
       <div className="flex items-center justify-between mt-1.5">
         <span className="text-xs text-neutral-400">Đã đi</span>
         <span className="text-xs font-semibold" style={{ color }}>
-          Còn {formatNumber(target - current)} km
+          {(() => {
+            const remaining = target - current;
+            if (remaining < 0) {
+              return `Vượt quá ${formatNumber(Math.abs(remaining))} km`;
+            }
+            return `Còn ${formatNumber(remaining)} km`;
+          })()}
         </span>
       </div>
     </div>
@@ -116,6 +124,16 @@ export default function NotificationDetailPage() {
 
   // Fetch notification detail from API
   const { notification, detail, metadata, isLoading } = useNotificationById(id);
+
+  // Mark as read mutation
+  const { mutate: markAsRead } = useMarkAsRead();
+
+  // Mark notification as read when viewing detail page
+  useEffect(() => {
+    if (notification && !notification.isRead && id) {
+      markAsRead(id);
+    }
+  }, [notification, id, markAsRead]);
 
   const levelConfig = useMemo(
     () =>
@@ -240,9 +258,8 @@ export default function NotificationDetailPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] flex flex-col items-center justify-center px-6">
-        <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-base font-medium text-neutral-500">{t("common.loading")}</p>
+      <div className="min-h-screen bg-[#f5f5f7]">
+        <LoadingSpinner text={t("common.loading")} />
       </div>
     );
   }
@@ -410,7 +427,7 @@ export default function NotificationDetailPage() {
                 </motion.button>
                 
                 {/* Đặt lịch bảo dưỡng Button */}
-                <motion.button
+                {/* <motion.button
                   whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     // MaintenanceReminder: already on detail page, can add more actions if needed
@@ -423,7 +440,7 @@ export default function NotificationDetailPage() {
                 >
                   {t("notification.scheduleMaintenance")}
                   <ChevronRight className="w-4 h-4" />
-                </motion.button>
+                </motion.button> */}
               </div>
             )}
           </>
