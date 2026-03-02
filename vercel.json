@@ -1,12 +1,3 @@
 {
-    "framework": "nextjs",
-    "regions": ["sin1"],
-    "functions": {
-      "app/**/*.tsx": {
-        "maxDuration": 10
-      },
-      "app/**/*.ts": {
-        "maxDuration": 10
-      }
-    }
-  }
+    "regions": ["sin1"]
+}

@@ -25,10 +25,29 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key (optional, nếu dùng 
 
 ### Lỗi "We encountered an internal error"
 
-1. **Kiểm tra Environment Variables**: Đảm bảo tất cả env vars đã được thêm vào Vercel Dashboard
-2. **Kiểm tra Node Version**: Vercel sẽ dùng Node 20.x theo config
-3. **Kiểm tra Build Logs**: Xem chi tiết lỗi trong Build Logs tab
-4. **Thử rebuild**: Cancel deployment hiện tại và trigger lại
+Lỗi này thường xảy ra sau khi build thành công, có thể do:
+
+1. **Lỗi tạm thời của Vercel**: 
+   - Đợi 5-10 phút rồi thử deploy lại
+   - Kiểm tra [Vercel Status Page](https://www.vercel-status.com/)
+
+2. **Vấn đề với vercel.json**:
+   - Thử xóa file `vercel.json` hoàn toàn để Vercel tự detect
+   - Hoặc đơn giản hóa chỉ còn `{"regions": ["sin1"]}`
+   - Functions config có thể gây conflict với Next.js App Router
+
+3. **Kiểm tra Environment Variables**: 
+   - Đảm bảo tất cả env vars đã được thêm vào Vercel Dashboard
+   - Kiểm tra format (không có space, quotes đúng cách)
+
+4. **Kiểm tra Build Output Size**:
+   - Nếu build output quá lớn (>50MB), có thể gây lỗi
+   - Kiểm tra `.next` folder size
+
+5. **Thử các giải pháp khác**:
+   - Cancel deployment hiện tại và trigger lại
+   - Xóa cache trong Vercel Dashboard > Settings > General
+   - Thử deploy từ branch khác để test
 
 ### Common Issues
 

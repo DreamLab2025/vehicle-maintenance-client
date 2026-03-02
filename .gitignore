@@ -16,6 +16,8 @@
 # next.js
 /.next/
 /out/
+# Exclude .next/dev folder specifically (development cache)
+/.next/dev/
 
 # production
 /build
