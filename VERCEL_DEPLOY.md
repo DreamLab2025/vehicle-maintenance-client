@@ -33,8 +33,9 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your-google-maps-api-key (optional, nếu dùng 
 ### Common Issues
 
 - **Build timeout**: Tăng `maxDuration` trong vercel.json nếu cần
-- **Memory issues**: Kiểm tra file size, có thể cần optimize images
+- **Memory setting warning**: Đã xóa `memory` setting vì không còn được hỗ trợ với Active CPU billing
 - **Missing env vars**: App sẽ crash nếu thiếu required env vars
+- **Internal error on deploy**: Thường là lỗi tạm thời, thử deploy lại sau vài phút
 
 ## Next Steps
 
