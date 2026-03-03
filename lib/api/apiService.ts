@@ -13,6 +13,7 @@ import { deleteCookie } from 'cookies-next';
 export interface ApiErrorData {
   message?: string;
   code?: string | number;
+  errors?: Record<string, string[]>;
   [key: string]: unknown;
 }
 
@@ -61,6 +62,38 @@ export class ApiService {
 
   /* ---------- Interceptors ---------- */
 
+  private parseErrorMessage(errorData: ApiErrorData | undefined): string {
+    if (!errorData) return 'Unknown error';
+
+    // Nếu có message trực tiếp, ưu tiên dùng
+    if (errorData.message) {
+      return errorData.message;
+    }
+
+    // Nếu có errors object (validation errors từ BE)
+    if (errorData.errors && typeof errorData.errors === 'object') {
+      const errorMessages: string[] = [];
+      
+      // Lấy tất cả các message từ errors object
+      Object.entries(errorData.errors).forEach(([field, messages]) => {
+        if (Array.isArray(messages)) {
+          messages.forEach(msg => {
+            if (typeof msg === 'string') {
+              errorMessages.push(msg);
+            }
+          });
+        }
+      });
+
+      // Trả về message đầu tiên hoặc tất cả messages nối bằng dấu phẩy
+      if (errorMessages.length > 0) {
+        return errorMessages.join(', ');
+      }
+    }
+
+    return 'Unknown error';
+  }
+
   private setupInterceptors() {
     this.client.interceptors.request.use(config => {
       if (this.authToken) {
@@ -97,12 +130,13 @@ export class ApiService {
             return Promise.reject(new Error('Unauthorized'));
           }
         }
+        
+        // Parse message từ error data (bao gồm cả errors object)
+        const errorMessage = this.parseErrorMessage(error.response?.data);
+        
         const apiError: ApiError = {
           status: error.response?.status,
-          message:
-            error.response?.data?.message ||
-            error.message ||
-            'Unknown error',
+          message: errorMessage,
           error: error.response?.data,
         };
 
