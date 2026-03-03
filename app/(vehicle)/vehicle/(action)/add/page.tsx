@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, CornerUpLeft } from "lucide-react";
@@ -34,6 +35,7 @@ interface VehicleFormData {
 
 export default function AddVehiclePage() {
   const router = useRouter();
+  const footerRef = React.useRef<HTMLDivElement>(null);
 
   // 1..4
   const TOTAL_STEPS = 4;
@@ -133,6 +135,14 @@ export default function AddVehiclePage() {
       ...prev,
       vehicleVariantId,
     }));
+
+    // Scroll xuống bottom để hiển thị nút "Tiếp theo"
+    setTimeout(() => {
+      footerRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }, 100);
   };
 
   const isNextButtonDisabled = () => {
@@ -214,7 +224,7 @@ export default function AddVehiclePage() {
         </div>
       </div>
 
-      <footer className="bg-white">
+      <footer ref={footerRef} className="bg-white">
         <div className="max-w-2xl mx-auto md:px-8 py-4">
           {/* Progress Bar */}
           <div className="w-full h-1 bg-gray-200 rounded-full overflow-hidden mb-4">
