@@ -167,7 +167,16 @@ export function useAuth() {
 
       return { success: true, user };
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Đăng ký thất bại";
+      // Lấy message từ BE response nếu có
+      let message = "Đăng ký thất bại";
+      if (err && typeof err === "object" && "message" in err) {
+        // Nếu là ApiError từ interceptor
+        const apiError = err as ApiError;
+        message = apiError.message || apiError.error?.message || message;
+      } else if (err instanceof Error) {
+        message = err.message || message;
+      }
+      
       setState((s) => ({ ...s, loading: false, error: message }));
       return { success: false, error: message };
     }
