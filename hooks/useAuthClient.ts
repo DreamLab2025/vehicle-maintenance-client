@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { fetchAuth } from "@/lib/api/services/fetchAuth";
+import type { ApiError } from "@/lib/api/apiService";
 
 export function useAuthClient() {
   const [loading, setLoading] = useState(false);
@@ -23,8 +24,15 @@ export function useAuthClient() {
     } catch (err: unknown) {
       setLoading(false);
 
-      // Nếu err là Error thì lấy message, nếu không thì chuyển sang string
-      const message = err instanceof Error ? err.message : String(err) || "Mã OTP không đúng hoặc đã hết hạn";
+      // Lấy message từ BE response nếu có
+      let message = "Mã OTP không đúng hoặc đã hết hạn";
+      if (err && typeof err === "object" && "message" in err) {
+        // Nếu là ApiError từ interceptor
+        const apiError = err as ApiError;
+        message = apiError.message || apiError.error?.message || message;
+      } else if (err instanceof Error) {
+        message = err.message || message;
+      }
 
       setError(message);
       return { success: false, error: message };
