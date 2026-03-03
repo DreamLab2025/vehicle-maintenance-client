@@ -11,19 +11,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Optimize build output to reduce size
-  productionBrowserSourceMaps: false, // Tắt source maps cho production
-  compress: true,
-  // Exclude unnecessary files from build
-  experimental: {
-    outputFileTracingExcludes: {
-      '*': [
-        '.next/dev/**',
-        '.next/cache/**',
-        'node_modules/**',
-      ],
-    },
-  },
 };
 
 export default nextConfig;
