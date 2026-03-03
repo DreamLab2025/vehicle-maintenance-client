@@ -549,6 +549,270 @@ export const CHAIN_SPROCKET_QUESTIONS: PartQuestionConfig = {
   ],
 };
 
+// Questions configuration for BRAKE-FLUID
+export const BRAKE_FLUID_QUESTIONS: PartQuestionConfig = {
+  partCategoryCode: "BRAKE-FLUID",
+  partCategoryName: "Dầu phanh",
+  questions: [
+    {
+      id: "q1",
+      group: "A",
+      groupName: "Cảm giác phanh",
+      question: "Khi bóp phanh, bạn cảm thấy:",
+      aiQuestion: "How does the brake feel when you press it?",
+      options: [
+        { id: "opt1", label: "Phanh cứng, ăn ngay", value: "Brake feels firm and responds immediately when pressed" },
+        { id: "opt2", label: "Phanh mềm, phải bóp sâu", value: "Brake feels soft and requires deep pressing" },
+        { id: "opt3", label: "Phanh bị xốp, không chắc", value: "Brake feels spongy and unreliable when pressed" },
+        { id: "opt4", label: "Bình thường", value: "Brake feels normal when pressed" },
+      ],
+      required: true,
+    },
+    {
+      id: "q2",
+      group: "A",
+      groupName: "Cảm giác phanh",
+      question: "Khi phanh gấp hoặc phanh liên tục, phanh có:",
+      aiQuestion: "What happens to the brake during emergency or continuous braking?",
+      options: [
+        { id: "opt1", label: "Vẫn ăn tốt, ổn định", value: "Brake still responds well and remains stable during emergency or continuous braking" },
+        { id: "opt2", label: "Yếu dần đi", value: "Brake becomes weaker during emergency or continuous braking" },
+        { id: "opt3", label: "Có lúc không ăn", value: "Brake sometimes fails to respond during emergency or continuous braking" },
+      ],
+      required: true,
+    },
+    {
+      id: "q3",
+      group: "B",
+      groupName: "Tần suất sử dụng",
+      question: "Bạn thường phanh:",
+      aiQuestion: "How frequently do you use the brakes?",
+      options: [
+        { id: "opt1", label: "Rất nhiều (đường đông, phanh liên tục)", value: "Brakes very frequently due to crowded roads and continuous braking" },
+        { id: "opt2", label: "Vừa phải", value: "Brakes moderately" },
+        { id: "opt3", label: "Ít (đường thoáng)", value: "Brakes rarely due to open roads" },
+      ],
+      required: true,
+    },
+    {
+      id: "q4",
+      group: "B",
+      groupName: "Tần suất sử dụng",
+      question: "Bạn có thường chạy đường dài hoặc chạy nhanh không?",
+      aiQuestion: "Do you often ride long distances or at high speeds?",
+      options: [
+        { id: "opt1", label: "Có, thường xuyên", value: "Often rides long distances or at high speeds" },
+        { id: "opt2", label: "Thỉnh thoảng", value: "Sometimes rides long distances or at high speeds" },
+        { id: "opt3", label: "Hiếm khi", value: "Rarely rides long distances or at high speeds" },
+      ],
+      required: true,
+    },
+    {
+      id: "q5",
+      group: "C",
+      groupName: "Lịch sử bảo dưỡng",
+      question: "Bạn có nhớ đã từng thay hoặc bổ sung dầu phanh chưa?",
+      aiQuestion: "Do you remember if you have ever replaced or topped up brake fluid?",
+      hint: "AI dùng: cảm giác phanh + tần suất sử dụng → mức suy hao dầu phanh",
+      options: [
+        { id: "opt1", label: "Chưa bao giờ", value: "Has never replaced or topped up brake fluid" },
+        { id: "opt2", label: "Có (không nhớ khi nào)", value: "Has replaced or topped up brake fluid but cannot remember when" },
+        { id: "opt3", label: "Có, khoảng dưới 1 năm trước", value: "Replaced or topped up brake fluid less than 1 year ago" },
+        { id: "opt4", label: "Có, khoảng 1–2 năm trước", value: "Replaced or topped up brake fluid between 1 to 2 years ago" },
+        { id: "opt5", label: "Có, khoảng trên 2 năm trước", value: "Replaced or topped up brake fluid over 2 years ago" },
+      ],
+      required: true,
+    },
+  ],
+};
+
+// Questions configuration for OIL-FILTER
+export const OIL_FILTER_QUESTIONS: PartQuestionConfig = {
+  partCategoryCode: "OIL-FILTER",
+  partCategoryName: "Lọc nhớt",
+  questions: [
+    {
+      id: "q1",
+      group: "A",
+      groupName: "Lịch sử thay dầu",
+      question: "Lần gần nhất bạn thay dầu là khoảng bao nhiêu km trước?",
+      aiQuestion: "How many kilometers ago was the last engine oil change?",
+      hint: "Lọc nhớt thường được thay cùng với dầu nhớt",
+      options: [
+        { id: "opt1", label: "Dưới 1.000 km", value: "Last engine oil change was less than 1000 km ago" },
+        { id: "opt2", label: "1.000 – 2.000 km", value: "Last engine oil change was between 1000 to 2000 km ago" },
+        { id: "opt3", label: "2.000 – 3.000 km", value: "Last engine oil change was between 2000 to 3000 km ago" },
+        { id: "opt4", label: "Trên 3.000 km", value: "Last engine oil change was over 3000 km ago" },
+        { id: "opt5", label: "Không nhớ", value: "Cannot remember when last engine oil change occurred" },
+      ],
+      required: true,
+    },
+    {
+      id: "q2",
+      group: "A",
+      groupName: "Lịch sử thay dầu",
+      question: "Khi thay dầu, bạn có thay lọc nhớt cùng lúc không?",
+      aiQuestion: "When changing engine oil, do you also replace the oil filter?",
+      options: [
+        { id: "opt1", label: "Luôn luôn thay", value: "Always replaces oil filter when changing engine oil" },
+        { id: "opt2", label: "Thỉnh thoảng thay", value: "Sometimes replaces oil filter when changing engine oil" },
+        { id: "opt3", label: "Hiếm khi thay", value: "Rarely replaces oil filter when changing engine oil" },
+        { id: "opt4", label: "Không nhớ", value: "Cannot remember if oil filter was replaced" },
+      ],
+      required: true,
+    },
+    {
+      id: "q3",
+      group: "B",
+      groupName: "Tình trạng động cơ",
+      question: "Gần đây bạn có thấy dầu nhớt bị đen nhanh hơn bình thường không?",
+      aiQuestion: "Have you noticed the engine oil turning black faster than normal recently?",
+      options: [
+        { id: "opt1", label: "Có, đen rất nhanh", value: "Engine oil turns black very quickly" },
+        { id: "opt2", label: "Có, đen hơn trước", value: "Engine oil turns black faster than before" },
+        { id: "opt3", label: "Bình thường", value: "Engine oil turns black at normal rate" },
+        { id: "opt4", label: "Không để ý", value: "Has not noticed the rate at which engine oil turns black" },
+      ],
+      required: true,
+    },
+    {
+      id: "q4",
+      group: "B",
+      groupName: "Tình trạng động cơ",
+      question: "Xe bạn có bị nóng máy hoặc hao xăng hơn bình thường không?",
+      aiQuestion: "Has the engine been overheating or consuming more fuel than normal?",
+      options: [
+        { id: "opt1", label: "Có, cả hai", value: "Engine has been overheating and consuming more fuel than normal" },
+        { id: "opt2", label: "Có, nóng máy", value: "Engine has been overheating more than normal" },
+        { id: "opt3", label: "Có, hao xăng", value: "Fuel consumption has increased compared to normal" },
+        { id: "opt4", label: "Không", value: "Engine has not been overheating or consuming more fuel than normal" },
+      ],
+      required: true,
+    },
+    {
+      id: "q5",
+      group: "C",
+      groupName: "Môi trường sử dụng",
+      question: "Bạn thường chạy xe ở khu vực nào?",
+      aiQuestion: "What type of areas do you usually ride in?",
+      options: [
+        { id: "opt1", label: "Đường bụi / công trình / quốc lộ", value: "Usually rides in dusty areas, construction sites, or highways" },
+        { id: "opt2", label: "Thành phố đông xe", value: "Usually rides in busy city areas" },
+        { id: "opt3", label: "Khu ít bụi, sạch sẽ", value: "Usually rides in clean areas with low dust" },
+      ],
+      required: true,
+    },
+    {
+      id: "q6",
+      group: "C",
+      groupName: "Lịch sử bảo dưỡng",
+      question: "Bạn có nhớ đã từng thay lọc nhớt riêng chưa?",
+      aiQuestion: "Do you remember if you have ever replaced the oil filter separately?",
+      hint: "AI dùng: lịch sử thay dầu + tình trạng động cơ + môi trường → mức bẩn lọc",
+      options: [
+        { id: "opt1", label: "Chưa bao giờ", value: "Has never replaced oil filter separately" },
+        { id: "opt2", label: "Có (không nhớ khi nào)", value: "Has replaced oil filter separately but cannot remember when" },
+        { id: "opt3", label: "Có, khoảng dưới 3.000 km trước", value: "Replaced oil filter separately less than 3000 km ago" },
+        { id: "opt4", label: "Có, khoảng 3.000 – 6.000 km trước", value: "Replaced oil filter separately between 3000 to 6000 km ago" },
+        { id: "opt5", label: "Có, khoảng trên 6.000 km trước", value: "Replaced oil filter separately over 6000 km ago" },
+      ],
+      required: true,
+    },
+  ],
+};
+
+// Questions configuration for COOLANT
+export const COOLANT_QUESTIONS: PartQuestionConfig = {
+  partCategoryCode: "COOLANT",
+  partCategoryName: "Nước làm mát",
+  questions: [
+    {
+      id: "q1",
+      group: "A",
+      groupName: "Nhiệt độ động cơ",
+      question: "Khi chạy xe, bạn có thấy xe bị nóng máy không?",
+      aiQuestion: "Do you notice the engine overheating when riding?",
+      options: [
+        { id: "opt1", label: "Thường xuyên nóng máy", value: "Engine overheats frequently when riding" },
+        { id: "opt2", label: "Thỉnh thoảng nóng máy", value: "Engine overheats sometimes when riding" },
+        { id: "opt3", label: "Không nóng máy", value: "Engine does not overheat when riding" },
+        { id: "opt4", label: "Không để ý", value: "Has not noticed if engine overheats" },
+      ],
+      required: true,
+    },
+    {
+      id: "q2",
+      group: "A",
+      groupName: "Nhiệt độ động cơ",
+      question: "Khi chạy đường dài hoặc chạy nhanh, xe có:",
+      aiQuestion: "What happens to the engine when riding long distances or at high speeds?",
+      options: [
+        { id: "opt1", label: "Nóng máy rõ rệt", value: "Engine overheats noticeably when riding long distances or at high speeds" },
+        { id: "opt2", label: "Hơi nóng", value: "Engine becomes slightly hot when riding long distances or at high speeds" },
+        { id: "opt3", label: "Bình thường", value: "Engine temperature remains normal when riding long distances or at high speeds" },
+      ],
+      required: true,
+    },
+    {
+      id: "q3",
+      group: "B",
+      groupName: "Mức nước làm mát",
+      question: "Bạn có thường kiểm tra mức nước làm mát không?",
+      aiQuestion: "Do you regularly check the coolant level?",
+      options: [
+        { id: "opt1", label: "Thường xuyên kiểm tra", value: "Regularly checks coolant level" },
+        { id: "opt2", label: "Thỉnh thoảng kiểm tra", value: "Sometimes checks coolant level" },
+        { id: "opt3", label: "Hiếm khi kiểm tra", value: "Rarely checks coolant level" },
+        { id: "opt4", label: "Chưa bao giờ kiểm tra", value: "Has never checked coolant level" },
+      ],
+      required: true,
+    },
+    {
+      id: "q4",
+      group: "B",
+      groupName: "Mức nước làm mát",
+      question: "Nếu đã kiểm tra, mức nước làm mát hiện tại:",
+      aiQuestion: "If you have checked, what is the current coolant level?",
+      options: [
+        { id: "opt1", label: "Đầy, bình thường", value: "Coolant level is full and normal" },
+        { id: "opt2", label: "Thấp hơn mức tối thiểu", value: "Coolant level is below minimum" },
+        { id: "opt3", label: "Gần hết", value: "Coolant level is nearly empty" },
+        { id: "opt4", label: "Không nhớ / chưa kiểm tra", value: "Cannot remember or has not checked coolant level" },
+      ],
+      required: true,
+    },
+    {
+      id: "q5",
+      group: "C",
+      groupName: "Lịch sử bảo dưỡng",
+      question: "Bạn có nhớ đã từng thay hoặc bổ sung nước làm mát chưa?",
+      aiQuestion: "Do you remember if you have ever replaced or topped up the coolant?",
+      hint: "AI dùng: nhiệt độ động cơ + mức nước làm mát + tần suất sử dụng → tình trạng nước làm mát",
+      options: [
+        { id: "opt1", label: "Chưa bao giờ", value: "Has never replaced or topped up coolant" },
+        { id: "opt2", label: "Có (không nhớ khi nào)", value: "Has replaced or topped up coolant but cannot remember when" },
+        { id: "opt3", label: "Có, khoảng dưới 6 tháng trước", value: "Replaced or topped up coolant less than 6 months ago" },
+        { id: "opt4", label: "Có, khoảng 6 tháng – 1 năm trước", value: "Replaced or topped up coolant between 6 months to 1 year ago" },
+        { id: "opt5", label: "Có, khoảng trên 1 năm trước", value: "Replaced or topped up coolant over 1 year ago" },
+      ],
+      required: true,
+    },
+    {
+      id: "q6",
+      group: "C",
+      groupName: "Lịch sử bảo dưỡng",
+      question: "Bạn có thường chạy đường dài hoặc chạy trong điều kiện nắng nóng không?",
+      aiQuestion: "Do you often ride long distances or in hot weather conditions?",
+      options: [
+        { id: "opt1", label: "Thường xuyên", value: "Often rides long distances or in hot weather conditions" },
+        { id: "opt2", label: "Thỉnh thoảng", value: "Sometimes rides long distances or in hot weather conditions" },
+        { id: "opt3", label: "Hiếm khi", value: "Rarely rides long distances or in hot weather conditions" },
+      ],
+      required: true,
+    },
+  ],
+};
+
 // Map of part codes to their question configurations
 export const PART_QUESTIONS_MAP: Record<string, PartQuestionConfig> = {
   "ENGINE-OIL": ENGINE_OIL_QUESTIONS,
@@ -558,6 +822,9 @@ export const PART_QUESTIONS_MAP: Record<string, PartQuestionConfig> = {
   "BATTERY": BATTERY_QUESTIONS,
   "AIR-FILTER": AIR_FILTER_QUESTIONS,
   "CHAIN-SPROCKET": CHAIN_SPROCKET_QUESTIONS,
+  "BRAKE-FLUID": BRAKE_FLUID_QUESTIONS,
+  "OIL-FILTER": OIL_FILTER_QUESTIONS,
+  "COOLANT": COOLANT_QUESTIONS,
 };
 
 // Helper function to get questions for a part

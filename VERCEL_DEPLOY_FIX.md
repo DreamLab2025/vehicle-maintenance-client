@@ -88,3 +88,51 @@ git add .
 git commit -m "fix: remove .next/dev folder causing deploy error"
 git push origin main
 ```
+
+## ⚠️ NẾU VẪN LỖI SAU KHI XÓA .next/dev
+
+### Giải pháp 1: Xóa vercel.json hoàn toàn
+Vercel sẽ tự động detect Next.js và sử dụng config mặc định:
+```bash
+rm vercel.json
+git add vercel.json
+git commit -m "fix: remove vercel.json to use default config"
+git push origin main
+```
+
+### Giải pháp 2: Kiểm tra Vercel Dashboard
+1. Vào Vercel Dashboard > Project Settings
+2. Kiểm tra **Build & Development Settings**:
+   - Framework Preset: Next.js
+   - Build Command: `npm run build`
+   - Output Directory: `.next` (hoặc để trống)
+   - Install Command: `npm install`
+3. Kiểm tra **Environment Variables** - đảm bảo tất cả đã được set
+4. Kiểm tra **General Settings**:
+   - Node.js Version: 20.x
+   - Regions: có thể để mặc định hoặc chọn `sin1`
+
+### Giải pháp 3: Clear Vercel Cache
+1. Vào Vercel Dashboard > Project Settings > General
+2. Scroll xuống phần **Clear Build Cache**
+3. Click **Clear Build Cache**
+4. Deploy lại
+
+### Giải pháp 4: Thử deploy từ branch khác
+Tạo branch mới để test:
+```bash
+git checkout -b test-deploy
+git push origin test-deploy
+```
+Sau đó deploy branch này trên Vercel để xem có lỗi không.
+
+### Giải pháp 5: Kiểm tra Vercel Status
+- Kiểm tra [Vercel Status Page](https://www.vercel-status.com/)
+- Có thể là lỗi tạm thời của Vercel infrastructure
+
+### Giải pháp 6: Liên hệ Vercel Support
+Nếu tất cả giải pháp trên không work, có thể là bug của Vercel. Liên hệ support với:
+- Build logs
+- Error message
+- Project name
+- Deployment URL
