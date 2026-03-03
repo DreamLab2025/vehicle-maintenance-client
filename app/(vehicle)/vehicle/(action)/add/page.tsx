@@ -83,7 +83,9 @@ export default function AddVehiclePage() {
   };
 
   const handleBack = () => {
+
     if (currentStep > 1) setCurrentStep((s) => s - 1);
+    else router.push("/");
   };
 
   // Step 1
