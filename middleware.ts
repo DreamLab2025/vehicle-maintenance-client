@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const AUTH_COOKIE = "auth-token";
+const SUPPORTED_LOCALES = ["vi", "en"] as const;
+const DEFAULT_LOCALE = "vi";
 
 // Các route auth
 const authRoutes = ["/login", "/register", "/forgot-password"];
@@ -53,35 +55,64 @@ function redirectByRole(role: string | null) {
   return "/"; // hoặc "/properties"
 }
 
+function detectLocale(pathname: string) {
+  const [, firstSegment] = pathname.split("/");
+  if (SUPPORTED_LOCALES.includes(firstSegment as (typeof SUPPORTED_LOCALES)[number])) {
+    return firstSegment as (typeof SUPPORTED_LOCALES)[number];
+  }
+  return null;
+}
+
+function stripLocalePrefix(pathname: string, locale: string | null) {
+  if (!locale) return pathname;
+  const withoutLocale = pathname.replace(new RegExp(`^/${locale}`), "");
+  return withoutLocale || "/";
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const locale = detectLocale(pathname);
+
+  // Ensure all business routes are locale-prefixed.
+  if (!locale) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${DEFAULT_LOCALE}${pathname}`;
+    return NextResponse.redirect(url);
+  }
+
+  const localizedPathname = stripLocalePrefix(pathname, locale);
 
   const token = request.cookies.get(AUTH_COOKIE)?.value;
   const hasToken = !!token && !isExpired(token);
   const role = getRoleFromToken(token);
 
   // 1) Nếu vào trang auth mà đã login => đá về đúng nơi theo role
-  const isAuthRoute = authRoutes.some((r) => pathname === r || pathname.startsWith(`${r}/`));
+  const isAuthRoute = authRoutes.some(
+    (r) => localizedPathname === r || localizedPathname.startsWith(`${r}/`)
+  );
   if (isAuthRoute && hasToken) {
-    return NextResponse.redirect(new URL(redirectByRole(role), request.url));
+    return NextResponse.redirect(new URL(`/${locale}${redirectByRole(role)}`, request.url));
   }
 
   // 2) Admin-only routes
-  const isAdminRoute = pathname === adminPrefix || pathname.startsWith(`${adminPrefix}/`);
+  const isAdminRoute =
+    localizedPathname === adminPrefix || localizedPathname.startsWith(`${adminPrefix}/`);
   if (isAdminRoute) {
-    if (!hasToken) return NextResponse.redirect(new URL("/login", request.url));
-    if (role !== "Admin") return NextResponse.redirect(new URL("/", request.url));
+    if (!hasToken) return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
+    if (role !== "Admin") return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
 
   // 3) Routes cần login (messages/hosting/saler)
-  const needAuth = needAuthPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  const needAuth = needAuthPrefixes.some(
+    (p) => localizedPathname === p || localizedPathname.startsWith(`${p}/`)
+  );
   if (needAuth && !hasToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
   // 4) Home route: cần token, nếu không có token => redirect về login
-  if (pathname === "/" && !hasToken) {
-    return NextResponse.redirect(new URL("/login", request.url));
+  if (localizedPathname === "/" && !hasToken) {
+    return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
   }
 
   // 5) Public routes: ai cũng vào được
