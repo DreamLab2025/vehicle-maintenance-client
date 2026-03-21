@@ -43,9 +43,46 @@ export interface UserMeData {
   createdAt: string;
 }
 
+export interface User {
+  avatarUrl: string;
+  userId: string;
+  userName: string;
+  email: string;
+  role: string;
+}
+
+export interface AuthState {
+  user: User | null;
+  accessToken: string | null;
+  loading: boolean;
+  error: string | null;
+}
+
+export interface VerifyOtpResult {
+  success: boolean;
+  error?: string;
+}
+
+export interface AuthResult {
+  success: boolean;
+  user?: User | null;
+  error?: string;
+  message?: string; 
+}
+
+export interface JwtPayload {
+  userId?: string;
+  sub?: string;
+  unique_name?: string;
+  userName?: string;
+  email?: string;
+  role?: string | string[];
+  exp?: number;
+}
+
 /* ===================== AUTH APIs ===================== */
 
-export const fetchAuth = {
+export const AuthService = {
   login: (email: string, password: string) =>
     api8080Service.post<ApiSuccessResponse<LoginResponseData>>("/api/v1/auth/login", { email, password }),
 
@@ -69,4 +106,4 @@ export const fetchAuth = {
 
 };
 
-export default fetchAuth;
+export default AuthService;

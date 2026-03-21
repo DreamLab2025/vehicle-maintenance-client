@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import PartCategoryService, {
   CreatePartCategoryRequest,
+  PartCategoryByVehicleIdQueryParams,
   PartCategoryDetailResponse,
   PartCategoryListResponse,
   PartCategoryQueryParams,
@@ -65,8 +66,7 @@ export function usePartCategoryById(id: string, enabled = true) {
 export function useCreatePartCategory() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (payload: CreatePartCategoryRequest) =>
-      PartCategoryService.createCategory(payload),
+    mutationFn: (payload: CreatePartCategoryRequest) => PartCategoryService.createCategory(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["parts", "categories", "list"] });
     },
@@ -95,29 +95,27 @@ export function useDeletePartCategory() {
   });
 }
 
-export function usePartCategoriesByVehicleId(vehicleId: string | null, enabled = true) {
+export function usePartCategoriesByVehicleId(params: PartCategoryByVehicleIdQueryParams, enabled = true) {
   const query = useQuery<PartCategoryListResponse, Error, UseCategoriesSelected>({
-    queryKey: ["parts", "categories", "user-vehicle", vehicleId],
-    queryFn: () => PartCategoryService.getCategoriesByVehicleId(vehicleId!),
-    enabled: enabled && !!vehicleId,
-    select: (data) => ({
-      categories: data.data ?? [],
-      metadata: data.metadata,
-      message: data.message,
-      isSuccess: data.isSuccess,
+    queryKey: ["parts", "categories", "user-vehicle", params.userVehicleId, JSON.stringify(params)],
+    queryFn: () => PartCategoryService.getCategoriesByVehicleId(params),
+    enabled: enabled && !!params?.userVehicleId && !!params?.PageNumber && !!params?.PageSize,
+    select: (response) => ({
+      categories: response.data ?? [],
+      metadata: response.metadata,
+      message: response.message,
+      isSuccess: response.isSuccess,
     }),
     staleTime: 30_000,
   });
-
   return {
-    isLoading: query.isLoading,
-    isFetching: query.isFetching,
-    isError: query.isError,
-    error: query.error,
-    refetch: query.refetch,
+    data: query.data,
     categories: query.data?.categories ?? [],
     metadata: query.data?.metadata,
+    isLoading: query.isLoading,
     message: query.data?.message,
     isSuccess: query.data?.isSuccess,
+    error: query.error,
+    refetch: query.refetch,
   };
 }

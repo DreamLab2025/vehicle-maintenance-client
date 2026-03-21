@@ -1,13 +1,19 @@
 "use client";
 
 import { Gauge, Target, TrendingDown } from "lucide-react";
-import { ReminderStatsProps } from "./types";
+import { ReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 
 interface StatRowProps {
   icon: React.ReactNode;
   label: string;
   value: string;
   color?: string;
+}
+export interface ReminderStatsProps {
+  currentOdometer: number;
+  targetOdometer: number;
+  remainingKm: number;
+  levelConfig: ReminderLevelConfig;
 }
 
 function StatRow({ icon, label, value, color }: StatRowProps) {
@@ -24,12 +30,7 @@ function StatRow({ icon, label, value, color }: StatRowProps) {
   );
 }
 
-export function ReminderStats({
-  currentOdometer,
-  targetOdometer,
-  remainingKm,
-  levelConfig,
-}: ReminderStatsProps) {
+export function ReminderStats({ currentOdometer, targetOdometer, remainingKm, levelConfig }: ReminderStatsProps) {
   const formatKm = (km: number) => `${km.toLocaleString()} km`;
 
   // Determine label and value based on remainingKm

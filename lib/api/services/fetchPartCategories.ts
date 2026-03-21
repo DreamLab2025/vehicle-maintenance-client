@@ -1,8 +1,6 @@
 // src/lib/api/services/fetchPartCategories.ts
 import api8080Service from "../api8080Service";
-import { RequestParams } from "../apiService";
-
-export type PartCategoryStatus = "Active" | "Inactive";
+import { PaginationMetadata, RequestParams } from "../apiService";
 
 export interface PartCategory {
   id: string;
@@ -11,7 +9,6 @@ export interface PartCategory {
   description: string;
   iconUrl: string | null;
   displayOrder: number;
-  status: PartCategoryStatus;
   requiresOdometerTracking: boolean;
   requiresTimeTracking: boolean;
   allowsMultipleInstances: boolean;
@@ -19,15 +16,6 @@ export interface PartCategory {
   consequencesIfNotHandled: string;
   createdAt: string;
   updatedAt: string | null;
-}
-
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
 }
 
 export interface PartCategoryListResponse {
@@ -57,6 +45,9 @@ export interface PartCategoryQueryParams extends RequestParams {
   IsDescending?: boolean;
 }
 
+export interface PartCategoryByVehicleIdQueryParams extends PartCategoryQueryParams {
+  userVehicleId: string;
+}
 export interface CreatePartCategoryRequest {
   name: string;
   code: string;
@@ -74,47 +65,38 @@ export type UpdatePartCategoryRequest = CreatePartCategoryRequest;
 
 export const PartCategoryService = {
   getCategories: async (params: PartCategoryQueryParams) => {
-    const res = await api8080Service.get<PartCategoryListResponse>(
-      "/api/v1/parts/categories",
-      params,
-    );
+    const res = await api8080Service.get<PartCategoryListResponse>("/api/v1/part-categories", params);
     return res.data;
   },
 
   getCategoryById: async (id: string) => {
-    const res = await api8080Service.get<PartCategoryDetailResponse>(
-      `/api/v1/parts/categories/${id}`,
-    );
+    const res = await api8080Service.get<PartCategoryDetailResponse>(`/api/v1/part-categories/${id}`);
     return res.data;
   },
 
-  getCategoriesByVehicleId: async (vehicleId: string) => {
-    const res = await api8080Service.get<PartCategoryListResponse>(
-      `/api/v1/parts/categories/user-vehicle/${vehicleId}`,
-    );
+  getCategoriesByVehicleId: async (params: PartCategoryByVehicleIdQueryParams) => {
+    const res = await api8080Service.get<PartCategoryListResponse>(`/api/v1/part-categories/`, { ...params });
+    return res.data;
+  },
+
+  /** Danh mục phụ tùng áp dụng cho một model xe (thay endpoint default-schedule cũ) */
+  getCategoriesByVehicleModelId: async (modelId: string) => {
+    const res = await api8080Service.get<PartCategoryListResponse>(`/api/v1/vehicle-models/${modelId}/part-categories`);
     return res.data;
   },
 
   createCategory: async (payload: CreatePartCategoryRequest) => {
-    const res = await api8080Service.post<PartCategoryMutationResponse>(
-      "/api/v1/parts/categories",
-      payload,
-    );
+    const res = await api8080Service.post<PartCategoryMutationResponse>("/api/v1/part-categories", payload);
     return res.data;
   },
 
   updateCategory: async (id: string, payload: UpdatePartCategoryRequest) => {
-    const res = await api8080Service.put<PartCategoryMutationResponse>(
-      `/api/v1/parts/categories/${id}`,
-      payload,
-    );
+    const res = await api8080Service.put<PartCategoryMutationResponse>(`/api/v1/part-categories/${id}`, payload);
     return res.data;
   },
 
   deleteCategory: async (id: string) => {
-    const res = await api8080Service.delete<PartCategoryMutationResponse>(
-      `/api/v1/parts/categories/${id}`,
-    );
+    const res = await api8080Service.delete<PartCategoryMutationResponse>(`/api/v1/part-categories/${id}`);
     return res.data;
   },
 };

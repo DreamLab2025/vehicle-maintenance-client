@@ -3,9 +3,33 @@
  */
 
 import { AlertTriangle, AlertCircle, Clock, CheckCircle2, Zap, type LucideIcon } from "lucide-react";
-import type { ReminderLevel, ReminderLevelConfig } from "@/lib/types/reminder.types";
+import { ReminderLevel } from "../api/services/fetchTrackingReminder";
 
 export const REMINDER_LEVEL_CONFIG: Record<ReminderLevel, ReminderLevelConfig> = {
+  Warning: {
+    label: "Warning",
+    labelVi: "Cảnh báo",
+    description: "Cần lưu ý và lên kế hoạch bảo dưỡng",
+    bgGradient: "from-amber-600 via-orange-500 to-yellow-600",
+    bgSolid: "bg-orange-600",
+    bgLight: "bg-orange-50",
+    textColor: "text-orange-700",
+    borderColor: "border-orange-300",
+    shadowColor: "shadow-orange-600/20",
+    hexColor: "#ea580c",
+    hexColorLight: "#fff7ed",
+    hexBorderColor: "#fdba74",
+    badgeBg: "bg-orange-50",
+    badgeText: "text-orange-800",
+    badgeBorder: "border-orange-300",
+    Icon: AlertCircle,
+    iconBg: "bg-orange-50",
+    iconColor: "text-orange-700",
+    importance: "Cảnh báo - Nên xử lý trong thời gian tới",
+    importanceColor: "text-orange-700",
+    priority: 2,
+  },
+
   Critical: {
     label: "Critical",
     labelVi: "Khẩn cấp",
@@ -127,6 +151,41 @@ export const REMINDER_LEVEL_CONFIG: Record<ReminderLevel, ReminderLevelConfig> =
   },
 };
 
+export interface ReminderLevelConfig {
+  // Display
+  label: string;
+  labelVi: string;
+  description: string;
+
+  // Colors - Tailwind classes
+  bgGradient: string;
+  bgSolid: string;
+  bgLight: string;
+  textColor: string;
+  borderColor: string;
+  shadowColor: string;
+
+  // Hex colors for SVG/Canvas
+  hexColor: string;
+  hexColorLight: string;
+  hexBorderColor: string;
+
+  // Badge
+  badgeBg: string;
+  badgeText: string;
+  badgeBorder: string;
+
+  // Icon
+  Icon: LucideIcon;
+  iconBg: string;
+  iconColor: string;
+
+  // Importance
+  importance: string;
+  importanceColor: string;
+  priority: number;
+}
+
 // ==================== Helper Functions ====================
 
 export function getReminderLevelConfig(level: string): ReminderLevelConfig {
@@ -135,12 +194,12 @@ export function getReminderLevelConfig(level: string): ReminderLevelConfig {
 
 export function getReminderLevelsByPriority(): ReminderLevel[] {
   return (Object.keys(REMINDER_LEVEL_CONFIG) as ReminderLevel[]).sort(
-    (a, b) => REMINDER_LEVEL_CONFIG[a].priority - REMINDER_LEVEL_CONFIG[b].priority
+    (a, b) => REMINDER_LEVEL_CONFIG[a].priority - REMINDER_LEVEL_CONFIG[b].priority,
   );
 }
 
 export function isUrgentLevel(level: string): boolean {
-  return level === "Critical" || level === "High";
+  return level === "Critical" || level === "High" || level === "Warning";
 }
 
 export function getLevelBadgeClasses(level: string): string {
@@ -155,4 +214,3 @@ export function getLevelIcon(level: string): LucideIcon {
 export default REMINDER_LEVEL_CONFIG;
 
 // Re-export types for convenience
-export type { ReminderLevel, ReminderLevelConfig } from "@/lib/types/reminder.types";

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import type { VehicleReminder } from "@/lib/types";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
+import { VehicleReminder } from "@/lib/api/services/fetchTrackingReminder";
 
 export function useReminderData(reminder: VehicleReminder | null) {
   const levelConfig = useMemo(
@@ -8,10 +8,11 @@ export function useReminderData(reminder: VehicleReminder | null) {
     [reminder]
   );
 
-  const remainingKm = useMemo(
-    () => (reminder ? reminder.targetOdometer - reminder.currentOdometer : 0),
-    [reminder]
-  );
+  const remainingKm = useMemo(() => {
+    if (!reminder) return 0;
+    if (typeof reminder.remainingKm === "number") return reminder.remainingKm;
+    return reminder.targetOdometer - reminder.currentOdometer;
+  }, [reminder]);
 
   const remainingPercent = useMemo(
     () => (reminder ? Math.max(0, Math.min(100, reminder.percentageRemaining)) : 0),

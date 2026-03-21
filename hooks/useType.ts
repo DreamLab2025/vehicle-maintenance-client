@@ -35,9 +35,7 @@ export function useTypes(params: TypeQueryParams, enabled: boolean = true) {
     isSuccess: data?.isSuccess,
   };
 }
-/**
- * Hook to fetch a single vehicle type by ID
- */
+
 // export function useType(typeId?: string) {
 //   return useQuery({
 //     queryKey: ["types", "detail", typeId],
@@ -51,9 +49,6 @@ export function useTypes(params: TypeQueryParams, enabled: boolean = true) {
 //   });
 // }
 
-/**
- * Hook to create a new vehicle type (Admin only)
- */
 export function useCreateType() {
   const queryClient = useQueryClient();
 
@@ -71,9 +66,6 @@ export function useCreateType() {
   });
 }
 
-/**
- * Hook to update an existing vehicle type (Admin only)
- */
 export function useUpdateType() {
   const queryClient = useQueryClient();
 
@@ -92,9 +84,6 @@ export function useUpdateType() {
   });
 }
 
-/**
- * Hook to delete a vehicle type (Admin only)
- */
 export function useDeleteType() {
   const queryClient = useQueryClient();
 

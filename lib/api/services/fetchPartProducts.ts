@@ -1,8 +1,6 @@
 /** ===== Types (match API response) ===== */
 import api8080Service from "../api8080Service";
-import type { RequestParams } from "../apiService";
-
-export type PartProductStatus = "Active" | "Inactive";
+import type { ApiItemResponse, ApiListResponse, ApiMutationResponse, PaginationMetadata, RequestParams } from "../apiService";
 
 export interface PartProduct {
   id: string;
@@ -15,40 +13,18 @@ export interface PartProduct {
   referencePrice: number;
   recommendedKmInterval: number;
   recommendedMonthsInterval: number;
-  status: PartProductStatus;
   createdAt: string;
   updatedAt: string | null;
 }
 
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-export interface ApiListResponse<T> {
-  isSuccess: boolean;
+export type UseProductsSelected = {
+  products: PartProduct[];
   message: string;
-  data: T[];
-  metadata: PaginationMetadata | null | string;
-}
-
-export interface ApiItemResponse<T> {
   isSuccess: boolean;
-  message: string;
-  data: T;
-  metadata: null | string;
-}
+  metadata: PaginationMetadata | null;
+};
 
-export interface ApiMutationResponse<T> {
-  isSuccess: boolean;
-  message: string;
-  data: T | string | null;
-  metadata: null | string;
-}
+
 
 /** Nếu backend CHƯA có paging/sort cho list by category thì cứ để optional */
 export interface PartProductListByCategoryParams extends RequestParams {
@@ -82,7 +58,7 @@ export interface UpdatePartProductRequest {
 
 /** ===== Service ===== */
 export const PartProductService = {
-  /** GET /api/v1/parts/products/category/{categoryId} */
+  /** GET /api/v1/part-products/category/{categoryId} */
   getProductsByCategory: async (categoryId: string, params?: { PageNumber?: number; PageSize?: number; IsDescending?: boolean }) => {
     const queryParams: Record<string, string> = {};
     if (params?.PageNumber !== undefined) {
@@ -96,42 +72,42 @@ export const PartProductService = {
     }
     
     const queryString = new URLSearchParams(queryParams).toString();
-    const url = `/api/v1/parts/products/category/${categoryId}${queryString ? `?${queryString}` : ''}`;
+    const url = `/api/v1/part-products/category/${categoryId}${queryString ? `?${queryString}` : ""}`;
     
     const res = await api8080Service.get<ApiListResponse<PartProduct>>(url);
     return res.data;
   },
 
-  /** GET /api/v1/parts/products/{id} */
+  /** GET /api/v1/part-products/{id} */
   getProductById: async (id: string) => {
     const res = await api8080Service.get<ApiItemResponse<PartProduct>>(
-      `/api/v1/parts/products/${id}`,
+      `/api/v1/part-products/${id}`,
     );
     return res.data;
   },
 
-  /** POST /api/v1/parts/products */
+  /** POST /api/v1/part-products */
   createProduct: async (payload: CreatePartProductRequest) => {
     const res = await api8080Service.post<ApiMutationResponse<PartProduct>>(
-      "/api/v1/parts/products",
+      "/api/v1/part-products",
       payload,
     );
     return res.data;
   },
 
-  /** PUT /api/v1/parts/products/{id} */
+  /** PUT /api/v1/part-products/{id} */
   updateProduct: async (id: string, payload: UpdatePartProductRequest) => {
     const res = await api8080Service.put<ApiMutationResponse<PartProduct>>(
-      `/api/v1/parts/products/${id}`,
+      `/api/v1/part-products/${id}`,
       payload,
     );
     return res.data;
   },
 
-  /** DELETE /api/v1/parts/products/{id} */
+  /** DELETE /api/v1/part-products/{id} */
   deleteProduct: async (id: string) => {
     const res = await api8080Service.delete<ApiMutationResponse<null>>(
-      `/api/v1/parts/products/${id}`,
+      `/api/v1/part-products/${id}`,
     );
     return res.data;
   },

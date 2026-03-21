@@ -1,4 +1,5 @@
 import api8080Service from "@/lib/api/api8080Service";
+import { PaginationMetadata } from "../apiService";
 
 // ===== Types =====
 export interface Brand {
@@ -12,20 +13,11 @@ export interface Brand {
   updatedAt: string | null;
 }
 
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
 export interface BrandListResponse {
   isSuccess: boolean;
   message: string;
   data: Brand[];
-  metadata: PaginationMetadata | null;
+  metadata: PaginationMetadata;
 }
 
 export interface BrandSingleResponse {
@@ -68,7 +60,13 @@ export const BrandService = {
 
   // 2. Lấy danh sách thương hiệu theo loại xe
   getBrandsByType: async (typeId: string) => {
-    const response = await api8080Service.get<BrandListResponse>(`/api/v1/brands/types/${typeId}`);
+    const response = await api8080Service.get<BrandListResponse>("/api/v1/brands", { typeId });
+    return response.data;
+  },
+
+  // 2b. Chi tiết thương hiệu
+  getBrandById: async (id: string) => {
+    const response = await api8080Service.get<BrandSingleResponse>(`/api/v1/brands/${id}`);
     return response.data;
   },
 
@@ -117,7 +115,7 @@ export const BrandService = {
       logoUrl?: string;
       website?: string;
       supportPhone?: string;
-    }
+    },
   ) => {
     const response = await api8080Service.put<BrandSingleResponse>(`/api/v1/brands/${id}`, payload);
     return response.data;

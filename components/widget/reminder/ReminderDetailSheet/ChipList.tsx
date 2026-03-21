@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChipListProps } from "./types";
 
 const colorSchemes = {
   amber: {
@@ -15,6 +14,13 @@ const colorSchemes = {
     badge: "text-red-600 bg-red-50",
   },
 };
+export interface ChipListProps {
+  title: string;
+  items: string[];
+  icon: React.ReactNode;
+  colorScheme: "amber" | "red";
+  count: number;
+}
 
 export function ChipList({ title, items, icon, colorScheme, count }: ChipListProps) {
   const colors = colorSchemes[colorScheme];

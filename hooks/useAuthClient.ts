@@ -2,23 +2,18 @@
 "use client";
 
 import { useState } from "react";
-import { fetchAuth } from "@/lib/api/services/fetchAuth";
+import { AuthService, VerifyOtpResult } from "@/lib/api/services/fetchAuth";
 import type { ApiError } from "@/lib/api/apiService";
 
 export function useAuthClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  interface VerifyOtpResult {
-    success: boolean;
-    error?: string;
-  }
-
   const verifyOtp = async (email: string, otpCode: string): Promise<VerifyOtpResult> => {
     setLoading(true);
     setError(null);
     try {
-      await fetchAuth.verifyOtp(email, otpCode);
+      await AuthService.verifyOtp(email, otpCode);
       setLoading(false);
       return { success: true };
     } catch (err: unknown) {

@@ -2,15 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import VariantService, {
   CreateVariantRequest,
   UpdateVariantRequest,
+  UseVariantsSelected,
   VariantListResponse,
   VehicleVariant,
 } from "@/lib/api/services/fetchVariants";
 
-type UseVariantsSelected = {
-  variants: VehicleVariant[];
-  message: string;
-  isSuccess: boolean;
-};
+
 
 export function useVariantsByModelId(vehicleModelId: string, enabled: boolean = true) {
   const query = useQuery<VariantListResponse, Error, UseVariantsSelected>({

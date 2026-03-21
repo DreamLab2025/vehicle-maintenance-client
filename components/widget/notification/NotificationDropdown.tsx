@@ -2,20 +2,9 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Bell,
-  ChevronRight,
-  CheckCircle2,
-  Zap,
-  Settings,
-  Package,
-  Car,
-  X,
-  Gauge,
-  ArrowDown,
-} from "lucide-react";
+import { Bell, ChevronRight, CheckCircle2, Zap, Settings, Package, Car, X, Gauge, ArrowDown } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { Notification } from "@/lib/types";
+import { Notification } from "@/lib/api/services/fetchNotification";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 import { useNotifications, useNotificationStatus, useMarkAsRead } from "@/hooks/useNotification";
 import { NotificationListSkeleton } from "@/components/ui/skeletons";
@@ -114,22 +103,26 @@ function NotificationItem({ notification, onPress, index }: NotificationItemProp
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2 mb-0.5">
-            <p className={`text-xs font-semibold truncate ${!notification.isRead ? "text-neutral-900" : "text-neutral-600"}`}>
+            <p
+              className={`text-xs font-semibold truncate ${!notification.isRead ? "text-neutral-900" : "text-neutral-600"}`}
+            >
               {notification.title}
             </p>
-            <span className="flex-shrink-0 text-xs text-neutral-400">
-              {formatTimeAgo(notification.createdAt)}
-            </span>
+            <span className="flex-shrink-0 text-xs text-neutral-400">{formatTimeAgo(notification.createdAt)}</span>
           </div>
 
-          <p className={`text-xs leading-relaxed line-clamp-2 ${!notification.isRead ? "text-neutral-600" : "text-neutral-400"}`}>
+          <p
+            className={`text-xs leading-relaxed line-clamp-2 ${!notification.isRead ? "text-neutral-600" : "text-neutral-400"}`}
+          >
             {notification.message}
           </p>
 
           {(notification.partName || notification.vehicleName) && (
             <div className="flex items-center gap-2 mt-2">
               {notification.partName && (
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${config.bgLight} ${config.iconColor}`}>
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${config.bgLight} ${config.iconColor}`}
+                >
                   <Package className="w-2.5 h-2.5" />
                   {notification.partName}
                 </span>
@@ -165,7 +158,7 @@ export default function NotificationDropdown() {
       PageSize: 15,
       IsDescending: true,
     },
-    isOpen // Only fetch when dropdown is open
+    isOpen, // Only fetch when dropdown is open
   );
 
   // Get unread count from status API
@@ -231,7 +224,7 @@ export default function NotificationDropdown() {
     if (!notification.isRead) {
       markAsRead(notification.id);
     }
-    
+
     // MaintenanceReminder (reminder type) → navigate to detail page
     if (notification.type === "reminder" && notification.level) {
       router.push(`/notifications/${notification.id}`);
@@ -366,9 +359,7 @@ export default function NotificationDropdown() {
                       className="flex items-center gap-2 text-neutral-400"
                     >
                       <ArrowDown className="w-4 h-4" />
-                      <span className="text-xs font-medium">
-                        {isRefreshing ? "Đang tải..." : "Kéo để làm mới"}
-                      </span>
+                      <span className="text-xs font-medium">{isRefreshing ? "Đang tải..." : "Kéo để làm mới"}</span>
                     </motion.div>
                   </motion.div>
                 )}

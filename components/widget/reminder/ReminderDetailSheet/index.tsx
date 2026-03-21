@@ -4,7 +4,6 @@ import { useRef } from "react";
 import { motion, AnimatePresence, useDragControls, PanInfo } from "framer-motion";
 import { AlertTriangle, Flame, ChevronRight } from "lucide-react";
 
-import { ReminderDetailSheetProps } from "./types";
 import { useReminderData } from "./hooks";
 import { CircularProgress } from "./CircularProgress";
 import { ReminderHeader } from "./ReminderHeader";
@@ -12,6 +11,7 @@ import { ReminderStats } from "./ReminderStats";
 import { ProgressBar } from "./ProgressBar";
 import { TimelineList } from "./TimelineList";
 import { ChipList } from "./ChipList";
+import { VehicleReminder } from "@/lib/api/services/fetchTrackingReminder";
 
 // Animation config
 const SHEET_ANIMATION = {
@@ -25,20 +25,16 @@ const DRAG_THRESHOLD = {
   offset: 80,
   velocity: 300,
 };
-
+export interface ReminderDetailSheetProps {
+  reminder: VehicleReminder | null;
+  onClose: () => void;
+}
 export function ReminderDetailSheet({ reminder, onClose }: ReminderDetailSheetProps) {
   const dragControls = useDragControls();
   const sheetRef = useRef<HTMLDivElement>(null);
 
-  const {
-    levelConfig,
-    remainingKm,
-    remainingPercent,
-    daysRemaining,
-    identificationSigns,
-    consequences,
-    statusText,
-  } = useReminderData(reminder);
+  const { levelConfig, remainingKm, remainingPercent, daysRemaining, identificationSigns, consequences, statusText } =
+    useReminderData(reminder);
 
   // Handle drag end - close if dragged down enough
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
@@ -81,10 +77,7 @@ export function ReminderDetailSheet({ reminder, onClose }: ReminderDetailSheetPr
             style={{ touchAction: "none" }}
           >
             {/* Handle - Drag area */}
-            <div
-              className="pt-3 pb-2 cursor-grab active:cursor-grabbing"
-              onPointerDown={(e) => dragControls.start(e)}
-            >
+            <div className="pt-3 pb-2 cursor-grab active:cursor-grabbing" onPointerDown={(e) => dragControls.start(e)}>
               <div className="w-10 h-1 bg-neutral-300 rounded-full mx-auto" />
             </div>
 
@@ -135,9 +128,7 @@ export function ReminderDetailSheet({ reminder, onClose }: ReminderDetailSheetPr
                 transition={{ delay: 0.1 }}
                 className="mb-4"
               >
-                <p className="text-[13px] text-neutral-600 leading-relaxed">
-                  {reminder.partCategory.description}
-                </p>
+                <p className="text-[13px] text-neutral-600 leading-relaxed">{reminder.partCategory.description}</p>
               </motion.div>
 
               {/* Identification Signs - Timeline style */}
