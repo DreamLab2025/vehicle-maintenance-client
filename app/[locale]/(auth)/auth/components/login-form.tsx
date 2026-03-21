@@ -1,22 +1,27 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { Eye, EyeOff, AlertCircle } from "lucide-react";
-import { useRouter } from "next/navigation"; // Thêm router để điều hướng
+import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useAuthContext } from "../../providers/AuthProvider";
+import { useIsMobile } from "@/hooks/useMobile";
 import fetchAuth from "@/lib/api/services/fetchAuth";
 
 export default function LoginForm() {
+  const { t } = useTranslation("auth");
   const router = useRouter();
-  const { login, loading: authLoading, error: authError } = useAuthContext();
+  const { login, loading: authLoading } = useAuthContext();
+  const isMobile = useIsMobile();
 
   // State cho form
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [showPw, setShowPw] = React.useState(false);
+  const [rememberMe, setRememberMe] = React.useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,14 +29,14 @@ export default function LoginForm() {
     const result = await login(email, password);
 
     if (!result.success) {
-      toast.error(result.error || "Đăng nhập thất bại");
+      toast.error(result.error || t("loginFailed"));
       return;
     }
 
     const meRes = await fetchAuth.me();
-    const roleRaw = meRes.data.data.roles?.[0]; // có thể là "2" hoặc 2 hoặc "Admin"
+    const roleRaw = meRes.data.data.roles?.[0];
 
-    const role = String(roleRaw); // ép về string cho chắc
+    const role = String(roleRaw);
     const to =
       role === "2" || role === "Admin"
         ? "/admin/dashboard"
@@ -43,50 +48,65 @@ export default function LoginForm() {
   };
 
   return (
-    <main className="h-[100dvh]  bg-white text-black flex flex-col overflow-hidden">
-      {/* Top hero image */}
-      <div className="relative flex-1 w-full min-h-[52vh]">
-        <Image
-          src="/images/login.jpg"
-          alt="Login hero"
-          fill
-          priority
-          className="object-cover"
-        />
-      </div>
+    <main
+      className={
+        isMobile
+          ? "h-[100dvh] bg-white text-black flex flex-col overflow-hidden"
+          : "w-full max-w-md"
+      }
+    >
+      {/* Mobile only: Top hero image */}
+      {isMobile && (
+        <div className="relative flex-1 w-full min-h-[52vh]">
+          <Image
+            src="/images/login.jpg"
+            alt="Login hero"
+            fill
+            priority
+            className="object-cover"
+          />
+        </div>
+      )}
 
-      {/* Bottom card */}
+      {/* Form card */}
       <div
-        className="
-          relative z-10
-          -mt-14
-          w-full max-w-md mx-auto
-          rounded-t-[32px]
-          bg-white
-          border-t border-white/10
-          shadow-[0_-30px_80px_rgba(0,0,0,0.6)]
-          px-6
-          pt-6
-          pb-[max(2.5rem,env(safe-area-inset-bottom))]
-        "
+        className={
+          isMobile
+            ? `
+              relative z-10
+              -mt-14
+              w-full max-w-md mx-auto
+              rounded-t-[32px]
+              bg-white
+              border-t border-white/10
+              shadow-[0_-30px_80px_rgba(0,0,0,0.6)]
+              px-6
+              pt-6
+              pb-[max(2.5rem,env(safe-area-inset-bottom))]
+            `
+            : "w-full"
+        }
       >
         <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {t("welcomeBack")}
+          </h1>
           <p className="text-sm text-gray-400">
-            Don’t have an account?{" "}
+            {t("dontHaveAccount")}{" "}
             <Link href="/register" className="text-red-500 hover:underline">
-              Sign up
+              {t("signUp")}
             </Link>
           </p>
         </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="text-xs text-gray-400 ">Email</label>
+            <label className="text-xs text-gray-400">{t("email")}</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@gmail.com"
+              placeholder={t("emailPlaceholder")}
               className="
                 mt-2 w-full rounded-2xl px-4 py-3
                 bg-white border border-gray-200
@@ -97,7 +117,7 @@ export default function LoginForm() {
           </div>
 
           <div>
-            <label className="text-xs text-gray-400">Password</label>
+            <label className="text-xs text-gray-400">{t("password")}</label>
             <div
               className="
                 mt-2 flex items-center gap-2
@@ -111,12 +131,12 @@ export default function LoginForm() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder={t("passwordPlaceholder")}
                 className="w-full bg-transparent outline-none placeholder:text-gray-500"
               />
               <button
                 type="button"
-                onClick={() => setShowPw((v) => !v)}
+                onClick={() => setShowPw((v: boolean) => !v)}
                 className="text-gray-400 hover:text-red-500 transition"
                 aria-label="Toggle password"
               >
@@ -131,15 +151,20 @@ export default function LoginForm() {
 
           <div className="flex items-center justify-between pt-1">
             <label className="flex items-center gap-2 text-sm text-gray-400">
-              <input type="checkbox" className="accent-red-500 w-4 h-4" />
-              Remember me
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="accent-red-500 w-4 h-4"
+              />
+              {t("rememberMe")}
             </label>
 
             <Link
               href="/forgot-password"
               className="text-sm text-red-500 hover:underline"
             >
-              Forgot Password?
+              {t("forgotPassword")}
             </Link>
           </div>
 
@@ -154,7 +179,7 @@ export default function LoginForm() {
               disabled:opacity-60 disabled:cursor-not-allowed
             "
           >
-            {authLoading ? "Đang xử lý..." : "Login"}
+            {authLoading ? t("loggingIn") : t("login")}
           </button>
         </form>
       </div>

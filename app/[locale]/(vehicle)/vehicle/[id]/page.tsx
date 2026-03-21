@@ -42,7 +42,8 @@ import { MaintenanceRecordsList } from "@/components/widget/maintenance/Maintena
 import { MaintenanceRecordDetailSheet } from "@/components/widget/maintenance/MaintenanceRecordDetailSheet";
 
 export default function VehicleDetailPage() {
-  const { t } = useTranslation();
+  const { t: tVehicle } = useTranslation("vehicle");
+  const { t: tCommon } = useTranslation("common");
   const params = useParams();
   const router = useRouter();
   const vehicleId = params.id as string;
@@ -207,16 +208,16 @@ export default function VehicleDetailPage() {
           <div className="h-screen flex flex-col items-center justify-center p-6">
             <AlertCircle className="h-16 w-16 text-gray-400 mb-4" />
             <h2 className="text-[15px] font-semibold text-gray-900 mb-2">
-              {t("vehicle.notFound")}
+              {tVehicle("notFound")}
             </h2>
             <p className="text-[13px] text-gray-600 text-center mb-6">
-              {t("vehicle.notFoundDesc")}
+              {tVehicle("notFoundDesc")}
             </p>
             <button
               onClick={() => router.push("/")}
               className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl font-semibold hover:from-red-600 hover:to-red-700 transition active:scale-95 text-[15px]"
             >
-              {t("common.goHome")}
+              {tCommon("goHome")}
             </button>
           </div>
         </div>
@@ -293,7 +294,7 @@ export default function VehicleDetailPage() {
             <div className="flex items-end justify-between">
               <div>
                 <p className="text-[13px] text-white/50 mb-1 font-normal">
-                  {vehicle.nickname || t("vehicle.myVehicle")}
+                  {vehicle.nickname || tVehicle("myVehicle")}
                 </p>
                 <h1 className="text-lg font-semibold text-white mb-0.5 leading-tight">
                   {vehicle.userVehicleVariant.model.brandName}
@@ -332,14 +333,14 @@ export default function VehicleDetailPage() {
             transition={{ delay: 0.4 }}
           >
             <h2 className="text-[15px] font-semibold text-gray-900 mb-3">
-              {t("vehicle.specifications")}
+              {tVehicle("specifications")}
             </h2>
             <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-2.5">
               {/* Stats Items */}
               <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <Gauge className="h-4 w-4 text-gray-400" />
-                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.odometer")}</span>
+                  <span className="text-[13px] text-semibold text-neutral-600">{tVehicle("odometer")}</span>
                 </div>
                 <span className="text-[13px] font-bold text-gray-900">
                   {vehicle.currentOdometer.toLocaleString("vi-VN")}
@@ -349,7 +350,7 @@ export default function VehicleDetailPage() {
               <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <TrendingUp className="h-4 w-4 text-gray-400" />
-                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.avgPerDay")}</span>
+                  <span className="text-[13px] text-semibold text-neutral-600">{tVehicle("avgPerDay")}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.averageKmPerDay || "_ _"}
@@ -359,7 +360,7 @@ export default function VehicleDetailPage() {
               <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.purchaseYear")}</span>
+                  <span className="text-[13px] text-semibold text-neutral-600">{tVehicle("purchaseYear")}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
                   {new Date(vehicle.purchaseDate).getFullYear()}
@@ -370,7 +371,7 @@ export default function VehicleDetailPage() {
               <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <Car className="h-4 w-4 text-gray-400" />
-                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.vehicleType")}</span>
+                  <span className="text-[13px] text-semibold text-neutral-600">{tVehicle("vehicleType")}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.userVehicleVariant.model.typeName}
@@ -380,7 +381,7 @@ export default function VehicleDetailPage() {
               <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <Fuel className="h-4 w-4 text-gray-400" />
-                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.fuelType")}</span>
+                  <span className="text-[13px] text-semibold text-neutral-600">{tVehicle("fuelType")}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.userVehicleVariant.model.fuelTypeName}
@@ -390,7 +391,7 @@ export default function VehicleDetailPage() {
               <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <SettingsIcon className="h-4 w-4 text-gray-400" />
-                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.transmission")}</span>
+                  <span className="text-[13px] text-semibold text-neutral-600">{tVehicle("transmission")}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.userVehicleVariant.model.transmissionTypeName}
@@ -400,7 +401,7 @@ export default function VehicleDetailPage() {
               <div className="flex items-center justify-between py-2.5 border-b border-gray-100">
                 <div className="flex items-center gap-3">
                   <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.manufactureYear")}</span>
+                  <span className="text-[13px] text-semibold text-neutral-600">{tVehicle("manufactureYear")}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
                   {vehicle.userVehicleVariant.model.releaseYear}
@@ -410,7 +411,7 @@ export default function VehicleDetailPage() {
               <div className="flex items-center justify-between py-2.5">
                 <div className="flex items-center gap-3">
                   <FileText className="h-4 w-4 text-gray-400" />
-                  <span className="text-[13px] text-semibold text-neutral-600">{t("vehicle.vinNumber")}</span>
+                  <span className="text-[13px] text-semibold text-neutral-600">{tVehicle("vinNumber")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[15px] font-mono text-gray-900 bg-gray-50 px-2 py-1 rounded">
@@ -418,13 +419,13 @@ export default function VehicleDetailPage() {
                       ? showVin
                         ? vehicle.vinNumber
                         : "•".repeat(vehicle.vinNumber.length)
-                      : t("vehicle.vinNotUpdated")}
+                      : tVehicle("vinNotUpdated")}
                   </span>
                   {vehicle.vinNumber && (
                     <button
                       onClick={() => setShowVin(!showVin)}
                       className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
-                      aria-label={showVin ? t("vehicle.hideVin") : t("vehicle.showVin")}
+                      aria-label={showVin ? tVehicle("hideVin") : tVehicle("showVin")}
                     >
                       {showVin ? (
                         <EyeOff className="h-4 w-4 text-gray-500" />
@@ -451,7 +452,7 @@ export default function VehicleDetailPage() {
             >
               <div className="flex items-center gap-2">
                 <h2 className="text-[15px] font-semibold text-gray-900">
-                  {t("vehicle.odometerHistory")}
+                  {tVehicle("odometerHistory")}
                 </h2>
                 <History className="h-4 w-4 text-red-500" />
               </div>
@@ -475,7 +476,7 @@ export default function VehicleDetailPage() {
                 >
                   <div>
                     {isLoadingHistory && currentPage === 1 ? (
-                      <LoadingSpinner text={t("vehicle.loadingHistory")} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8" />
+                      <LoadingSpinner text={tVehicle("loadingHistory")} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8" />
                     ) : allHistory.length > 0 ? (
                       <OdometerHistoryChart 
                         data={allHistory} 
@@ -487,7 +488,7 @@ export default function VehicleDetailPage() {
                     ) : (
                       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 flex flex-col items-center justify-center">
                         <History className="h-12 w-12 text-gray-300 mb-3" />
-                        <p className="text-[13px] text-gray-500">{t("vehicle.noHistory")}</p>
+                        <p className="text-[13px] text-gray-500">{tVehicle("noHistory")}</p>
                       </div>
                     )}
                   </div>
@@ -509,7 +510,7 @@ export default function VehicleDetailPage() {
             >
               <div className="flex items-center gap-2">
                 <h2 className="text-[15px] font-semibold text-gray-900">
-                  Lịch sử bảo dưỡng
+                  {tVehicle("maintenanceHistory")}
                 </h2>
                 <FileText className="h-4 w-4 text-red-500" />
               </div>
@@ -560,7 +561,7 @@ export default function VehicleDetailPage() {
               className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl p-4 font-bold transition flex items-center justify-center gap-2 shadow-lg shadow-red-500/25 active:scale-[0.98]"
             >
               <Gauge className="h-5 w-5 text-white" />
-              <span className="text-[15px]">{t("vehicle.updateOdometer")}</span>
+              <span className="text-[15px]">{tVehicle("updateOdometer")}</span>
             </button>
             <AlertDialog>
               <AlertDialogTrigger asChild>
@@ -571,12 +572,12 @@ export default function VehicleDetailPage() {
                   {isDeleting ? (
                     <>
                       <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-[15px]">Đang xóa...</span>
+                      <span className="text-[15px]">{tVehicle("deleting")}</span>
                     </>
                   ) : (
                     <>
                       <Trash2 className="h-5 w-5 text-gray-600" />
-                      <span className="text-[15px]">{t("vehicle.deleteVehicle")}</span>
+                      <span className="text-[15px]">{tVehicle("deleteVehicle")}</span>
                     </>
                   )}
                 </button>
@@ -584,14 +585,14 @@ export default function VehicleDetailPage() {
               <AlertDialogContent className="bg-white border border-gray-200 shadow-xl rounded-2xl p-6 max-w-sm w-[calc(100%-2rem)]">
                 <AlertDialogHeader className="space-y-3">
                   <AlertDialogTitle className="text-lg font-semibold text-gray-900">
-                    Xác nhận xóa xe
+                    {tVehicle("deleteConfirm")}
                   </AlertDialogTitle>
                   <AlertDialogDescription className="text-sm text-gray-600 leading-relaxed">
-                    Bạn có chắc chắn muốn xóa xe{" "}
+                    {tVehicle("deleteConfirmDesc")}{" "}
                     <strong className="text-gray-900 font-semibold">
                       {vehicle.nickname || vehicle.licensePlate}
                     </strong>
-                    ? Hành động này không thể hoàn tác. Tất cả dữ liệu liên quan đến xe này sẽ bị xóa vĩnh viễn.
+                    ? {tVehicle("deleteConfirmMessage")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter className="flex-col gap-2 sm:flex-col mt-6">
@@ -603,14 +604,14 @@ export default function VehicleDetailPage() {
                     {isDeleting ? (
                       <span className="flex items-center justify-center gap-2">
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Đang xóa...
+                        {tVehicle("deleting")}
                       </span>
                     ) : (
-                      "Xóa xe"
+                      tVehicle("deleteVehicle")
                     )}
                   </AlertDialogAction>
                   <AlertDialogCancel className="w-full border-gray-200 bg-white hover:bg-gray-50 text-gray-700 rounded-xl px-4 py-2.5 font-medium transition-colors mt-0">
-                    Hủy
+                    {tCommon("cancel")}
                   </AlertDialogCancel>
                 </AlertDialogFooter>
               </AlertDialogContent>

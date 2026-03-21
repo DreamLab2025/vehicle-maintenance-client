@@ -26,7 +26,7 @@ import { useTranslation } from "react-i18next";
 import { HomePageSkeleton, PartsGridSkeleton, ReminderListSkeleton } from "@/components/ui/skeletons";
 
 export default function Page() {
-  const { t } = useTranslation();
+  const { t } = useTranslation("home");
   const { vehicles, isLoading } = useUserVehicles({
     PageNumber: 1,
     PageSize: 10,
@@ -119,8 +119,8 @@ export default function Page() {
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center mb-3 shadow-lg shadow-red-500/20">
                       <Plus className="h-7 w-7 text-white" />
                     </div>
-                    <h2 className="text-base font-semibold text-neutral-900 mb-1">{t("home.addVehicle")}</h2>
-                    <p className="text-[13px] text-neutral-500 text-center">{t("home.addVehicleDesc")}</p>
+                    <h2 className="text-base font-semibold text-neutral-900 mb-1">{t("addVehicle")}</h2>
+                    <p className="text-[13px] text-neutral-500 text-center">{t("addVehicleDesc")}</p>
                   </div>
                 ) : (
                   // Vehicle Info Card
@@ -181,7 +181,7 @@ export default function Page() {
                       <div className="flex-1 bg-white/5 rounded-xl p-3">
                         <div className="flex items-center gap-1.5 text-white/40 text-[11px] mb-1">
                           <Gauge className="h-3 w-3" />
-                          {t("home.odometer")}
+                          {t("odometer")}
                         </div>
                         <p className="text-[17px] font-bold">
                           {currentVehicle ? `${(currentVehicle.currentOdometer.toLocaleString("vi-VN"))}` : "0"}
@@ -189,7 +189,7 @@ export default function Page() {
                       </div>
                       <div className="flex-1 bg-white/5 rounded-xl p-3">
                         <div className="flex items-center gap-1.5 text-white/40 text-[11px] mb-1">
-                          <MotorbikeIcon className="h-3 w-3" /> {t("home.avgPerDay")}
+                          <MotorbikeIcon className="h-3 w-3" /> {t("avgPerDay")}
                         </div>
                         <p className="text-[17px] font-bold">{currentVehicle?.averageKmPerDay || 45} km</p>
                       </div>
@@ -197,7 +197,7 @@ export default function Page() {
                         onClick={() => router.push(`/vehicle/${currentVehicle?.id}`)}
                         className="h-full px-4 py-3 bg-gradient-to-r from-[#a73f3f] to-[#fa230b] hover:opacity-90 rounded-xl flex items-center gap-1 transition-all"
                       >
-                        <span className="text-[13px] font-medium text-white">{t("home.detailButton")}</span>
+                        <span className="text-[13px] font-medium text-white">{t("detailButton")}</span>
                         <ChevronRight className="h-4 w-4 text-white" />
                       </button>
                     </div>
@@ -230,7 +230,7 @@ export default function Page() {
             className="flex items-center justify-between w-full mb-3 hover:opacity-80 transition-opacity"
           >
             <div className="flex items-center gap-2">
-              <h2 className="text-[15px] font-semibold text-neutral-900">{t("home.undeclaredParts")}</h2>
+              <h2 className="text-[15px] font-semibold text-neutral-900">{t("undeclaredParts")}</h2>
               {undeclaredParts.length > 0 && (
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-semibold">
                   {undeclaredParts.length}
@@ -261,8 +261,8 @@ export default function Page() {
               <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-3">
                 <Car className="h-6 w-6 text-neutral-400" />
               </div>
-              <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">{t("home.noVehicle")}</h3>
-              <p className="text-[12px] text-neutral-500">{t("home.noVehicleDesc")}</p>
+              <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">{t("noVehicle")}</h3>
+              <p className="text-[12px] text-neutral-500">{t("noVehicleDesc")}</p>
             </div>
           ) : isLoadingParts ? (
             <PartsGridSkeleton count={4} />
@@ -271,8 +271,8 @@ export default function Page() {
               <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mx-auto mb-3">
                 <CheckCircle2 className="h-6 w-6 text-green-500" />
               </div>
-              <h3 className="font-semibold text-green-800 text-[14px] mb-1">{t("home.allDeclared")}</h3>
-              <p className="text-[12px] text-green-600">{t("home.allDeclaredDesc")}</p>
+              <h3 className="font-semibold text-green-800 text-[14px] mb-1">{t("allDeclared")}</h3>
+              <p className="text-[12px] text-green-600">{t("allDeclaredDesc")}</p>
             </div>
           ) : (
             <div className="bg-white rounded-2xl p-3 shadow-sm">
@@ -318,7 +318,7 @@ export default function Page() {
         <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <h2 className="text-[15px] font-semibold text-neutral-900">{t("home.maintenanceReminders")}</h2>
+              <h2 className="text-[15px] font-semibold text-neutral-900">{t("maintenanceReminders")}</h2>
               {reminders.length > 0 && (
                 <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[11px] font-semibold">
                   {reminders.length}
@@ -332,8 +332,8 @@ export default function Page() {
               <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-3">
                 <Car className="h-6 w-6 text-neutral-400" />
               </div>
-              <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">{t("home.noVehicleForReminders")}</h3>
-              <p className="text-[12px] text-neutral-500">{t("home.noVehicleForRemindersDesc")}</p>
+              <h3 className="font-semibold text-neutral-700 text-[14px] mb-1">{t("noVehicleForReminders")}</h3>
+              <p className="text-[12px] text-neutral-500">{t("noVehicleForRemindersDesc")}</p>
             </div>
           ) : isLoadingReminders ? (
             <ReminderListSkeleton count={2} />
@@ -342,8 +342,8 @@ export default function Page() {
               <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center mx-auto mb-3">
                 <BellDotIcon className="h-6 w-6 text-neutral-400" />
               </div>
-              <h3 className="font-semibold text-neutral-900 text-[15px] mb-1">{t("home.noRemindersTitle")}</h3>
-              <p className="text-[13px] text-neutral-500">{t("home.noRemindersDesc2")}</p>
+              <h3 className="font-semibold text-neutral-900 text-[15px] mb-1">{t("noRemindersTitle")}</h3>
+              <p className="text-[13px] text-neutral-500">{t("noRemindersDesc2")}</p>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -464,7 +464,7 @@ export default function Page() {
                 {/* Badge */}
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[12px] font-semibold mb-4">
                   <AlertTriangle className="w-3.5 h-3.5" />
-                  {t("home.notDeclared")}
+                  {t("notDeclared")}
                 </span>
 
                 {/* Description */}
@@ -476,7 +476,7 @@ export default function Page() {
                   className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-red-500/25 active:scale-[0.98] transition-all"
                 >
                   <Plus className="h-5 w-5" />
-                  <span className="text-[15px]">{t("home.declarePart")}</span>
+                  <span className="text-[15px]">{t("declarePart")}</span>
                 </button>
               </div>
             </motion.div>

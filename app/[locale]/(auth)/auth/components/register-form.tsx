@@ -1,19 +1,23 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/useMobile";
 import { Eye, EyeOff, ChevronLeft, AlertCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function RegisterForm() {
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [showPw, setShowPw] = useState<boolean>(false);
+  const { t } = useTranslation("auth");
+  const [email, setEmail] = React.useState<string>("");
+  const [password, setPassword] = React.useState<string>("");
+  const [confirmPassword, setConfirmPassword] = React.useState<string>("");
+  const [showPw, setShowPw] = React.useState<boolean>(false);
 
+  const isMobile = useIsMobile();
   const { register, loading, error } = useAuth();
   const router = useRouter();
 
@@ -21,67 +25,83 @@ export default function RegisterForm() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
     const result = await register(email.trim(), password);
 
     if (result.success) {
-      toast.success("Register successful!");
+      toast.success(t("registerSuccess"));
       router.push(`/verifyotp?key=${encodeURIComponent(email.trim())}`);
     } else {
-      toast.error(result.error ?? "Register failed");
+      toast.error(result.error ?? t("registerFailed"));
     }
   };
 
   return (
-    <main className="h-[100dvh] bg-[#F8F9FA] text-black flex flex-col overflow-hidden font-sans">
-      {/* --- Header / Hero Area --- */}
-      <div className="relative h-[32vh] w-full shrink-0">
-        <Image
-          src="/images/login10.png"
-          alt="Register background"
-          fill
-          priority
-          className="object-cover"
-        />
-        {/* Subtle Gradient Overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent" />
+    <main
+      className={
+        isMobile
+          ? "h-[100dvh] bg-[#F8F9FA] text-black flex flex-col overflow-hidden font-sans"
+          : "w-full max-w-md"
+      }
+    >
+      {/* Mobile only: Header / Hero Area */}
+      {isMobile && (
+        <div className="relative h-[32vh] w-full shrink-0">
+          <Image
+            src="/images/login10.png"
+            alt="Register background"
+            fill
+            priority
+            className="object-cover"
+          />
+          {/* Subtle Gradient Overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent" />
 
-        {/* Native-style Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="absolute top-12 left-6 p-2.5 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 text-white active:scale-90 transition-all"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
+          {/* Native-style Back Button */}
+          <button
+            onClick={() => router.back()}
+            className="absolute top-12 left-6 p-2.5 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 text-white active:scale-90 transition-all"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
 
-        <div className="absolute bottom-14 left-8 text-white">
-          <h1 className="text-3xl font-bold tracking-tight">Create Account</h1>
+          <div className="absolute bottom-14 left-8 text-white">
+            <h1 className="text-3xl font-bold tracking-tight">
+              {t("createAccount")}
+            </h1>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* --- Bottom Sheet Card --- */}
+      {/* --- Form Card --- */}
       <div
-        className="
-          flex-1
-          relative z-10
-          -mt-10
-          w-full max-w-md mx-auto
-          rounded-t-[42px]
-          bg-white
-          shadow-[0_-15px_40px_rgba(0,0,0,0.08)]
-          px-8
-          pt-2
-          pb-[max(1.5rem,env(safe-area-inset-bottom))]
-          flex flex-col
-        "
+        className={
+          isMobile
+            ? `
+              flex-1
+              relative z-10
+              -mt-10
+              w-full max-w-md mx-auto
+              rounded-t-[42px]
+              bg-white
+              shadow-[0_-15px_40px_rgba(0,0,0,0.08)]
+              px-8
+              pt-2
+              pb-[max(1.5rem,env(safe-area-inset-bottom))]
+              flex flex-col
+            `
+            : "w-full"
+        }
       >
-        {/* Bottom Sheet Handle (UI affordance) */}
-        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-8" />
+        {/* Bottom Sheet Handle (Mobile only) */}
+        {isMobile && (
+          <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-8" />
+        )}
 
-        <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className={isMobile ? "flex-1 overflow-y-auto no-scrollbar" : ""}>
           {error && (
             <div className="mb-6 p-4 rounded-2xl bg-red-50 border-l-4 border-red-500 flex items-center gap-3 text-red-700 text-sm animate-in fade-in slide-in-from-top-1">
               <AlertCircle className="w-5 h-5 shrink-0" />
@@ -94,14 +114,14 @@ export default function RegisterForm() {
             <div className="space-y-4">
               <div className="group">
                 <label className="text-[13px] font-bold text-gray-400 ml-1 mb-1.5 block group-focus-within:text-red-500 transition-colors">
-                  EMAIL ADDRESS
+                  {t("email").toUpperCase()}
                 </label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="hello@example.com"
+                  placeholder={t("emailPlaceholder")}
                   className="
                     w-full rounded-2xl px-5 py-4
                     bg-gray-50 border border-gray-50
@@ -114,7 +134,7 @@ export default function RegisterForm() {
 
               <div className="group">
                 <label className="text-[13px] font-bold text-gray-400 ml-1 mb-1.5 block group-focus-within:text-red-500 transition-colors">
-                  PASSWORD
+                  {t("password").toUpperCase()}
                 </label>
                 <div className="relative">
                   <input
@@ -122,7 +142,7 @@ export default function RegisterForm() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder={t("passwordPlaceholder")}
                     className="
                       w-full rounded-2xl px-5 py-4
                       bg-gray-50 border border-gray-50
@@ -146,14 +166,14 @@ export default function RegisterForm() {
 
               <div className="group">
                 <label className="text-[13px] font-bold text-gray-400 ml-1 mb-1.5 block">
-                  CONFIRM PASSWORD
+                  {t("confirmPassword").toUpperCase()}
                 </label>
                 <input
                   type={showPw ? "text" : "password"}
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Repeat your password"
+                  placeholder={t("confirmPasswordPlaceholder")}
                   className={`
                     w-full rounded-2xl px-5 py-4
                     bg-gray-50 border border-transparent
@@ -186,7 +206,7 @@ export default function RegisterForm() {
                 {loading ? (
                   <Loader2 className="w-20 h-10 animate-spin" />
                 ) : (
-                  "Sign Up"
+                  t("signUp")
                 )}
               </button>
             </div>
@@ -194,12 +214,12 @@ export default function RegisterForm() {
             {/* Footer Links */}
             <div className="text-center mt-6 pb-2">
               <p className="text-sm text-gray-500">
-                Already have an account?{" "}
+                {t("alreadyHaveAccount")}{" "}
                 <Link
                   href="/login"
                   className="text-red-500 font-bold hover:underline"
                 >
-                  Sign In
+                  {t("signIn")}
                 </Link>
               </p>
             </div>

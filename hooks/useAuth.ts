@@ -9,8 +9,6 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import notificationHubService from "@/hubs/notificationHub";
 import api8080Service from "@/lib/api/api8080Service";
-import coreApiService from "@/lib/api/coreApiService";
-import authApiService from "@/lib/api/authApiService";
 import type { ApiError } from "@/lib/api/apiService";
 
 /* ===================== TYPES ===================== */
@@ -105,8 +103,6 @@ export function useAuth() {
 
       // ✅ SET TOKEN CHO TẤT CẢ API SERVICES
       api8080Service.setAuthToken(token);
-      coreApiService.setAuthToken(token);
-      authApiService.setAuthToken(token);
       setState({
         user,
         accessToken: token,
@@ -256,8 +252,6 @@ const resetPassword = async (
 
     // ✅ CLEAR TOKEN Ở TẤT CẢ API SERVICES
     api8080Service.setAuthToken(null);
-    coreApiService.setAuthToken(null);
-    authApiService.setAuthToken(null);
 
     // ✅ CLEAR REACT QUERY CACHE (xóa toàn bộ cache)
     queryClient.clear();
@@ -302,8 +296,6 @@ const resetPassword = async (
 
     // ✅ SET TOKEN CHO TẤT CẢ API SERVICES
     api8080Service.setAuthToken(token);
-    coreApiService.setAuthToken(token);
-    authApiService.setAuthToken(token);
     
     setState((s) => ({ ...s, accessToken: token }));
 

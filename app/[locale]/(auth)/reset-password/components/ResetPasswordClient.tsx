@@ -1,32 +1,34 @@
 "use client";
 
+import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 import { ChevronLeft, AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/useMobile";
 import InputOTPCustom from "@/components/customized/input-otp/input-otp";
 import { maskEmail } from "@/utils/email/maskEmail";
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const key = searchParams.get("key") ?? "";
+  const isMobile = useIsMobile();
 
   const email = useMemo(() => (key ? decodeURIComponent(key) : ""), [key]);
 
-  const { resetPassword, forgotPassword, loading, error, clearError } =
-    useAuth();
+  const { resetPassword, loading, error, clearError } = useAuth();
 
-  const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmNewPassword, setConfirmNewPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-
-  const [cooldown, setCooldown] = useState(0);
+  const [otp, setOtp] = React.useState("");
+  const [newPassword, setNewPassword] = React.useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = React.useState("");
+  const [showPw, setShowPw] = React.useState(false);
 
   useEffect(() => {
     clearError();
@@ -34,21 +36,15 @@ export default function ResetPasswordPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email]);
 
-  useEffect(() => {
-    if (cooldown <= 0) return;
-    const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
-  }, [cooldown]);
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (otp.length !== 6) {
-      toast.error("OTP must be 6 digits");
+      toast.error(t("passwordMinLength"));
       return;
     }
     if (newPassword !== confirmNewPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("passwordMismatch"));
       return;
     }
 
@@ -60,21 +56,11 @@ export default function ResetPasswordPage() {
     );
 
     if (result.success) {
-      toast.success(result.message ?? "Reset password successful!");
+      toast.success(t("resetPasswordSuccess"));
       router.push("/login");
     } else {
-      toast.error(result.error ?? "Reset password failed");
+      toast.error(result.error ?? t("resetPasswordFailed"));
     }
-  };
-
-  const handleResendOtp = async () => {
-    if (cooldown > 0 || loading) return;
-    setOtp("");
-    setCooldown(60);
-
-    const result = await forgotPassword(email);
-    if (result.success) toast.success(result.message ?? "OTP resent!");
-    else toast.error(result.error ?? "Resend OTP failed");
   };
 
   if (!email) return null;
@@ -83,47 +69,64 @@ export default function ResetPasswordPage() {
     confirmNewPassword && newPassword !== confirmNewPassword;
 
   return (
-    <main className="h-[100dvh] bg-[#F8F9FA] text-black flex flex-col overflow-hidden font-sans">
-      {/* Header / Hero */}
-      <div className="relative h-[32vh] w-full shrink-0">
-        <Image
-          src="/images/login10.png"
-          alt="Reset background"
-          fill
-          priority
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent" />
+    <main
+      className={
+        isMobile
+          ? "h-[100dvh] bg-[#F8F9FA] text-black flex flex-col overflow-hidden font-sans"
+          : "w-full max-w-md"
+      }
+    >
+      {/* Mobile only: Header / Hero */}
+      {isMobile && (
+        <div className="relative h-[32vh] w-full shrink-0">
+          <Image
+            src="/images/login10.png"
+            alt="Reset background"
+            fill
+            priority
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent" />
 
-        <button
-          onClick={() => router.back()}
-          className="absolute top-12 left-6 p-2.5 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 text-white active:scale-90 transition-all"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
+          <button
+            onClick={() => router.back()}
+            className="absolute top-12 left-6 p-2.5 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 text-white active:scale-90 transition-all"
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
 
-        <div className="absolute bottom-14 left-8 text-white">
-          <h1 className="text-3xl font-bold tracking-tight">Reset Password</h1>
-          <p className="text-sm text-white/80 mt-1">
-            Code sent to{" "}
-            <span className="font-semibold">{maskEmail(email)}</span>
-          </p>
+          <div className="absolute bottom-14 left-8 text-white">
+            <h1 className="text-3xl font-bold tracking-tight">
+              {t("resetPasswordTitle")}
+            </h1>
+            <p className="text-sm text-white/80 mt-1">
+              {t("codeSentTo")}{" "}
+              <span className="font-semibold">{maskEmail(email)}</span>
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Bottom Sheet Card */}
+      {/* Form Card */}
       <div
-        className="
-          flex-1 relative z-10 -mt-10
-          w-full max-w-md mx-auto rounded-t-[42px]
-          bg-white shadow-[0_-15px_40px_rgba(0,0,0,0.08)]
-          px-8 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]
-          flex flex-col
-        "
+        className={
+          isMobile
+            ? `
+              flex-1 relative z-10 -mt-10
+              w-full max-w-md mx-auto rounded-t-[42px]
+              bg-white shadow-[0_-15px_40px_rgba(0,0,0,0.08)]
+              px-8 pt-2 pb-[max(1.5rem,env(safe-area-inset-bottom))]
+              flex flex-col
+            `
+            : "w-full"
+        }
       >
-        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-8" />
+        {/* Bottom Sheet Handle (Mobile only) */}
+        {isMobile && (
+          <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-8" />
+        )}
 
-        <div className="flex-1 overflow-y-auto no-scrollbar">
+        <div className={isMobile ? "flex-1 overflow-y-auto no-scrollbar" : ""}>
           {error && (
             <div className="mb-6 p-4 rounded-2xl bg-red-50 border-l-4 border-red-500 flex items-center gap-3 text-red-700 text-sm animate-in fade-in slide-in-from-top-1">
               <AlertCircle className="w-5 h-5 shrink-0" />
@@ -147,23 +150,12 @@ export default function ResetPasswordPage() {
                   autoFocus
                 />
               </div>
-
-              {/* <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleResendOtp}
-                  disabled={cooldown > 0 || loading}
-                  className="text-sm font-bold text-red-500 disabled:opacity-60"
-                >
-                  {cooldown > 0 ? `Resend (${cooldown}s)` : "Resend code"}
-                </button>
-              </div> */}
             </div>
 
             {/* New Password */}
             <div className="group">
               <label className="text-[13px] font-bold text-gray-400 ml-1 mb-1.5 block group-focus-within:text-red-500 transition-colors">
-                NEW PASSWORD
+                {t("newPassword").toUpperCase()}
               </label>
               <div className="relative">
                 <input
@@ -171,7 +163,7 @@ export default function ResetPasswordPage() {
                   required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  placeholder={t("newPasswordPlaceholder")}
                   className="
                     w-full rounded-2xl px-5 py-4
                     bg-gray-50 border border-gray-50
@@ -196,7 +188,7 @@ export default function ResetPasswordPage() {
             {/* Confirm Password */}
             <div className="group">
               <label className="text-[13px] font-bold text-gray-400 ml-1 mb-1.5 block">
-                CONFIRM NEW PASSWORD
+                {t("confirmNewPassword").toUpperCase()}
               </label>
 
               <input
@@ -204,7 +196,7 @@ export default function ResetPasswordPage() {
                 required
                 value={confirmNewPassword}
                 onChange={(e) => setConfirmNewPassword(e.target.value)}
-                placeholder="Repeat new password"
+                placeholder={t("confirmNewPasswordPlaceholder")}
                 className={`
                   w-full rounded-2xl px-5 py-4
                   bg-gray-50 border border-transparent
@@ -215,7 +207,7 @@ export default function ResetPasswordPage() {
 
               {confirmMismatch && (
                 <p className="text-xs text-red-500 mt-2 ml-1">
-                  Passwords do not match
+                  {t("passwordMismatch")}
                 </p>
               )}
             </div>
@@ -238,26 +230,26 @@ export default function ResetPasswordPage() {
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  "Reset Password"
+                  t("resetPasswordTitle")
                 )}
               </button>
             </div>
 
             <div className="text-center mt-6 pb-2">
               <p className="text-sm text-gray-500">
-                Back to{" "}
+                {t("back")}{" "}
                 <Link
                   href="/login"
                   className="text-red-500 font-bold hover:underline"
                 >
-                  Sign In
+                  {t("signIn")}
                 </Link>{" "}
-                or{" "}
+                {t("back")}{" "}
                 <Link
                   href="/forgot-password"
                   className="text-red-500 font-bold hover:underline"
                 >
-                  try another email
+                  {t("tryAnotherEmail")}
                 </Link>
               </p>
             </div>

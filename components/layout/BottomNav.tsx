@@ -3,38 +3,33 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, LayoutGroup } from "framer-motion";
-import { Home, Car, Settings, User, Map, Bell, Wrench, type LucideIcon } from "lucide-react";
+import { Home, Bell, Wrench, type LucideIcon } from "lucide-react";
 import { useNotificationStatus } from "@/hooks/useNotification";
+import { useTranslation } from "react-i18next";
 
 interface NavItem {
   href: string;
   Icon: LucideIcon;
-  label: string;
+  labelKey: string;
   hasBadge?: boolean;
 }
 
-const items: NavItem[] = [
-  { href: "/", Icon: Home, label: "Trang chủ" },
-  { href: "/maintenance", Icon: Wrench, label: "Thay phụ tùng" },
-  { href: "/notifications", Icon: Bell, label: "Thông báo", hasBadge: true },
-  // { href: "/profile", Icon: User, label: "Tài khoản" },
-];
-
-function normalizePath(p: string) {
-  const clean = p.split("?")[0].split("#")[0];
-  if (clean !== "/" && clean.endsWith("/")) return clean.slice(0, -1);
-  return clean;
-}
-
 export default function BottomNav() {
+  const { t } = useTranslation("nav");
   const pathnameRaw = usePathname() || "/";
-  const pathname = normalizePath(pathnameRaw);
+  const pathname = pathnameRaw.split("?")[0].split("#")[0].replace(/\/$/, "") || "/";
 
   const { unReadCount } = useNotificationStatus();
 
+  const items: NavItem[] = [
+    { href: "/", Icon: Home, labelKey: "home" },
+    { href: "/maintenance", Icon: Wrench, labelKey: "maintenance" },
+    { href: "/notifications", Icon: Bell, labelKey: "notifications", hasBadge: true },
+  ];
+
   const isActive = (href: string) => {
-    const h = normalizePath(href);
-    if (h === "/") return pathname === "/";
+    const h = href.replace(/\/$/, "") || "/";
+    if (h === "/") return pathname === "/" || pathname === "";
     return pathname === h || pathname.startsWith(h + "/");
   };
 
@@ -43,7 +38,7 @@ export default function BottomNav() {
       <div className="bg-white/80 backdrop-blur-xl border-t border-slate-100">
         <LayoutGroup id="bottom-nav">
           <div className="flex items-center justify-around px-2 py-2 max-w-md mx-auto">
-            {items.map(({ href, Icon, label, hasBadge }) => {
+            {items.map(({ href, Icon, labelKey, hasBadge }) => {
               const active = isActive(href);
               const showBadge = hasBadge && unReadCount > 0;
 
@@ -77,7 +72,7 @@ export default function BottomNav() {
                         active ? "text-red-500" : "text-slate-400"
                       }`}
                     >
-                      {label}
+                      {t(labelKey)}
                     </span>
                   </motion.div>
                 </Link>

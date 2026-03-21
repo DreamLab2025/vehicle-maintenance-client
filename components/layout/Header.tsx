@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LogOut, User, ChevronDown, Globe, Check } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useTranslation } from "react-i18next";
 
 export default function Header() {
@@ -15,69 +15,45 @@ export default function Header() {
   const languagePopupRef = useRef<HTMLDivElement>(null);
   const { user, loading, logout, initAuthFromStorage } = useAuth();
   const router = useRouter();
-  const { t, i18n } = useTranslation();
+  const pathname = usePathname();
+  const { t, i18n } = useTranslation("common");
   const [currentLanguage, setCurrentLanguage] = useState(i18n.language || "vi");
-  const [, forceUpdate] = useState({});
-  
+
   const languages = [
     { code: "vi", name: "Tiếng Việt", nativeName: "Tiếng Việt" },
     { code: "en", name: "English", nativeName: "English" },
   ];
-  
+
   // Sync current language with i18n
   useEffect(() => {
     setCurrentLanguage(i18n.language || "vi");
   }, [i18n.language]);
-  
-  // Listen for language changes
-  useEffect(() => {
-    const handleLanguageChange = (lng: string) => {
-      setCurrentLanguage(lng);
-      forceUpdate({}); // Force re-render
-    };
-    
-    i18n.on("languageChanged", handleLanguageChange);
-    
-    return () => {
-      i18n.off("languageChanged", handleLanguageChange);
-    };
-  }, [i18n]);
-  
+
   const changeLanguage = (langCode: string) => {
-    console.log("Changing language to:", langCode);
-    console.log("Current i18n language before:", i18n.language);
-    
-    // Change language - this is async but we handle it
-    i18n.changeLanguage(langCode).then(() => {
-      console.log("Language changed successfully to:", i18n.language);
-      setCurrentLanguage(i18n.language || langCode);
+    if (langCode === currentLanguage) {
       setLanguagePopupOpen(false);
       setDropdownOpen(false);
-      forceUpdate({});
-      
-      // Force re-render by dispatching custom event
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("languagechange", { detail: { language: langCode } }));
-        // Also trigger a storage event to notify other tabs/windows
-        localStorage.setItem("i18nextLng", langCode);
-      }
-    }).catch((error) => {
-      console.error("Error changing language:", error);
-      // Fallback: try direct change
-      i18n.changeLanguage(langCode);
-      setCurrentLanguage(langCode);
-      setLanguagePopupOpen(false);
-      setDropdownOpen(false);
-      forceUpdate({});
-      
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("languagechange", { detail: { language: langCode } }));
-        localStorage.setItem("i18nextLng", langCode);
-      }
-    });
-    
-    // Also update state immediately for UI feedback
+      return;
+    }
+
+    // Update URL locale: /vi/page -> /en/page or /en/page -> /vi/page
+    const segments = pathname.split("/");
+    // segments[0] = "", segments[1] = locale, segments[2...] = rest
+    if (segments[1] === "vi" || segments[1] === "en") {
+      segments[1] = langCode;
+    }
+    const newPath = segments.join("/");
+
+    // Change language
+    i18n.changeLanguage(langCode);
     setCurrentLanguage(langCode);
+
+    // Update URL
+    router.replace(newPath);
+
+    // Close popups
+    setLanguagePopupOpen(false);
+    setDropdownOpen(false);
   };
 
   useEffect(() => {
@@ -87,38 +63,35 @@ export default function Header() {
 
   useEffect(() => {
     if (!languagePopupOpen) return;
-    
+
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      
-      // Close language popup if clicking outside
+
       if (
         languagePopupRef.current &&
         !languagePopupRef.current.contains(target)
       ) {
-        // Check if click is on the language button
         const clickedElement = event.target as HTMLElement;
-        const languageButton = clickedElement.closest('button');
+        const languageButton = clickedElement.closest("button");
         const buttonParent = languageButton?.parentElement;
-        const isLanguageButton = buttonParent?.querySelector('[class*="Globe"]') !== null;
-        
+        const isLanguageButton =
+          buttonParent?.querySelector("[class*='Globe']") !== null;
+
         if (!isLanguageButton) {
           setLanguagePopupOpen(false);
         }
       }
-      
-      // Close dropdown if clicking outside
+
       if (dropdownRef.current && !dropdownRef.current.contains(target)) {
         setDropdownOpen(false);
         setLanguagePopupOpen(false);
       }
     }
-    
-    // Add small delay to avoid immediate closing
+
     const timeoutId = setTimeout(() => {
       document.addEventListener("mousedown", handleClickOutside);
     }, 10);
-    
+
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener("mousedown", handleClickOutside);
@@ -153,10 +126,10 @@ export default function Header() {
                 </div>
                 <div className="text-left hidden sm:block">
                   <p className="text-[13px] font-semibold text-neutral-900 leading-tight">
-                    {user.userName || "Xin chào"}
+                    {user.userName || t("greeting", { defaultValue: "Xin chào" })}
                   </p>
                   <p className="text-[11px] text-neutral-400 flex items-center gap-0.5">
-                    {t("common.account")}
+                    {t("account")}
                     <ChevronDown
                       className={`h-3 w-3 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
                     />
@@ -176,13 +149,13 @@ export default function Header() {
                     <div className="py-1">
                       <button
                         onClick={() => {
-                          router.push("/profile");
+                          router.push(`/${currentLanguage}/profile`);
                           setDropdownOpen(false);
                         }}
                         className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] text-neutral-700 hover:bg-neutral-50 transition-colors"
                       >
                         <User className="w-4 h-4 text-neutral-400" />
-                        {t("common.profile")}
+                        {t("profile")}
                       </button>
                       <div className="mx-3 border-t border-neutral-100" />
                       <div className="relative">
@@ -195,13 +168,13 @@ export default function Header() {
                         >
                           <div className="flex items-center gap-2.5">
                             <Globe className="w-4 h-4 text-neutral-400" />
-                            <span>{t("common.language") || "Ngôn ngữ"}</span>
+                            <span>{t("language") || "Ngôn ngữ"}</span>
                           </div>
                           <span className="text-xs font-semibold text-red-600">
                             {currentLanguage === "vi" ? "VI" : "EN"}
                           </span>
                         </button>
-                        
+
                         {/* Language Selection Popup */}
                         <AnimatePresence>
                           {languagePopupOpen && (
@@ -213,7 +186,7 @@ export default function Header() {
                               transition={{ duration: 0.15 }}
                               onClick={(e) => e.stopPropagation()}
                               className="absolute left-full ml-1 top-0 w-44 rounded-xl bg-white shadow-2xl shadow-neutral-300/60 border border-neutral-200 overflow-hidden z-[100]"
-                              style={{ minWidth: '176px' }}
+                              style={{ minWidth: "176px" }}
                             >
                               <div className="py-1">
                                 {languages.map((lang) => (
@@ -223,8 +196,6 @@ export default function Header() {
                                     onClick={(e) => {
                                       e.preventDefault();
                                       e.stopPropagation();
-                                      console.log("Button clicked for:", lang.code);
-                                      console.log("Current language before change:", currentLanguage);
                                       changeLanguage(lang.code);
                                     }}
                                     className={`flex items-center justify-between gap-2 w-full px-4 py-2.5 text-[13px] transition-all ${
@@ -233,9 +204,14 @@ export default function Header() {
                                         : "text-neutral-700 hover:bg-neutral-50"
                                     }`}
                                   >
-                                    <span className="flex-1 text-left">{lang.nativeName}</span>
+                                    <span className="flex-1 text-left">
+                                      {lang.nativeName}
+                                    </span>
                                     {currentLanguage === lang.code && (
-                                      <Check className="w-4 h-4 text-red-600 flex-shrink-0" strokeWidth={3} />
+                                      <Check
+                                        className="w-4 h-4 text-red-600 flex-shrink-0"
+                                        strokeWidth={3}
+                                      />
                                     )}
                                   </button>
                                 ))}
@@ -253,7 +229,7 @@ export default function Header() {
                         className="flex items-center gap-2.5 w-full px-3.5 py-2.5 text-[13px] text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
-                        {t("common.logout")}
+                        {t("logout")}
                       </button>
                     </div>
                   </motion.div>
@@ -262,12 +238,12 @@ export default function Header() {
             </>
           ) : (
             <motion.button
-              onClick={() => router.push("/login")}
+              onClick={() => router.push(`/${currentLanguage}/login`)}
               whileTap={{ scale: 0.97 }}
               className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-500 text-white text-[13px] font-medium"
             >
               <User className="w-4 h-4" />
-              {t("common.login")}
+              {t("login")}
             </motion.button>
           )}
         </div>

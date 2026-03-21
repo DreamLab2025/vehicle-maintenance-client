@@ -1,6 +1,5 @@
 // lib/api/services/fetchAuth.ts
 import api8080Service from "@/lib/api/api8080Service";
-import authApiService from "../authApiService";
 
 /* ===================== RESPONSE TYPES ===================== */
 
