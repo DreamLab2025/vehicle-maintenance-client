@@ -1,5 +1,5 @@
 import api8080Service from "../api8080Service";
-import { RequestParams } from "../apiService";
+import { PaginationMetadata, RequestParams } from "../apiService";
 
 export interface VehicleType {
   id: string;
@@ -7,15 +7,6 @@ export interface VehicleType {
   description: string | null;
   createdAt: string;
   updatedAt: string | null;
-}
-
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
 }
 
 export interface TypeListResponse {
@@ -29,22 +20,6 @@ export interface TypeQueryParams extends RequestParams {
   PageNumber?: number;
   PageSize?: number;
   IsDescending?: boolean;
-}
-
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-export interface TypeListResponse {
-  isSuccess: boolean;
-  message: string;
-  data: VehicleType[];
-  metadata: PaginationMetadata;
 }
 
 export interface TypeCreatePayload {
@@ -73,6 +48,11 @@ export interface TypeDeleteResponse {
 export const TypeService = {
   getTypes: async (params: TypeQueryParams) => {
     const response = await api8080Service.get<TypeListResponse>("/api/v1/types", params);
+    return response.data;
+  },
+
+  getTypeById: async (id: string) => {
+    const response = await api8080Service.get<TypeSingleResponse>(`/api/v1/types/${id}`);
     return response.data;
   },
   createType: async (payload: TypeCreatePayload) => {

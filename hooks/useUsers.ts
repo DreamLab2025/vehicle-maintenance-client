@@ -1,26 +1,14 @@
-// src/hooks/useUsers.ts
 import { useQuery } from "@tanstack/react-query";
 import UserService, {
   UserDetailResponse,
   UsersListResponse,
   UsersQueryParams,
+  UseUsersSelected,
 } from "@/lib/api/services/fetchUsers";
-
-type UseUsersSelected = {
-  users: UsersListResponse["data"];
-  metadata: UsersListResponse["metadata"];
-  message: UsersListResponse["message"];
-  isSuccess: UsersListResponse["isSuccess"];
-};
-
-function stableUsersKey(params: UsersQueryParams) {
-  // đảm bảo queryKey ổn định (tránh object reference)
-  return ["users", "list", JSON.stringify(params)] as const;
-}
 
 export function useUsers(params: UsersQueryParams, enabled = true) {
   const query = useQuery<UsersListResponse, Error, UseUsersSelected>({
-    queryKey: stableUsersKey(params),
+    queryKey: ["users", "list", JSON.stringify(params)],
     queryFn: () => UserService.getUsers(params),
     enabled: enabled && params.PageNumber > 0 && params.PageSize > 0,
     select: (data) => ({

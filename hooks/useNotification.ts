@@ -1,21 +1,15 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
-import NotificationService, { NotificationQueryParams } from "@/lib/api/services/notification.service";
-import {
-  NotificationStatusResponse,
-  InAppNotificationPayload,
-  NotificationListResponse,
-  NotificationDetailResponse,
-  MarkAsReadResponse,
-  mapApiNotificationToNotification,
-} from "@/lib/types/notification.types";
+import NotificationService, { ApiNotification, InAppNotificationPayload, MarkAsReadResponse, NotificationDetailResponse, NotificationListResponse, NotificationQueryParams, NotificationStatusResponse, NotificationType } from "@/lib/api/services/fetchNotification";
+
 import notificationHubService from "@/hubs/notificationHub";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
+import { ReminderLevel } from "@/lib/api/services/fetchTrackingReminder";
+import { Notification } from "@/lib/api/services/fetchNotification";
 
-/**
- * Hook to get notification status (unread count)
- */
+
+
 export function useNotificationStatus(enabled: boolean = true) {
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["notifications", "status"],
@@ -43,10 +37,6 @@ export function useNotificationStatus(enabled: boolean = true) {
   };
 }
 
-/**
- * Hook to invalidate notification status cache
- * Useful when a notification is marked as read or new notification arrives
- */
 export function useInvalidateNotificationStatus() {
   const queryClient = useQueryClient();
 
@@ -55,9 +45,6 @@ export function useInvalidateNotificationStatus() {
   };
 }
 
-/**
- * Hook to get notification list with pagination
- */
 export function useNotifications(params: NotificationQueryParams, enabled: boolean = true) {
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["notifications", "list", params],
@@ -84,9 +71,34 @@ export function useNotifications(params: NotificationQueryParams, enabled: boole
   };
 }
 
-/**
- * Hook to get notification detail by ID
- */
+export function mapApiNotificationToNotification(apiNotif: ApiNotification): Notification {
+
+  let type: NotificationType = "system";
+  if (apiNotif.entityType === "MaintenanceReminder") {
+    type = "reminder";
+  } else if (apiNotif.entityType === "OdometerReminder") {
+    type = "odometer_update";
+  }
+  const level = type === "reminder" ? (apiNotif.priority as ReminderLevel) : undefined;
+  const reminderId = type === "reminder" ? apiNotif.entityId : undefined;
+  const userVehicleId = type === "odometer_update" ? apiNotif.entityId : undefined;
+  const vehicleId = type === "odometer_update" ? apiNotif.entityId : undefined;
+
+  return {
+    id: apiNotif.id ,
+    type,
+    title: apiNotif.title,
+    message: apiNotif.message,
+    level,
+    reminderId,
+    vehicleId,
+    userVehicleId,
+    isRead: apiNotif.isRead,
+    createdAt: apiNotif.createdAt,
+    actionUrl: apiNotif.actionUrl || undefined,
+  };
+}
+
 export function useNotificationById(id: string | undefined, enabled: boolean = true) {
   const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ["notifications", "detail", id],
@@ -115,10 +127,6 @@ export function useNotificationById(id: string | undefined, enabled: boolean = t
   };
 }
 
-/**
- * Hook to set up SignalR notification listener
- * This should be called in a component that has access to React Query
- */
 export function useNotificationListener() {
   const queryClient = useQueryClient();
   const { accessToken } = useAuth();
@@ -189,9 +197,6 @@ export function useNotificationListener() {
   }, [accessToken, queryClient]);
 }
 
-/**
- * Hook to mark all notifications as read
- */
 export function useMarkAllAsRead() {
   const queryClient = useQueryClient();
 
@@ -201,7 +206,7 @@ export function useMarkAllAsRead() {
       // Invalidate notification status and list to refresh
       queryClient.invalidateQueries({ queryKey: ["notifications", "status"] });
       queryClient.invalidateQueries({ queryKey: ["notifications", "list"] });
-      
+
       if (data.isSuccess) {
         toast.success(`Đã đánh dấu ${data.data} thông báo là đã đọc`);
       } else {
@@ -214,9 +219,6 @@ export function useMarkAllAsRead() {
   });
 }
 
-/**
- * Hook to mark a single notification as read
- */
 export function useMarkAsRead() {
   const queryClient = useQueryClient();
 

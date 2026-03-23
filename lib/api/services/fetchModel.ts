@@ -1,11 +1,9 @@
-/** ===== Types (match API response) ===== */
 
 import api8080Service from "../api8080Service";
-import { RequestParams } from "../apiService";
+import { PaginationMetadata, RequestParams } from "../apiService";
 
-export type TransmissionType = "Manual" | "Automatic" | "Sport" | "ManualCar" | "AutomaticCar" | "Electric";
+export type TransmissionType = "Manual" | "Automatic" | "Sport" | "Electric";
 
-/** API trả về field tên là `variants` (không phải availableColors) */
 export interface VehicleModelVariant {
   id: string;
   vehicleModelId: string;
@@ -19,44 +17,47 @@ export interface VehicleModelVariant {
 export interface VehicleModel {
   id: string;
   name: string;
-
   brandId: string;
   brandName: string;
-
   typeId: string;
   typeName: string;
-
   releaseYear: number;
-
   fuelType: number;
   fuelTypeName: string;
-
   transmissionType: number;
   transmissionTypeName: string;
-
   engineDisplacementDisplay: string | null;
   engineCapacity: number | null;
-  oilCapacity: number | null;
-
-  tireSizeFront: string | null;
-  tireSizeRear: string | null;
-
+  // oilCapacity: number | null;
+  // tireSizeFront: string | null;
+  // tireSizeRear: string | null;
   createdAt: string;
   updatedAt: string | null;
-
-  variants: VehicleModelVariant[];
-
-  imageUrl?: string | null;
 }
 
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
+// export interface VehicleModel {
+//   id: string;
+//   name: string;
+//   brandId: string;
+//   brandName: string;
+//   typeId: string;
+//   typeName: string;
+//   releaseYear: number;
+//   fuelType: number;
+//   fuelTypeName: string;
+//   transmissionType: number;
+//   transmissionTypeName: string;
+//   engineDisplacementDisplay: string | null;
+//   engineCapacity: number | null;
+//   oilCapacity: number | null;
+//   tireSizeFront: string | null;
+//   tireSizeRear: string | null;
+//   createdAt: string;
+//   updatedAt: string | null;
+//   variants: VehicleModelVariant[]; 
+//   imageUrl?: string | null;
+// }
+
 
 export interface ModelListResponse {
   isSuccess: boolean;
@@ -128,12 +129,13 @@ export interface ModelMutationResponse {
   data: VehicleModel | null;
   metadata: null;
 }
-/** ===== Service ===== */
+
+
 
 export const ModelService = {
   getModels: async (params: ModelQueryParams) => {
     const response = await api8080Service.get<ModelListResponse>("/api/v1/models", params);
-    return response.data; // full payload: { isSuccess, message, data, metadata }
+    return response.data;
   },
   getModelById: async (id: string) => {
     const response = await api8080Service.get<ModelDetailResponse>(`/api/v1/models/${id}`);

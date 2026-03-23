@@ -1,4 +1,5 @@
 import api8080Service from "../api8080Service";
+import { VehicleModel } from "./fetchModel";
 
 /** ===== Types (match API response) ===== */
 
@@ -11,14 +12,27 @@ export interface VehicleVariant {
   createdAt: string;
   updatedAt: string | null;
 }
-
+export interface UserVehicleVariant {
+  id: string;
+  vehicleModelId: string;
+  color: string;
+  hexCode: string;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string | null;
+  model: VehicleModel;
+}
 export interface ApiResponse<TData, TMeta = null> {
   isSuccess: boolean;
   message: string;
   data: TData;
   metadata: TMeta;
 }
-
+export type UseVariantsSelected = {
+  variants: VehicleVariant[];
+  message: string;
+  isSuccess: boolean;
+};
 export type VariantListResponse = ApiResponse<VehicleVariant[], null>;
 export type VariantDetailResponse = ApiResponse<VehicleVariant, null>;
 
@@ -44,9 +58,9 @@ export type VariantDeleteResponse = ApiResponse<string, null>;
 
 /** ===== Service ===== */
 export const VariantService = {
-  /** GET /variants/model/{vehicleModelId} */
+  /** GET /api/v1/models/{id}/variants */
   getVariantsByModelId: async (vehicleModelId: string) => {
-    const res = await api8080Service.get<VariantListResponse>(`/api/v1/variants/model/${vehicleModelId}`);
+    const res = await api8080Service.get<VariantListResponse>(`/api/v1/models/${vehicleModelId}/variants`);
     return res.data;
   },
 

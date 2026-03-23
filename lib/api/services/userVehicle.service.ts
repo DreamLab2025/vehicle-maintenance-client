@@ -1,105 +1,92 @@
-/**
- * User Vehicle Service - API calls for user vehicles
- */
+// /**
+//  * User Vehicle Service - API calls for user vehicles
+//  */
 
-import api8080Service from "../api8080Service";
-import {
-  CreateUserVehicleRequest,
-  CreateUserVehicleResponse,
-  UserVehicleListResponse,
-  UserVehicleQueryParams,
-  DeleteUserVehicleResponse,
-  UserVehiclePartsResponse,
-  UpdateOdometerRequest,
-  UpdateOdometerResponse,
-  OdometerHistoryQueryParams,
-  OdometerHistoryResponse,
-} from "@/lib/types/vehicle.types";
-import { ApplyTrackingRequest, ApplyTrackingResponse, VehicleRemindersResponse } from "@/lib/types/reminder.types";
-import { AnalyzeQuestionnaireRequest, AnalyzeQuestionnaireResponse, ScanOdometerResponse } from "@/lib/types/ai.types";
+// import api8080Service from "../api8080Service";
 
-export const UserVehicleService = {
-  // ==================== Vehicle CRUD ====================
+// import { UserVehicle } from "./fetchUsers";
+// import { BaseQueryParams, PaginationMetadata } from "../apiService";
+// import { OdometerHistoryItem } from "@/components/widget/odometer/OdometerHistoryChart";
+// import { TrackingCycleSummary } from "./fetchVehiclePart";
 
-  createUserVehicle: async (payload: CreateUserVehicleRequest) => {
-    const response = await api8080Service.post<CreateUserVehicleResponse>("/api/v1/user-vehicles", payload);
-    return response.data;
-  },
+// interface CreateUserVehicleRequest {
+//   vehicleVariantId: string;
+//   licensePlate: string;
+//   nickname: string;
+//   vinNumber: string;
+//   purchaseDate: string;
+//   currentOdometer: number;
+// }
 
-  getUserVehicles: async (params: UserVehicleQueryParams) => {
-    const response = await api8080Service.get<UserVehicleListResponse>("/api/v1/user-vehicles", params);
-    return response.data;
-  },
+// interface CreateUserVehicleResponse {
+//   isSuccess: boolean;
+//   message: string;
+//   data: UserVehicle;
+//   metadata: unknown;
+// }
 
-  deleteUserVehicle: async (id: string) => {
-    const response = await api8080Service.delete<DeleteUserVehicleResponse>(`/api/v1/user-vehicles/${id}`);
-    return response.data;
-  },
+// interface UserVehicleListResponse {
+//   isSuccess: boolean;
+//   message: string;
+//   data: UserVehicle[];
+//   metadata: PaginationMetadata;
+// }
 
-  // ==================== Vehicle Parts ====================
+// interface UserVehicleQueryParams extends BaseQueryParams {
+//   [key: string]: string | number | boolean | null | undefined | string[];
+// }
 
-  getUserVehicleParts: async (userVehicleId: string) => {
-    const response = await api8080Service.get<UserVehiclePartsResponse>(`/api/v1/user-vehicles/${userVehicleId}/parts`);
-    return response.data;
-  },
+// interface DeleteUserVehicleResponse {
+//   isSuccess: boolean;
+//   message: string;
+//   data: string;
+//   metadata: null;
+// }
 
-  // ==================== AI Analysis ====================
+// export interface UserVehiclePart {
+//   id: string;
+//   partCategoryId: string;
+//   partCategoryName: string;
+//   partCategoryCode: string;
+//   iconUrl: string;
+//   isDeclared: boolean;
+//   description: string;
+//   /** Chu kỳ theo dõi hiện tại; null/undefined nếu chưa khai báo / chưa thiết lập */
+//   activeCycle?: TrackingCycleSummary | null;
+// }
 
-  analyzeQuestionnaire: async (payload: AnalyzeQuestionnaireRequest) => {
-    const response = await api8080Service.post<AnalyzeQuestionnaireResponse>(
-      "/api/v1/ai/vehicle-questionnaire/analyze",
-      payload,
-    );
-    return response.data;
-  },
+// // ==================== Odometer Update ====================
 
-  // ==================== Tracking & Reminders ====================
 
-  applyTracking: async (userVehicleId: string, payload: ApplyTrackingRequest) => {
-    const response = await api8080Service.post<ApplyTrackingResponse>(
-      `/api/v1/user-vehicles/${userVehicleId}/apply-tracking`,
-      payload,
-    );
-    return response.data;
-  },
+// // ==================== Odometer History ====================
 
-  getReminders: async (userVehicleId: string) => {
-    const response = await api8080Service.get<VehicleRemindersResponse>(
-      `/api/v1/user-vehicles/${userVehicleId}/reminders`,
-    );
-    return response.data;
-  },
 
-  // ==================== Odometer ====================
 
-  updateOdometer: async (userVehicleId: string, payload: UpdateOdometerRequest) => {
-    const response = await api8080Service.patch<UpdateOdometerResponse>(
-      `/api/v1/user-vehicles/${userVehicleId}/odometer`,
-      payload,
-    );
-    return response.data;
-  },
+// export const UserVehicleService = {
+//   // ==================== Vehicle CRUD ====================
 
-  scanOdometer: async (image: File, onProgress?: (percent: number) => void) => {
-    const response = await api8080Service.upload<ScanOdometerResponse>(
-      "/api/v1/ai/odometer/scan",
-      image,
-      "image",
-      undefined,
-      onProgress,
-    );
-    return response.data;
-  },
+//   createUserVehicle: async (payload: CreateUserVehicleRequest) => {
+//     const response = await api8080Service.post<CreateUserVehicleResponse>("/api/v1/user-vehicles", payload);
+//     return response.data;
+//   },
 
-  // ==================== Odometer History ====================
+//   getUserVehicles: async (params: UserVehicleQueryParams) => {
+//     const response = await api8080Service.get<UserVehicleListResponse>("/api/v1/user-vehicles", params);
+//     return response.data;
+//   },
 
-  getOdometerHistory: async (userVehicleId: string, params: OdometerHistoryQueryParams) => {
-    const response = await api8080Service.get<OdometerHistoryResponse>(
-      `/api/v1/user-vehicles/${userVehicleId}/odometer-history`,
-      params,
-    );
-    return response.data;
-  },
-};
+//   deleteUserVehicle: async (id: string) => {
+//     const response = await api8080Service.delete<DeleteUserVehicleResponse>(`/api/v1/user-vehicles/${id}`);
+//     return response.data;
+//   },
 
-export default UserVehicleService;
+//   // ==================== Vehicle Parts ====================
+
+//   // ==================== AI Analysis ====================
+
+//   // ==================== Tracking & Reminders ====================
+
+//   // ==================== Odometer ====================
+// };
+
+// export default UserVehicleService;

@@ -3,9 +3,10 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Gauge, Calendar, TrendingUp, ChevronDown } from "lucide-react";
-import type { OdometerHistoryItem } from "@/lib/types/vehicle.types";
-import type { PaginationMetadata } from "@/lib/types/common.types";
 import { LoadingSpinner } from "@/components/ui/skeletons";
+import { PaginationMetadata } from "@/lib/api/apiService";
+import { OdometerHistoryItem } from "@/lib/api/services/fetchOdometer";
+
 
 interface OdometerHistoryChartProps {
   data: OdometerHistoryItem[];
@@ -15,23 +16,21 @@ interface OdometerHistoryChartProps {
   isLoadingMore?: boolean;
 }
 
-export function OdometerHistoryChart({ 
-  data, 
+export function OdometerHistoryChart({
+  data,
   isLoading = false,
   metadata,
   onLoadMore,
   isLoadingMore = false,
 }: OdometerHistoryChartProps) {
   const formatNumber = (n: number) => n.toLocaleString("vi-VN");
-  
+
   // Hiển thị tất cả items đã load
   const displayedData = data;
   const hasMore = metadata?.hasNextPage;
 
   if (isLoading) {
-    return (
-      <LoadingSpinner text="Đang tải lịch sử..." className="bg-white rounded-2xl border border-gray-100 p-8" />
-    );
+    return <LoadingSpinner text="Đang tải lịch sử..." className="bg-white rounded-2xl border border-gray-100 p-8" />;
   }
 
   if (data.length === 0) {
@@ -56,9 +55,7 @@ export function OdometerHistoryChart({
           });
           const isLatest = index === 0;
           const previousItem = index > 0 ? data[index - 1] : null;
-          const kmDifference = previousItem
-            ? item.odometerValue - previousItem.odometerValue
-            : null;
+          const kmDifference = previousItem ? item.odometerValue - previousItem.odometerValue : null;
 
           return (
             <motion.div
@@ -92,8 +89,7 @@ export function OdometerHistoryChart({
                       <>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <TrendingUp className="h-3 w-3" />
-                          +{formatNumber(kmDifference)} km
+                          <TrendingUp className="h-3 w-3" />+{formatNumber(kmDifference)} km
                         </span>
                       </>
                     )}
@@ -110,8 +106,8 @@ export function OdometerHistoryChart({
                       item.source === "ManualInput"
                         ? "bg-green-100 text-green-700"
                         : item.source === "Scan"
-                        ? "bg-purple-100 text-purple-700"
-                        : "bg-gray-100 text-gray-700"
+                          ? "bg-purple-100 text-purple-700"
+                          : "bg-gray-100 text-gray-700"
                     }`}
                   >
                     {item.source === "ManualInput" ? "Thủ công" : item.source === "Scan" ? "Quét" : "Tự động"}
@@ -121,7 +117,7 @@ export function OdometerHistoryChart({
             </motion.div>
           );
         })}
-        
+
         {/* Load More Button */}
         {hasMore && (
           <div className="p-4 border-t border-gray-100">

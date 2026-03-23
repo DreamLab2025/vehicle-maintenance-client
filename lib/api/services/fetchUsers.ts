@@ -1,8 +1,7 @@
 // src/lib/api/services/fetchUsers.ts
-import { RequestParams } from "../apiService";
+import { PaginationMetadata, RequestParams } from "../apiService";
 import api8080Service from "../api8080Service";
-
-export type UserStatus = "Active" | "Inactive" | "Banned" | "Locked" | string;
+import { UserVehicleVariant } from "./fetchVariants";
 
 export interface UserDto {
   id: string;
@@ -11,19 +10,18 @@ export interface UserDto {
   phoneNumber: string;
   emailVerified: boolean;
   phoneNumberVerified: boolean;
-  status: UserStatus;
   roles: string[];
   createdAt: string; // ISO
 }
 
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
+export type UseUsersSelected = {
+  users: UsersListResponse["data"];
+  metadata: UsersListResponse["metadata"];
+  message: UsersListResponse["message"];
+  isSuccess: UsersListResponse["isSuccess"];
+};
+
+
 
 export interface UsersListResponse {
   isSuccess: boolean;

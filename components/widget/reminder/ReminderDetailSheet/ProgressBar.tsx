@@ -1,7 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ProgressBarProps } from "./types";
+export interface ProgressBarProps {
+  percent: number;
+  color: string;
+}
 
 export function ProgressBar({ percent, color }: ProgressBarProps) {
   return (

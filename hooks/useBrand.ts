@@ -1,9 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BrandService, BrandQueryParams } from "@/lib/api/services/fetchBrand";
 
-/* ======================================================
- * GIỮ NGUYÊN – useBrands (KHÔNG SỬA)
- * ====================================================== */
 export function useBrands(params: BrandQueryParams, enabled: boolean = true) {
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["brands", "list", params],
@@ -24,7 +21,6 @@ export function useBrands(params: BrandQueryParams, enabled: boolean = true) {
     error,
     refetch,
 
-    // data
     brands: data?.brands ?? [],
     metadata: data?.metadata,
     message: data?.message,
@@ -32,9 +28,6 @@ export function useBrands(params: BrandQueryParams, enabled: boolean = true) {
   };
 }
 
-/* ======================================================
- * THÊM MỚI – Lấy thương hiệu theo loại xe
- * ====================================================== */
 export function useBrandsByType(typeId?: string, enabled: boolean = true) {
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["brands", "by-type", typeId],
@@ -60,9 +53,6 @@ export function useBrandsByType(typeId?: string, enabled: boolean = true) {
   };
 }
 
-/* ======================================================
- * THÊM MỚI – Tạo mới thương hiệu
- * ====================================================== */
 export function useCreateBrand() {
   const queryClient = useQueryClient();
 
@@ -74,9 +64,6 @@ export function useCreateBrand() {
   });
 }
 
-/* ======================================================
- * THÊM MỚI – Tạo hàng loạt từ JSON
- * ====================================================== */
 export function useCreateBrandsBulk() {
   const queryClient = useQueryClient();
 
@@ -88,9 +75,6 @@ export function useCreateBrandsBulk() {
   });
 }
 
-/* ======================================================
- * THÊM MỚI – Upload file JSON tạo hàng loạt
- * ====================================================== */
 export function useUploadBrandsBulk() {
   const queryClient = useQueryClient();
 
@@ -102,9 +86,6 @@ export function useUploadBrandsBulk() {
   });
 }
 
-/* ======================================================
- * THÊM MỚI – Cập nhật thương hiệu
- * ====================================================== */
 export function useUpdateBrand() {
   const queryClient = useQueryClient();
 
@@ -117,9 +98,6 @@ export function useUpdateBrand() {
   });
 }
 
-/* ======================================================
- * THÊM MỚI – Xóa thương hiệu
- * ====================================================== */
 export function useDeleteBrand() {
   const queryClient = useQueryClient();
 

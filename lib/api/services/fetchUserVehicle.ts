@@ -1,53 +1,102 @@
 /**
- * @deprecated This file is kept for backward compatibility.
- * Please import from '@/lib/types' for types and '@/lib/api/services/userVehicle.service' for service.
+ * User Vehicle Service - API calls for user vehicles
  */
 
-// Re-export types for backward compatibility
-export type {
-  // Vehicle types
-  VehicleModel,
-  UserVehicleVariant,
-  UserVehicle,
-  UserVehiclePart,
-  CreateUserVehicleRequest,
-  CreateUserVehicleResponse,
-  UserVehicleListResponse,
-  UserVehicleQueryParams,
-  DeleteUserVehicleResponse,
-  UserVehiclePartsResponse,
-  UpdateOdometerRequest,
-  UpdateOdometerResponse,
-} from "@/lib/types/vehicle.types";
+import api8080Service from "../api8080Service";
 
-export type {
-  // Reminder types
-  ReminderPartCategory,
-  VehicleReminder,
-  PartTrackingReminder,
-  ApplyTrackingData,
-  ApplyTrackingRequest,
-  ApplyTrackingResponse,
-  VehicleRemindersResponse,
-} from "@/lib/types/reminder.types";
+import { BaseQueryParams, PaginationMetadata } from "../apiService";
+import { UserVehicleVariant } from "./fetchVariants";
+import { TrackingCycleSummary } from "./fetchVehiclePart";
 
-export type {
-  // AI types
-  QuestionAnswer,
-  AnalyzeQuestionnaireRequest,
-  AIRecommendation,
-  AIMetadata,
-  AnalyzeQuestionnaireData,
-  AnalyzeQuestionnaireResponse,
-  ScanOdometerData,
-  ScanOdometerResponse,
-} from "@/lib/types/ai.types";
+export interface CreateUserVehicleRequest {
+  vehicleVariantId: string;
+  licensePlate: string;
+  nickname: string;
+  vinNumber: string;
+  purchaseDate: string;
+  currentOdometer: number;
+}
+export interface UserVehicle {
+  id: string;
+  userId: string;
+  licensePlate: string;
+  nickname: string;
+  vinNumber: string;
+  purchaseDate: string;
+  currentOdometer: number;
+  lastOdometerUpdateAt: string;
+  averageKmPerDay: number;
+  lastCalculatedDate: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  userVehicleVariant: UserVehicleVariant;
+}
+export interface CreateUserVehicleResponse {
+  isSuccess: boolean;
+  message: string;
+  data: UserVehicle;
+  metadata: unknown;
+}
 
-export type {
-  // Common types
-  PaginationMetadata,
-} from "@/lib/types/common.types";
+export interface UserVehicleListResponse {
+  isSuccess: boolean;
+  message: string;
+  data: UserVehicle[];
+  metadata: PaginationMetadata;
+}
 
-// Re-export service
-export { UserVehicleService } from "./userVehicle.service";
-export { default } from "./userVehicle.service";
+export interface UserVehicleQueryParams extends BaseQueryParams {
+  [key: string]: string | number | boolean | null | undefined | string[];
+}
+
+export interface DeleteUserVehicleResponse {
+  isSuccess: boolean;
+  message: string;
+  data: string;
+  metadata: null;
+}
+
+export interface UserVehiclePart {
+  id: string;
+  partCategoryId: string;
+  partCategoryName: string;
+  partCategoryCode: string;
+  iconUrl: string;
+  isDeclared: boolean;
+  description: string;
+  /** Chu kỳ theo dõi hiện tại; null/undefined nếu chưa khai báo / chưa thiết lập */
+  activeCycle?: TrackingCycleSummary | null;
+}
+
+// ==================== Odometer Update ====================
+
+// ==================== Odometer History ====================
+
+export const UserVehicleService = {
+  // ==================== Vehicle CRUD ====================
+
+  createUserVehicle: async (payload: CreateUserVehicleRequest) => {
+    const response = await api8080Service.post<CreateUserVehicleResponse>("/api/v1/user-vehicles", payload);
+    return response.data;
+  },
+
+  getUserVehicles: async (params: UserVehicleQueryParams) => {
+    const response = await api8080Service.get<UserVehicleListResponse>("/api/v1/user-vehicles", params);
+    return response.data;
+  },
+
+  deleteUserVehicle: async (id: string) => {
+    const response = await api8080Service.delete<DeleteUserVehicleResponse>(`/api/v1/user-vehicles/${id}`);
+    return response.data;
+  },
+
+  // ==================== Vehicle Parts ====================
+
+  // ==================== AI Analysis ====================
+
+  // ==================== Tracking & Reminders ====================
+
+  // ==================== Odometer ====================
+};
+
+export default UserVehicleService;

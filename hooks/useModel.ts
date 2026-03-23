@@ -16,7 +16,6 @@ type UseModelsSelected = {
 
 export function useModels(params: ModelQueryParams, enabled: boolean = true) {
   const query = useQuery<ModelListResponse, Error, UseModelsSelected>({
-    // ✅ params là object => nên normalize để queryKey ổn định hơn
     queryKey: ["models", "list", JSON.stringify(params)],
     queryFn: () => ModelService.getModels(params),
     enabled: enabled && !!params?.PageNumber && !!params?.PageSize,
@@ -62,7 +61,6 @@ export function useModelById(id: string, enabled: boolean = true) {
   };
 }
 
-/** ===== Hook tạo model mới ===== */
 export function useCreateModel() {
   const queryClient = useQueryClient();
 
@@ -74,7 +72,6 @@ export function useCreateModel() {
   });
 }
 
-/** ===== Hook cập nhật model ===== */
 export function useUpdateModel() {
   const queryClient = useQueryClient();
 
@@ -87,7 +84,6 @@ export function useUpdateModel() {
   });
 }
 
-/** ===== Hook xóa model ===== */
 export function useDeleteModel() {
   const queryClient = useQueryClient();
 

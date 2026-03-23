@@ -83,3 +83,19 @@ a {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Magic UI / demo tabs — alias cùng hành vi */
+.no-visible-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-visible-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Odometer — DSEG7 Classic (seven-segment), loaded via @fontsource/dseg7-classic in layout */
+.font-odo-seven-segment {
+  font-family: "DSEG7 Classic", ui-monospace, monospace;
+  font-feature-settings: "tnum" 1;
+}

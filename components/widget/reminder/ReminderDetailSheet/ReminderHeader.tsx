@@ -1,7 +1,15 @@
 "use client";
 
+import { ReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 import { Calendar } from "lucide-react";
-import { ReminderHeaderProps } from "./types";
+
+
+export interface ReminderHeaderProps {
+  name: string;
+  status: string;
+  levelConfig: ReminderLevelConfig;
+  daysRemaining: number;
+}
 
 export function ReminderHeader({ name, status, levelConfig, daysRemaining }: ReminderHeaderProps) {
   const timeText = daysRemaining > 0 ? `Còn ${daysRemaining} ngày` : "Đã quá hạn";
