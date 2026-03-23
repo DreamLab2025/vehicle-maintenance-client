@@ -1,3 +1,4 @@
+import "@fontsource/dseg7-classic";
 import Providers from "@/lib/providers";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toast";
