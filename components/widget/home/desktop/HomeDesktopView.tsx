@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { useUserVehicles } from "@/hooks/useUserVehice";
 import { useUserVehicleParts } from "@/hooks/useVehiclePart";
-import { useUserVehicleReminders } from "@/hooks/useTrackingReminder";
 import { useMaintenanceRecordsByVehicle } from "@/hooks/useMaintenanceRecord";
 import { useOdometerHistory } from "@/hooks/useOdometer";
 import { DesktopSidebar } from "./DesktopSidebar";
@@ -25,7 +24,6 @@ export function HomeDesktopView() {
   const dataEnabled = !!vehicleId && !isAddSlot;
 
   const { parts, isLoading: isLoadingParts } = useUserVehicleParts(vehicleId, dataEnabled);
-  const { reminders, isLoading: isLoadingReminders } = useUserVehicleReminders(vehicleId, dataEnabled);
 
   const { data: maintenanceResponse, isLoading: isLoadingMaintenance } = useMaintenanceRecordsByVehicle(
     vehicleId,
@@ -81,8 +79,6 @@ export function HomeDesktopView() {
             isAddSlot={isAddSlot}
             parts={parts}
             isLoadingParts={isLoadingParts}
-            reminders={reminders}
-            isLoadingReminders={isLoadingReminders}
             declarationPercent={declarationPercent}
           />
           <DesktopRightPanel

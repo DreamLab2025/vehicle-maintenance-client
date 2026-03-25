@@ -89,10 +89,10 @@ export function HomeVehicleCarousel({
                     />
                     <div>
                       <h1 className="text-lg font-semibold leading-tight">
-                        {currentVehicle?.userVehicleVariant.model.brandName}
+                        {currentVehicle?.variant?.model?.brandName}
                       </h1>
                       <p className="text-white/50 text-[13px] font-normal">
-                        {currentVehicle?.userVehicleVariant.model.name || "City"}
+                        {currentVehicle?.variant?.model?.name || "City"}
                       </p>
                     </div>
                   </div>

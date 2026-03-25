@@ -43,17 +43,17 @@ const mod = (n: number, m: number) => ((n % m) + m) % m;
 // Map API data to Car type
 const mapVehicleToCar = (vehicle: UserVehicle): Car => ({
   id: vehicle.id,
-  brand: vehicle.userVehicleVariant.model.brandName,
-  model: vehicle.userVehicleVariant.model.name,
+  brand: vehicle.variant.model.brandName,
+  model: vehicle.variant.model.name,
   nickname: vehicle.nickname,
   licensePlate: vehicle.licensePlate,
-  type: vehicle.userVehicleVariant.model.typeName,
+  type: vehicle.variant.model.typeName,
   currentOdometer: vehicle.currentOdometer,
   purchaseDate: vehicle.purchaseDate,
   averageKmPerDay: vehicle.averageKmPerDay,
-  imageUrl: vehicle.userVehicleVariant.imageUrl,
-  color: vehicle.userVehicleVariant.color,
-  hexCode: vehicle.userVehicleVariant.hexCode,
+  imageUrl: vehicle.variant.imageUrl,
+  color: vehicle.variant.color,
+  hexCode: vehicle.variant.hexCode,
 });
 
 export default function RotaryCardCarousel() {

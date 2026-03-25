@@ -24,7 +24,7 @@ export default function PartConfigurationPage() {
   });
 
   const vehicle = vehicles.find((v) => v.id === vehicleId);
-  const vehicleModelId = vehicle?.userVehicleVariant?.vehicleModelId || vehicle?.userVehicleVariant?.model?.id || "";
+  const vehicleModelId = vehicle?.variant?.vehicleModelId || vehicle?.variant?.model?.id || "";
   const partConfig = getPartQuestions(partCode);
 
   const [answers, setAnswers] = useState<Record<string, string>>({});

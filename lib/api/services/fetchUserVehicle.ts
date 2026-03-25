@@ -29,7 +29,7 @@ export interface UserVehicle {
   lastCalculatedDate: string | null;
   createdAt: string;
   updatedAt: string | null;
-  userVehicleVariant: UserVehicleVariant;
+  variant: UserVehicleVariant;
 }
 export interface CreateUserVehicleResponse {
   isSuccess: boolean;

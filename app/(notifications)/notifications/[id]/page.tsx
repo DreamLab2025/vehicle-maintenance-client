@@ -193,7 +193,7 @@ export default function NotificationDetailPage() {
       return {
         licensePlate: vehicleFromApi.licensePlate,
         vehicleDisplayName:
-          `${vehicleFromApi.userVehicleVariant?.model?.brandName || ""} ${vehicleFromApi.userVehicleVariant?.model?.name || ""}`.trim() ||
+          `${vehicleFromApi.variant?.model?.brandName || ""} ${vehicleFromApi.variant?.model?.name || ""}`.trim() ||
           vehicleFromApi.nickname,
         currentOdometer: vehicleFromApi.currentOdometer,
         daysSinceUpdate: 0, // Not available from API
@@ -222,9 +222,9 @@ export default function NotificationDetailPage() {
     if (isMaintenanceReminder && maintenanceReminderInfo) {
       // Use vehicle detail if available, otherwise use vehicleDisplayName
       const licensePlate = vehicle?.licensePlate || maintenanceReminderInfo.vehicleDisplayName || "";
-      const brandName = vehicle?.userVehicleVariant?.model?.brandName || "Xe";
-      const modelName = vehicle?.userVehicleVariant?.model?.name || "";
-      const brandLogo = vehicle?.userVehicleVariant?.imageUrl || "";
+      const brandName = vehicle?.variant?.model?.brandName || "Xe";
+      const modelName = vehicle?.variant?.model?.name || "";
+      const brandLogo = vehicle?.variant?.imageUrl || "";
       return {
         brandLogo,
         brandName,

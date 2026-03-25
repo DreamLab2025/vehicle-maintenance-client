@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { UserVehicle, UserVehiclePart } from "@/lib/api/services/fetchUserVehicle";
 import type { VehicleReminder } from "@/lib/api/services/fetchTrackingReminder";
 import { Tabs, type TabItem } from "@/components/ui/tabs";
 import { MOCK_WEEKLY_ACTIVITY_KM } from "./desktopMock";
 import { getReminderLevelConfig } from "@/lib/config/reminderLevelConfig";
 import { cn } from "@/lib/utils";
+import { useUserVehicleReminders } from "@/hooks/useTrackingReminder";
 
 const BRAND = "#E22028";
 
@@ -65,8 +66,6 @@ type DesktopCenterPanelProps = {
   isAddSlot: boolean;
   parts: UserVehiclePart[];
   isLoadingParts: boolean;
-  reminders: VehicleReminder[];
-  isLoadingReminders: boolean;
   declarationPercent: number;
 };
 
@@ -75,12 +74,13 @@ export function DesktopCenterPanel({
   isAddSlot,
   parts,
   isLoadingParts,
-  reminders,
-  isLoadingReminders,
   declarationPercent,
 }: DesktopCenterPanelProps) {
-  const model = vehicle?.userVehicleVariant.model;
+  const model = vehicle?.variant?.model;
   const maxBarKm = useMemo(() => Math.max(...MOCK_WEEKLY_ACTIVITY_KM.map((d) => d.km), 1), []);
+  const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
+
+  const { reminders, isLoading: isLoadingReminders } = useUserVehicleReminders(vehicle?.id ?? "");
 
   const topReminders = useMemo(() => {
     return [...reminders].sort((a, b) => (b.percentageRemaining ?? 0) - (a.percentageRemaining ?? 0)).slice(0, 3);
@@ -240,7 +240,13 @@ export function DesktopCenterPanel({
                 {parts.map((p) => (
                   <li
                     key={p.id}
-                    className="flex items-center gap-2.5 rounded-xl border border-neutral-100 bg-neutral-50/80 p-2.5 dark:border-neutral-800 dark:bg-neutral-900/40"
+                    onClick={() => setSelectedPartId(selectedPartId === p.id ? null : p.id)}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2.5 rounded-xl border p-2.5 transition-all",
+                      selectedPartId === p.id
+                        ? "border-[#E22028] bg-white dark:bg-neutral-900 ring-1 ring-[#E22028]"
+                        : "border-neutral-100 bg-neutral-50/80 hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-900/40 dark:hover:border-neutral-700",
+                    )}
                   >
                     <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white dark:bg-neutral-950">
                       {p.iconUrl ? (
@@ -315,6 +321,7 @@ export function DesktopCenterPanel({
     parts,
     isLoadingParts,
     reminders,
+    selectedPartId,
   ]);
 
   if (isAddSlot || !vehicle) {
@@ -366,6 +373,126 @@ export function DesktopCenterPanel({
           containerClassName="justify-center sm:justify-start"
           activeTabClassName="bg-white shadow-sm dark:bg-neutral-900 dark:shadow-none"
         />
+
+        {/* Part Detail Panel - Rendered outside of useMemo to ensure state updates */}
+        {selectedPartId && (() => {
+          const selected = parts.find((p) => p.id === selectedPartId);
+          if (!selected) return null;
+          const cycle = selected.activeCycle;
+          const partReminders = reminders.filter((r) => r.partCategory.id === selected.partCategoryId);
+          const progressPercent =
+            cycle && Math.round(cycle.targetOdometer - cycle.startOdometer) > 0
+              ? Math.round(
+                  Math.min(
+                    100,
+                    ((vehicle?.currentOdometer ?? 0) - cycle.startOdometer) /
+                      Math.max(1, cycle.targetOdometer - cycle.startOdometer) * 100,
+                  ),
+                )
+              : 0;
+          return (
+            <div className="mt-2 flex flex-col gap-3 rounded-2xl border border-[#E22028] bg-white p-4 dark:border-[#E22028] dark:bg-neutral-900">
+              {/* Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
+                    {selected.iconUrl ? (
+                      <Image src={selected.iconUrl} alt="" width={22} height={22} className="object-contain" unoptimized />
+                    ) : (
+                      <span className="text-[10px] text-neutral-400">—</span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-neutral-900 dark:text-neutral-100">{selected.partCategoryName}</p>
+                    <p className="text-[10px] text-neutral-500">{selected.partCategoryCode}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedPartId(null)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-neutral-500 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-700"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* No cycle message */}
+              {!cycle ? (
+                <p className="text-[12px] text-neutral-500">Chưa có chu kỳ theo dõi cho phụ tùng này.</p>
+              ) : (
+                <>
+                  {/* Progress bar */}
+                  <div className="flex items-center gap-2.5">
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                      <div
+                        className="h-full rounded-full bg-[#E22028] transition-all"
+                        style={{ width: `${cycle.status === "Completed" ? 100 : progressPercent}%` }}
+                      />
+                    </div>
+                    <span className="shrink-0 text-[11px] font-medium text-neutral-600 dark:text-neutral-400">
+                      {cycle.status === "Completed" ? 100 : progressPercent}%
+                    </span>
+                  </div>
+
+                  {/* Info grid */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
+                    <div className="flex flex-col gap-0.5">
+                      <span className={labelMuted}>Số km hiện tại</span>
+                      <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                        {(vehicle?.currentOdometer ?? 0).toLocaleString("vi-VN")} km
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className={labelMuted}>Số km ban đầu</span>
+                      <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                        {cycle.startOdometer.toLocaleString("vi-VN")} km
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className={labelMuted}>Mốc thay thế</span>
+                      <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                        {cycle.targetOdometer.toLocaleString("vi-VN")} km
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-0.5">
+                      <span className={labelMuted}>Ngày khai báo</span>
+                      <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                        {new Date(cycle.startDate).toLocaleDateString("vi-VN")}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Reminders */}
+                  {partReminders.length > 0 && (
+                    <div className="flex flex-col gap-1.5">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">Nhắc nhở</p>
+                      {partReminders.map((r) => {
+                        const cfg = getReminderLevelConfig(r.level);
+                        return (
+                          <div
+                            key={r.id}
+                            className="flex items-center justify-between rounded-lg border border-neutral-100 bg-neutral-50/60 px-3 py-1.5 dark:border-neutral-800 dark:bg-neutral-900/30"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: cfg.hexColor }} />
+                              <span className="text-[12px] text-neutral-700 dark:text-neutral-300">
+                                {r.remainingKm.toLocaleString("vi-VN")} km · {r.targetDate
+                                  ? new Date(r.targetDate).toLocaleDateString("vi-VN")
+                                  : "—"}
+                              </span>
+                            </div>
+                            <span className="text-[12px] font-semibold text-neutral-700 dark:text-neutral-300">
+                              {Math.round(r.percentageRemaining)}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </section>
   );

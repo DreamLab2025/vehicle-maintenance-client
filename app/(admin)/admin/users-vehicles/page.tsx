@@ -34,12 +34,12 @@ export default function UserVehiclepage() {
     if (!k) return vehicles;
 
     return vehicles.filter((v) => {
-      const model = v.userVehicleVariant?.model;
+      const model = v.variant?.model;
       const haystack = [
         v.nickname,
         v.licensePlate,
         v.vinNumber,
-        v.userVehicleVariant?.color,
+        v.variant?.color,
         model?.name,
         model?.brandName,
         model?.typeName,
@@ -58,7 +58,7 @@ export default function UserVehiclepage() {
   }, [pageSize, isDescending]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-5 p-4 sm:p-6">
+    <div className="flex flex-1 flex-col gap-5 p-6">
       <UserVehicleToolbar onAddClick={() => setDialogOpen(true)} onRefresh={() => refetch()} isFetching={isFetching} />
 
       <UserVehicleFilters

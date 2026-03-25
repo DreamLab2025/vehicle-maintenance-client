@@ -13,11 +13,9 @@ interface ModelFiltersProps {
 
 export function ModelFilters({ filters, onFilterChange }: ModelFiltersProps) {
   const transmissionOptions: { value: TransmissionType; label: string }[] = [
-    { value: "Manual", label: "Xe số" },
-    { value: "Automatic", label: "Tay ga" },
+    { value: "Manual", label: "Số sàn / Xe số" },
+    { value: "Automatic", label: "Số tự động / Tay ga" },
     { value: "Sport", label: "Xe côn" },
-    { value: "Manual", label: "Số sàn" },
-    { value: "Automatic", label: "Số tự động" },
     { value: "Electric", label: "Điện" },
   ];
 
@@ -81,36 +79,31 @@ export function ModelFilters({ filters, onFilterChange }: ModelFiltersProps) {
 
           {/* HÀNG 2: 2 ô nằm giữa */}
           {/* 4) TransmissionType - start ở cột 2 (giữa) */}
-          {(() => {
-            const ALL = "__all__";
-            return (
-              <div className="space-y-2 md:col-span-2 md:col-start-2">
-                <Label htmlFor="transmission" className="text-sm font-medium text-gray-700">
-                  Loại hộp số
-                </Label>
-                <Select
-                  value={filters.TransmissionType ?? ALL}
-                  onValueChange={(v) =>
-                    onFilterChange({
-                      TransmissionType: v === ALL ? undefined : (v as TransmissionType),
-                    })
-                  }
-                >
-                  <SelectTrigger id="transmission" className="border-gray-200 focus:border-red-500 focus:ring-red-500">
-                    <SelectValue placeholder="Chọn loại hộp số" />
-                  </SelectTrigger>
-                  <SelectContent className="z-50 bg-white text-gray-900 shadow-md border border-gray-200">
-                    <SelectItem value={ALL}>Tất cả</SelectItem>
-                    {transmissionOptions.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            );
-          })()}
+          <div className="space-y-2 md:col-span-2 md:col-start-2">
+            <Label htmlFor="transmission" className="text-sm font-medium text-gray-700">
+              Loại hộp số
+            </Label>
+            <Select
+              value={filters.TransmissionType ?? ALL}
+              onValueChange={(v) =>
+                onFilterChange({
+                  TransmissionType: v === ALL ? undefined : (v as TransmissionType),
+                })
+              }
+            >
+              <SelectTrigger id="transmission" className="border-gray-200 focus:border-red-500 focus:ring-red-500">
+                <SelectValue placeholder="Chọn loại hộp số" />
+              </SelectTrigger>
+              <SelectContent className="z-50 bg-white text-gray-900 shadow-md border border-gray-200">
+                <SelectItem value={ALL}>Tất cả</SelectItem>
+                {transmissionOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* 5) ReleaseYear - start ở cột 4 (giữa) */}
           <div className="space-y-2 md:col-span-2 md:col-start-4">

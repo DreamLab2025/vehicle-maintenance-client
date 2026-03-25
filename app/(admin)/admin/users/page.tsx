@@ -452,7 +452,7 @@ export default function UsersPage() {
   const showSkeleton = isLoading || isFetching;
 
   return (
-    <div className="container mx-auto py-8 space-y-6 max-w-7xl">
+    <div className="flex flex-1 flex-col gap-6 p-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-5">
         <div>

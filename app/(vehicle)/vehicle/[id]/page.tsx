@@ -224,9 +224,9 @@ export default function VehicleDetailPage() {
   }
 
   // const getCarImage = () => {
-  //   if (vehicle.userVehicleVariant.imageUrl)
-  //     return vehicle.userVehicleVariant.imageUrl;
-  //   const brandLower = vehicle.userVehicleVariant.model.brandName.toLowerCase();
+  //   if (vehicle.variant.imageUrl)
+  //     return vehicle.variant.imageUrl;
+  //   const brandLower = vehicle.variant.model.brandName.toLowerCase();
   //   if (brandLower.includes("honda"))
   //     return "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1400&auto=format&fit=crop&q=80";
   //   if (brandLower.includes("toyota"))
@@ -273,8 +273,8 @@ export default function VehicleDetailPage() {
             className="absolute inset-0 flex items-center justify-center"
           >
             <Image
-              src={vehicle.userVehicleVariant.imageUrl || ""}
-              alt={`${vehicle.userVehicleVariant.model.brandName} ${vehicle.userVehicleVariant.model.name}`}
+              src={vehicle.variant.imageUrl || ""}
+              alt={`${vehicle.variant.model.brandName} ${vehicle.variant.model.name}`}
               fill
               className="object-cover"
               unoptimized
@@ -295,10 +295,10 @@ export default function VehicleDetailPage() {
                     {vehicle.nickname || "Xe của tôi"}
                 </p>
                 <h1 className="text-lg font-semibold text-white mb-0.5 leading-tight">
-                  {vehicle.userVehicleVariant.model.brandName}
+                  {vehicle.variant.model.brandName}
                 </h1>
                 <p className="text-[13px] text-white/50 font-normal">
-                  {vehicle.userVehicleVariant.model.name}
+                  {vehicle.variant.model.name}
                 </p>
               </div>
               <div className="flex items-center rounded-lg bg-black backdrop-blur-xl border border-black overflow-hidden h-12">
@@ -372,7 +372,7 @@ export default function VehicleDetailPage() {
                   <span className="text-[13px] text-semibold text-neutral-600">{"Loại xe"}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
-                  {vehicle.userVehicleVariant.model.typeName}
+                  {vehicle.variant.model.typeName}
                 </span>
               </div>
 
@@ -382,7 +382,7 @@ export default function VehicleDetailPage() {
                   <span className="text-[13px] text-semibold text-neutral-600">{"Loại nhiên liệu"}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
-                  {vehicle.userVehicleVariant.model.fuelTypeName}
+                  {vehicle.variant.model.fuelTypeName}
                 </span>
               </div>
 
@@ -392,7 +392,7 @@ export default function VehicleDetailPage() {
                   <span className="text-[13px] text-semibold text-neutral-600">{"Hộp số"}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
-                  {vehicle.userVehicleVariant.model.transmissionTypeName}
+                  {vehicle.variant.model.transmissionTypeName}
                 </span>
               </div>
 
@@ -402,7 +402,7 @@ export default function VehicleDetailPage() {
                   <span className="text-[13px] text-semibold text-neutral-600">{"Năm sản xuất"}</span>
                 </div>
                 <span className="text-[13px] font-semibold text-gray-900">
-                  {vehicle.userVehicleVariant.model.releaseYear}
+                  {vehicle.variant.model.releaseYear}
                 </span>
               </div>
 

@@ -77,10 +77,10 @@ export function VehicleSelection({
                   />
                   <div>
                     <h3 className="text-lg font-semibold leading-tight">
-                      {vehicle.userVehicleVariant?.model?.brandName || "Xe"}
+                      {vehicle.variant?.model?.brandName || "Xe"}
                     </h3>
                     <p className="text-white/50 text-[13px] font-normal">
-                      {vehicle.userVehicleVariant?.model?.name || ""}
+                      {vehicle.variant?.model?.name || ""}
                     </p>
                   </div>
                 </div>

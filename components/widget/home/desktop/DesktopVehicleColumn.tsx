@@ -112,10 +112,10 @@ export function DesktopVehicleColumn({
                       <LicensePlateBadge licensePlate={v.licensePlate} size="md" className="mx-auto w-fit max-w-full" />
 
                       <div className="relative  h-[188px] w-full shrink-0 overflow-hidden rounded-x">
-                        {v.userVehicleVariant.imageUrl ? (
+                        {v.variant?.imageUrl ? (
                           <SafeImage
-                            src={v.userVehicleVariant.imageUrl}
-                            alt={v.userVehicleVariant.model.name}
+                            src={v.variant?.imageUrl}
+                            alt={v.variant?.model?.name}
                             fill={true}
                             className="object-cover "
                           />
@@ -132,10 +132,10 @@ export function DesktopVehicleColumn({
                 <div className="flex w-full px-2 min-w-0 items-center justify-between gap-2.5 ">
                   <LicensePlateBadge licensePlate={v.licensePlate} size="md" className="min-w-0" />
                   <div className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-xl">
-                    {v.userVehicleVariant.imageUrl ? (
+                    {v.variant?.imageUrl ? (
                       <SafeImage
-                        src={v.userVehicleVariant.imageUrl}
-                        alt={v.userVehicleVariant.model.name}
+                        src={v.variant?.imageUrl}
+                        alt={v.variant?.model?.name}
                         fill={true}
                         className="object-cover "
                       />

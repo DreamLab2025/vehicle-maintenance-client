@@ -179,10 +179,10 @@ export function CategorySelection({
           className="p-4 rounded-xl bg-neutral-50 border border-neutral-200"
         >
           <div className="flex items-center gap-3">
-            {selectedVehicle.userVehicleVariant?.imageUrl ? (
+            {selectedVehicle.variant?.imageUrl ? (
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-neutral-200 flex-shrink-0">
                 <Image
-                  src={selectedVehicle.userVehicleVariant.imageUrl}
+                  src={selectedVehicle.variant.imageUrl}
                   alt={selectedVehicle.licensePlate}
                   width={64}
                   height={64}

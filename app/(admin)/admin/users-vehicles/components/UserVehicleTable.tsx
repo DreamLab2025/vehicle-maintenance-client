@@ -82,7 +82,7 @@ export default function UserVehicleTable({ vehicles, isLoading }: Props) {
             </TableRow>
           ) : (
             vehicles.map((v) => {
-              const model = v.userVehicleVariant?.model;
+              const model = v.variant?.model;
               const deleting = deletingId === v.id;
 
               return (
@@ -99,8 +99,8 @@ export default function UserVehicleTable({ vehicles, isLoading }: Props) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    {v.userVehicleVariant?.color ? (
-                      <Badge variant="secondary">{v.userVehicleVariant.color}</Badge>
+                    {v.variant?.color ? (
+                      <Badge variant="secondary">{v.variant.color}</Badge>
                     ) : (
                       <span>-</span>
                     )}
